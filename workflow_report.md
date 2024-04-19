@@ -2,7 +2,7 @@
 Author: Antonia Golab
 Date: 2024-04-18
 
-## 18.04.2024
+## 18.04.2024 + 19.04.2024
 
 - Setup of new file structure
     - TransportSecModel.jl
@@ -21,7 +21,13 @@ Used for refence:
 - [GENeSYS-MOD](https://github.com/GENeSYS-MOD/GENeSYS_MOD.jl/tree/main)
 - [Syntef EnergyModelsBase](https://github.com/EnergyModelsX/EnergyModelsBase.jl/tree/main)
 - [OpenEntrance Nomenclature](https://github.com/openENTRANCE/openentrance/tree/main/definitions/variable)
-- Creation of input file (Excel-Sheet for now) with referencing the IAMC data format developed in OpenEntrance
+- Outline of structure of input file (Excel-Sheet for now) which contains
+    - information on whichb underlying information(explenation) of the indices used for the sets
+    - which sets are to be created with all keys/indices that are used throughout the parameter definition
+    - parameter values with keys
+    - ! settings for model run - information on which modules are used of the model 
+- <mark>TODO: check-functions for data reading to make sure that all data is available for the solution, also certain modules need to be activated, depending on what others are activated</mark>
+
 ## Stylized case studies
 
 ### A.1. Demand coverage in regions
