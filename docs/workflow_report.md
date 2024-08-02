@@ -30,10 +30,41 @@ Used for refence:
 
 ## Stylized case studies
 
+## 31.07.2024
 ### A.1. Demand coverage in regions
-Description: routes, nodes, vehicle types (+diff in drivetraintechnology), modes, product types; dimensions are 2x2x2x2x2 each.
-Sets: route, nodes, modes, vehicle types, product types
-Extended description:  
+_Description_: O-D pairs, nodes, product types, modes, vehicle types, drive-train technologies,; dimensions are times two each.
+_Sets_: O-D pairs, nodes, modes, vehicle types, drive-train technology, product types
+_Extended description_
+    - The geographic extent of the study are two regions
+    - There is just transport activity happening isolated within these regions - no between the two regions
+    - Two product types are being transported
+    - Two vehicle types a two drive-train technologies are considered 
+    
+    i.e.: The two product types to be distributed within a regions. The two vehicle types are diesel-fueled and battery-electric. 
+    nodes N = {1, 2}
+    product types P = {1, 2}
+    routes R^p = {1, 2} forall p
+    vehicle types V^p = {1, 2} : forall p
+    with two drivetrain technologies each: T^v = {1, 2} : forall p
+    contraints: 2 + 3 + 4;  
+    decision variables: f, h
+    parameters: L_nk, L_e, W, L^a, F
+    terms in objective function: costs for vehicle stock and costs of fuel
+
+    initial state: all fossil with vehicle of type 1 
+
+__01.08.2024__
+_How to most efficiently parametrize the model in Julia?_
+Excel sheet -> YAML -> Julia -> parametrization.  
+How is it done in other projects?
+EnergyModelX: uses the abstract types and then ..
+I will use structs to define the basic sets that are considered and then create subsets based on this
+__02.08.2024__
+Parameters are set up ... what now? 
+creating test_run.jl
+now creating some parametrization.
+
+
 
 
 ## Workflow Overview
