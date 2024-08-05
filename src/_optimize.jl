@@ -33,7 +33,7 @@ route = Dict(1 => [1, 4, 5, 3])
 F = Dict((1, 1) => 2000, (2, 1) => 2000) # y, r 
 L_node_edges = Dict((1, 1) => 200, (2, 1) => 200, (3, 1) => 200, (4, 1) => 5000, (5, 1) => 5000) # (e/n)k; route length within a note 
 W = Dict((1, 1) => 10.63) # t, g 
-L_a = Dict((1, 1) => 1200000)# t, g
+L_a = Dict((1, 1) => 1200000) # t, g
 alpha = 0.5
 beta = 0.5
 h_init = Dict((1, 1, 1) => 1) # rtg

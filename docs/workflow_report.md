@@ -31,7 +31,8 @@ Used for refence:
 ## Stylized case studies
 
 ## 31.07.2024
-### A.1. Demand coverage in regions
+### A.1.
+Demand coverage in regions
 _Description_: O-D pairs, nodes, product types, modes, vehicle types, drive-train technologies,; dimensions are times two each.
 _Sets_: O-D pairs, nodes, modes, vehicle types, drive-train technology, product types
 _Extended description_
@@ -64,7 +65,33 @@ Parameters are set up ... what now?
 creating test_run.jl
 now creating some parametrization.
 
+__05.08.2024__
+Goals for today:
+    - adapt A.1 a bit -- check 
+    - A.2 design    --check
+    - A.2 implementation    --check
+    - B design and implementation
 
+### A.2. Demand coverage in time
+The same as case A.1 but with the time constant, two years are observed: Y=2
+
+
+### B. Vehicle stock sizing 
+Adding vehicle stock sizing
+    - years are extended to Y = 10
+    - generation index
+    - adding aging constraint
+    - adding dying constraint
+
+__later this week__
+    - GOAL: finish all implementation and cases 
+    - restructure to a nice layout
+    - figure out efficient input and output writing
+    - design "Small Basque" country case study
+    - have a concrete plan for the data retrievel for the Basque country
+    - embed this into a python workflow
+    - create basic visualizations 
+    
 
 
 ## Workflow Overview
