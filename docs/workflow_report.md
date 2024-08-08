@@ -70,30 +70,62 @@ Goals for today:
     - adapt A.1 a bit -- check 
     - A.2 design    --check
     - A.2 implementation    --check
-    - B design and implementation
+    - B design and implementation -- checke
 
 ### A.2. Demand coverage in time
 The same as case A.1 but with the time constant, two years are observed: Y=2
 
 
-### B. Vehicle stock sizing 
+### B. Vehicle stock sizing and aging 
 Adding vehicle stock sizing
     - years are extended to Y = 10
     - generation index
     - adding aging constraint
     - adding dying constraint
+    - TODO here: for testing the functionality of the code: make multiple different lifetime tests 
+
+__06.08.2024__
+    - C.1 (technology substitution) design -- check
+    - C.1 implementation -- check
+    - C.2 design and implementation
+
+### C.1 Technology shift - vehicle costs
+Needed adaptions:
+    - no new indices
+    - but attribute adaptions for cost structure
+    - differences in fuel costs and vehicle costs
+
+### C.2 Technology shift - technology costs
+    constant vehicle costs, varying technology costs 
 
 __later this week__
     - GOAL: finish all implementation and cases 
     - restructure to a nice layout
     - figure out efficient input and output writing
-    - design "Small Basque" country case study
+    - design "Small Basque" country case study (considered modes and vehicle types)
     - have a concrete plan for the data retrievel for the Basque country
     - embed this into a python workflow
     - create basic visualizations 
-    
 
+### C.3 Mode shift
+Required changes:
+    - add index m (mode) - to decision variables
+    - where in the structs: just vehicle types
+    - create a case study with multiple modes
+    - make two modes each 2 possible vehicles 
 
+__08.08.2024__
+    - c.3 design -- check
+    - c.3 implementation --check 
+
+### C.4 Gradual shift constraint
+Required adaptions:
+    - adding the constraint
+    - testing it on a long horizon 
+    - add inits! 
+__09.08.2024__
+    - c.4 design
+    - c.4 implementation+
 ## Workflow Overview
 
 [Describe the overall workflow and its purpose.]
