@@ -118,7 +118,7 @@ __08.08.2024__
     - c.3 design -- check
     - c.3 implementation --check 
 
-### C.4 Gradual shift constraint
+### C.4 Gradual shift constraint: technology
 Required adaptions:
     - adding the constraint
     - testing it on a long horizon 
@@ -126,6 +126,13 @@ Required adaptions:
 __09.08.2024__
     - c.4 design
     - c.4 implementation+
+### C.5 Gradual shift constraint: mode 
+
+__10.08.2024__
+    - c4 implementation -- check
+    - c5 design -- check 
+    - c5 implementation
+    
 ## Workflow Overview
 
 [Describe the overall workflow and its purpose.]
