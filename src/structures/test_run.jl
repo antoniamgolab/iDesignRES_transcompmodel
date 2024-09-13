@@ -410,3 +410,12 @@ elseif case in ["C.5"]
         end
     end
 end
+
+mode_ = Dict(
+        "id" => Mode.id,
+        "name" => vehicle.name,
+        "mode" => Dict(
+            "name" => vehicle.mode.name,
+            "speed" => vehicle.mode.speed
+        )
+    )
