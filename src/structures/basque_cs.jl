@@ -1,4 +1,4 @@
-using YAML, JuMP, Gurobi
+using YAML, JuMP, Gurobi, Printf
 include("structs.jl")
 
 # Reading the data 
@@ -77,7 +77,7 @@ end
 
 # @objective(model, Min, sum(h_plus[y, r.id, (v.vehicle_type.id, v.technology.id), g]* v.capital_cost[g] for y in 1:Y for r in odpairs for v in techvehicles for g in 1:G)  + sum(f[y, p.id, k.id, (v.vehicle_type.id, v.technology.id), g] * k.length * v.technology.fuel.cost_per_kWh[g] for y in 1:Y for p in products for k in paths for v in techvehicles for g in 1:G))
 # @objective(model, Min, sum(h_plus[y, r.id, (v.vehicle_type.id, v.technology.id), g]* v.capital_cost[g] for y in 1:Y for r in odpairs for v in techvehicles for g in 1:G))
-@objective(model, Min, sum(sum(sum(h_plus[y, r.id, (v.vehicle_type.id, v.technology.id), g]) + sum(f[y, (r.product.id, r.id, k.id), (v.vehicle_type.id, v.technology.id), g] for k in r.paths) for v in techvehicles for r in odpairs for y in 1:Y for g in 1:G)))
+@objective(model, Min, sum(sum(sum(h_plus[y, r.id, (v.vehicle_type.id, v.technology.id), g]) * v.capital_cost[g] + sum(f[y, (r.product.id, r.id, k.id), (v.vehicle_type.id, v.technology.id), g] for k in r.paths) for v in techvehicles for r in odpairs for y in 1:Y for g in 1:G)))
 
 optimize!(model)
 solution_summary(model)
@@ -144,7 +144,9 @@ for y in 1:Y, r in odpairs, (v, t) in v_t_pairs, g in 1:G
 end
 
 function stringify_keys(dict::Dict)
-    return Dict(string(k) => v for (k, v) in dict)
+    return Dict(
+        string(k) => (v isa Float64 ? @sprintf("%.6f", v) : string(v)) 
+        for (k, v) in dict)
 end
 
 # Convert the keys of each dictionary to strings
