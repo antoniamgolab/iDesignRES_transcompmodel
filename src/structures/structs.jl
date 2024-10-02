@@ -22,14 +22,7 @@ struct Path
     nodes
 end
 
-struct Odpair
-    id::Int
-    origin::Node
-    destination::Node
-    paths::Array{Path, 1} # this needs to be adaoted later as for each odpair different paths exist depending also on the mode
-    F
-    product::Product
-end
+
 
 
 struct Fuel
@@ -62,3 +55,27 @@ struct TechVehicle
     AnnualRange::Array{Float64, 1} # annual range in km
     products::Array{Product, 1} # number of vehicles of this type
 end
+
+struct InitialVehicleStock
+    id::Int
+    techvehicle::TechVehicle 
+    year_of_purchase::Int
+    stock::Int
+end
+
+struct Odpair
+    id::Int
+    origin::Node
+    destination::Node
+    paths::Array{Path, 1} # this needs to be adaoted later as for each odpair different paths exist depending also on the mode
+    F
+    product::Product
+    vehicle_stock_init::Array{InitialVehicleStock, 1}# initial vehicle stock
+end
+
+struct Generation
+    id::Int
+    year::Int
+    y:: Int
+end
+
