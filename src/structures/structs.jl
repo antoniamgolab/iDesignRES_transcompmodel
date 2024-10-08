@@ -68,7 +68,11 @@ struct InitialVehicleStock
     year_of_purchase::Int
     stock::Int
 end
-
+struct FinancialStatus
+    id::Int
+    name::String
+    weight::Float64
+end
 struct Odpair
     id::Int
     origin::Node
@@ -77,7 +81,11 @@ struct Odpair
     F
     product::Product
     vehicle_stock_init::Array{InitialVehicleStock, 1}# initial vehicle stock
+    financial_status::FinancialStatus
+    urban::Bool
 end
+
+
 
 struct Generation
     id::Int
