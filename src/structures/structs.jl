@@ -3,6 +3,14 @@ struct Node
     name::String
 end
 
+struct Edge
+    id::Int
+    name::String
+    length::Float64
+    from::String 
+    to::String
+end
+
 """ struct for `Mode` defining the modes of transport """
 
 struct Mode
@@ -19,16 +27,14 @@ struct Path
     id::Int
     name::String
     length::Float64
-    nodes
+    sequence
 end
-
-
-
 
 struct Fuel
     id::Int
     name::String
     cost_per_kWh   # € per kWh 
+    cost_per_kW 
 end
 
 struct Technology

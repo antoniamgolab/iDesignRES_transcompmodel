@@ -2,15 +2,20 @@ using YAML, JuMP, Gurobi, Printf
 include("structs.jl")
 
 # Reading the data 
-data = YAML.load_file("temp_data/transport_data_years_v5.yaml")
+# data = YAML.load_file("temp_data/transport_data_years_v5.yaml")
+data = YAML.load_file("temp_data/transport_data_years_v6.yaml")
+
 # println(keys(data))
 
 # "Mode", "Product", "Vehicletype", "Technology", "Path", "Fuel", "Odpair", "Node", "TechVehicle"
+node_list = [Node(node["id"], node["name"]) for node in data["Node"]]
+edge_list = [Edge(edge["id"], edge["name"], edge["length"], edge["from"], edge["to"]) for edge in data["Edge"]]
+
 modes = [Mode(mode["id"], mode["name"]) for mode in data["Mode"]]
 products = [Product(product["id"], product["name"]) for product in data["Product"]]
 nodes = [Node(node["id"], node["name"]) for node in data["Node"]]
-paths = [Path(path["id"], path["name"], path[raw"length"],[nodes[findfirst(n -> n.name == node, nodes)] for node in path["nodes"]]) for path in data["Path"]]
-fuels = [Fuel(fuel["id"], fuel["name"], fuel["cost_per_kWh"]) for fuel in data["Fuel"]]
+paths = [Path(path["id"], path["name"], path[raw"length"],[el for el in path["sequence"]]) for path in data["Path"]]
+fuels = [Fuel(fuel["id"], fuel["name"], fuel["cost_per_kWh"], fuel["cost_per_kW"]) for fuel in data["Fuel"]]
 technologies = [Technology(technology["id"], technology["name"], fuels[findfirst(f -> f.name == technology["fuel"], fuels)]) for technology in data["Technology"]]
 vehicletypes = [Vehicletype(vehicletype["id"], vehicletype["name"], modes[findfirst(m -> m.name == vehicletype["mode"], modes)]) for vehicletype in data["Vehicletype"]]
 techvehicles = [TechVehicle(techvehicle["id"], techvehicle["name"], vehicletypes[findfirst(v -> v.name == techvehicle["vehicle_type"], vehicletypes)], technologies[findfirst(t -> t.name == techvehicle["technology"], technologies)], techvehicle["capital_cost"], techvehicle["W"], techvehicle["spec_cons"], techvehicle["Lifetime"], techvehicle["AnnualRange"], [products[findfirst(p -> p.name == prod, products)] for prod in techvehicle["products"]]) for techvehicle in data["TechVehicle"]]
@@ -19,7 +24,7 @@ initvehiclestocks = [InitialVehicleStock(initvehiclestock["id"], techvehicles[fi
 odpairs = [Odpair(odpair["id"], nodes[findfirst(nodes -> nodes.name == odpair["from"], nodes)], nodes[findfirst(nodes -> nodes.name == odpair["to"], nodes)], [paths[findfirst(p -> p.id == odpair["path_id"], paths)]], odpair["F"], products[findfirst(p -> p.name == odpair["product"], products)], [initvehiclestocks[findfirst(ivs -> ivs.id == vsi, initvehiclestocks)] for vsi in odpair["vehicle_stock_init"]]) for odpair in data["Odpair"]]
 
 println("Data read successfully")
-odpairs = odpairs[1:1]
+# odpairs = odpairs[1:2]
 #print(odpairs)
 # ----------------------------- VEHICLE STOCK SIZING -----------------------------
 # similar to test case B 
@@ -34,11 +39,17 @@ g_init = y_init - pre_y
 Y_end = y_init+Y - 1
 v_t_pairs = Set((tv.vehicle_type.id, tv.technology.id) for tv in techvehicles)
 p_r_k_pairs = Set((r.product.id, r.id, k.id) for r in odpairs for k in r.paths)
+r_k_pairs = Set((r.id, k.id) for r in odpairs for k in r.paths)
 model = Model(Gurobi.Optimizer)
 alpha_h = 0.1
 beta_h = 0.1
 alpha_f = 0.1
 beta_f = 0.1
+E = data["Model"]["E"] # number of edges
+N = data["Model"]["N"] # number of nodes
+p_r_k_e_pairs = Set((r.product.id, r.id, k.id, el) for r in odpairs for k in r.paths for el in k.sequence if typeof(el) == Int)
+p_r_k_n_pairs = Set((r.product.id, r.id, k.id, el) for r in odpairs for k in r.paths for el in k.sequence if typeof(el) == String)
+gamma = data["Model"]["gamma"] 
 
 # --- decision variables ---
 # @variable(model, f[[y for y in 1:Y], [p.id for p in products], [k.id for k in paths], v_t_pairs, [g for g in 1:G]] >= 0)
@@ -47,6 +58,12 @@ beta_f = 0.1
 @variable(model, h_exist[[y for y in y_init:Y_end], [r.id for r in odpairs], v_t_pairs, [g for g in g_init:Y_end]] >= 0)
 @variable(model, h_plus[[y for y in y_init:Y_end], [r.id for r in odpairs], v_t_pairs, [g for g in g_init:Y_end]] >= 0)
 @variable(model, h_minus[[y for y in y_init:Y_end], [r.id for r in odpairs], v_t_pairs, [g for g in g_init:Y_end]] >= 0)
+@variable(model, s_e[[y for y in y_init:Y_end], p_r_k_e_pairs, v_t_pairs] >= 0)
+@variable(model, s_n[[y for y in y_init:Y_end], p_r_k_n_pairs, v_t_pairs] >= 0)
+@variable(model, q_fuel_infr_plus_e[[y for y in y_init:Y_end], v_t_pairs, [e for e in 1:E]] >= 0)
+@variable(model, q_fuel_infr_plus_n[[y for y in y_init:Y_end], v_t_pairs, [n for n in 1:N]] >= 0)
+
+
 println("Variables created successfully")
 
 # --- constraints ---
@@ -54,6 +71,8 @@ println("Variables created successfully")
 
 @constraint(model, [y in y_init:Y_end, r in odpairs], sum(f[y, (r.product.id, r.id, k.id), (v.vehicle_type.id, v.technology.id), g] for k in r.paths for v in techvehicles for g in g_init:Y_end) == r.F[y-y_init+1]) 
 @constraint(model, [y in y_init:Y_end, r in odpairs, v in techvehicles, g in g_init:Y_end], h[y, r.id, (v.vehicle_type.id, v.technology.id), g] >= sum((k.length/(v.W[g-g_init+1]* v.AnnualRange[g-g_init+1])) * f[y, (r.product.id, r.id, k.id), (v.vehicle_type.id, v.technology.id), g] for k in r.paths))
+@constraint(model, [y in y_init:Y_end, p in products, r_k in r_k_pairs, v in techvehicles], sum(s_e[y, (p.id, r_k[1], r_k[2], el), (v.vehicle_type.id, v.technology.id)] for el in paths[findfirst(k0 -> k0.id == r_k[2], paths)].sequence if typeof(el) == Int) + sum(s_n[y, (p.id, r_k[1], r_k[2], el), (v.vehicle_type.id, v.technology.id)] for el in paths[findfirst(k0 -> k0.id == r_k[2], paths)].sequence if typeof(el) == String) >= sum(((gamma * v.spec_cons[g-g_init+1])/(v.W[g-g_init+1] * paths[findfirst(p0 -> p0.id == r_k[2], paths)].length)) * f[y, (p.id, r_k[1], r_k[2]), (v.vehicle_type.id, v.technology.id), g] for g in g_init:Y_end))
+# @constraint(model, [y in y_init:Y_end, p in products, r in odpair, k in r.paths, v_t in v_t_pairs], sum(s_e[y, (p, r, k, e), v_t] for e in paths[findfirst(k0 -> k0.id == k, paths)].edges + sum(s_n[y, (p, r, k, n), v_t] for n in paths[findfirst(k0 -> k0.id == k, paths)].nodes)) == sum(((gamma * techvehicles[findfirst(vt => vt.id == v_t[1], techvehicles)].spec_cons[g])/(techvehicles[findfirst(vt => vt.id == v_t[1], techvehicles)].W[g] * paths[findfirst(p0 => p0.id == v_t[1], paths)].length)) * f[y, (p, r.id, k.id), v_t, g] for g in g_init:Y_end))
 
 for r in odpairs
     for v in techvehicles
@@ -126,6 +145,14 @@ end
 @constraint(model, [y in (y_init+1):Y_end, r in odpairs], - (sum(f[y, (r.product.id, r.id, k.id), (v.vehicle_type.id, v.technology.id), g] for k in r.paths for v in techvehicles for g in g_init:Y_end) - sum(f[y-1, (r.product.id, r.id, k.id), (v.vehicle_type.id, v.technology.id), g] for v in techvehicles for k in r.paths for g in g_init:Y_end)) <= alpha_f*sum(f[y, (r.product.id, r.id, k.id), (v.vehicle_type.id, v.technology.id), g] for v in techvehicles for k in r.paths for g in g_init:Y_end) + beta_f * sum(f[y-1, (r.product.id, r.id, k.id), (v.vehicle_type.id, v.technology.id), g] for v in techvehicles for k in r.paths for g in g_init:Y_end))
 # f[y, (r.product.id, r.id, k.id), (v.vehicle_type.id, v.technology.id), g]
 
+
+# constraints for fueling infrastucture
+@constraint(model, [y in y_init:Y_end, v_t in v_t_pairs, e in 1:E], sum(q_fuel_infr_plus_e[y0, v_t, e] for y0 in y_init:y)>= sum(s_e[y, p_r_k_e, v_t] for p_r_k_e in p_r_k_e_pairs if p_r_k_e[4] == e))
+
+@constraint(model, [y in y_init:Y_end, v_t in v_t_pairs, n in 1:N], sum(q_fuel_infr_plus_n[y0, v_t, n] for y0 in y_init:y)>= sum(s_n[y, p_r_k_n, v_t] for p_r_k_n in p_r_k_n_pairs if p_r_k_n[4] == n))
+ 	
+
+
 println("Constraints created successfully")
 # @objective(model, Min, sum(h_plus[y, r.id, (v.vehicle_type.id, v.technology.id), g]* v.capital_cost[g] for y in 1:Y for r in odpairs for v in techvehicles for g in 1:G)  + sum(f[y, p.id, k.id, (v.vehicle_type.id, v.technology.id), g] * k.length * v.technology.fuel.cost_per_kWh[g] for y in 1:Y for p in products for k in paths for v in techvehicles for g in 1:G))
 # @objective(model, Min, sum(h_plus[y, r.id, (v.vehicle_type.id, v.technology.id), g]* v.capital_cost[g] for y in 1:Y for r in odpairs for v in techvehicles for g in 1:G))
@@ -134,28 +161,45 @@ println("Constraints created successfully")
 # @objective(model, Min, sum(sum((h_plus[y, r.id, (v.vehicle_type.id, v.technology.id), g]* v.capital_cost[g-g_init+1] + h[y, r.id, (v.vehicle_type.id, v.technology.id), g] * 100)  for v in techvehicles for r in odpairs for y in y_init:Y_end for g in g_init:Y_end)))
 # Precompute the capital cost values
 capital_cost_map = Dict((v.vehicle_type.id, v.technology.id, g) => v.capital_cost[g - g_init + 1] for v in techvehicles for g in g_init:Y_end)
-
+fuel_cost_map = Dict((v.vehicle_type.id, v.technology.id, y) => v.technology.fuel.cost_per_kWh[y - y_init + 1] for v in techvehicles for y in y_init:Y_end)
+spec_cons_map = Dict((v.vehicle_type.id, v.technology.id, g) => v.spec_cons[g - g_init + 1] for v in techvehicles for g in g_init:Y_end)
 # Initialize the total cost expression
 #total_cost_expr = @expression(model, 0)
 total_cost_expr = AffExpr(0)
 
 # Build the objective function more efficiently
-for v in techvehicles
-    for r in odpairs
-        for y in y_init:Y_end
+for y in y_init:Y_end
+    for v in techvehicles
+        for r in odpairs
             for g in g_init:Y_end
                 # Fetch precomputed capital cost
                 capital_cost = capital_cost_map[(v.vehicle_type.id, v.technology.id, g)]
-                
+                fuel_cost = fuel_cost_map[(v.vehicle_type.id, v.technology.id, y)] * (1/spec_cons_map[(v.vehicle_type.id, v.technology.id, g)]) 
                 # Add terms to the objective using add_to_expression!
                 add_to_expression!(total_cost_expr, h_plus[y, r.id, (v.vehicle_type.id, v.technology.id), g] * capital_cost)
                 add_to_expression!(total_cost_expr, h[y, r.id, (v.vehicle_type.id, v.technology.id), g] * 100)
-                add_to_expression!(total_cost_expr, sum(f[y, (r.product.id, r.id, k.id), (v.vehicle_type.id, v.technology.id), g] * k.length * v.technology.fuel.cost_per_kWh[y - y_init + 1] for k in r.paths))
+                for k in r.paths
+                    for el in k.sequence
+                        if typeof(el) == Int
+                            add_to_expression!(total_cost_expr, s_e[y, (r.product.id, r.id, k.id, el), (v.vehicle_type.id, v.technology.id)] * fuel_cost)
+                        elseif typeof(el) == String
+                            add_to_expression!(total_cost_expr, s_n[y, (r.product.id, r.id, k.id, el), (v.vehicle_type.id, v.technology.id)] * fuel_cost)
+                        end
+            
+                    end
+                end    
+                
             end
+
+        end
+        for e in 1:E
+            add_to_expression!(total_cost_expr, q_fuel_infr_plus_e[y, (v.vehicle_type.id, v.technology.id), e] * v.technology.fuel.cost_per_kW[y-y_init+1])
+        end
+        for n in 1:N
+            add_to_expression!(total_cost_expr, q_fuel_infr_plus_n[y, (v.vehicle_type.id, v.technology.id), n] * v.technology.fuel.cost_per_kW[y-y_init+1])
         end
     end
 end
-
 # # Set the objective to minimize
 @objective(model, Min, total_cost_expr)
 
@@ -169,12 +213,15 @@ solved_h_plus = value.(h_plus)
 solved_h_minus = value.(h_minus)
 solved_h_exist = value.(h_exist)
 solved_f = value.(f)
+solved_s_e = value.(s_e)
+solved_s_n = value.(s_n)
+solved_q_fuel_infr_plus_e = value.(q_fuel_infr_plus_e)
+solved_q_fuel_infr_plus_n = value.(q_fuel_infr_plus_n)
 
 for v in techvehicles 
     for y in y_init:Y_end
         # println("h in year ",r.id , " ", sum(solved_h[:, r.id, :, :]), " h_plus in year ",r.id , " ", sum(solved_h_plus[:, r.id, :, :]), " h_minus in year ",r.id , " ", sum(solved_h_minus[:, r.id, :, :]), " h_exist in year ",y , " ", sum(solved_h_exist[y, r.id, :, :])," f in year ",y , " ", sum(solved_f[:, r.id, :, :]))
-        println("Tech ", v.id , "; h in year ",y , " ", sum(solved_h[y, :, (v.vehicle_type.id, v.technology.id), :]), " h_plus in year ",y , " ", sum(solved_h_plus[y, :, (v.vehicle_type.id, v.technology.id), :]), " h_minus in year ",y , " ", sum(solved_h_minus[y, :, (v.vehicle_type.id, v.technology.id), :]), " h_exist in year ",y , " ", sum(solved_h_exist[y, :, (v.vehicle_type.id, v.technology.id), :])," f in year ",y , " ", sum(solved_f[y, :,(v.vehicle_type.id, v.technology.id), :]))
-
+        println("Tech ", v.id , "; h in year ",y , " ", sum(solved_h[y, :, (v.vehicle_type.id, v.technology.id), :]), " h_plus in year ",y , " ", sum(solved_h_plus[y, :, (v.vehicle_type.id, v.technology.id), :]), " h_minus in year ",y , " ", sum(solved_h_minus[y, :, (v.vehicle_type.id, v.technology.id), :]), " h_exist in year ",y , " ", sum(solved_h_exist[y, :, (v.vehicle_type.id, v.technology.id), :])," f in year ",y , " ", sum(solved_f[y, :,(v.vehicle_type.id, v.technology.id), :]), " s ", sum(solved_s_e[y, :, (v.vehicle_type.id, v.technology.id)]) + sum(solved_s_n[y, :, (v.vehicle_type.id, v.technology.id)]), "; q_fuel ", sum(solved_q_fuel_infr_plus_n[y, :, :]) + sum(solved_q_fuel_infr_plus_e[y, :, :]))
     end
 end
 
