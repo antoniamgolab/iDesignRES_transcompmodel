@@ -1,37 +1,37 @@
 ,distance,path,type
-0,7000,"[('ES211', 'ES211')]",region_urban
-1,8000,"[('ES211', 'ES211')]",region_rural
-2,9000,"[('ES211', 'ES211')]",region_urban
-3,23000,"[('ES211', 'ES211')]",region_rural
-4,8000,"[('ES211', 'ES211')]",region_urban
-5,12000,"[('ES211', 'ES211')]",region_rural
+0,14000,"[('ES211', 'ES211')]",region_urban
+1,16000,"[('ES211', 'ES211')]",region_rural
+2,18000,"[('ES211', 'ES211')]",region_urban
+3,46000,"[('ES211', 'ES211')]",region_rural
+4,16000,"[('ES211', 'ES211')]",region_urban
+5,24000,"[('ES211', 'ES211')]",region_rural
 6,198000,"[('ES212', 'ES211')]",interregional
-10,7000,"[('ES212', 'ES212')]",region_urban
-11,8000,"[('ES212', 'ES212')]",region_rural
-12,9000,"[('ES212', 'ES212')]",region_urban
-13,23000,"[('ES212', 'ES212')]",region_rural
-14,8000,"[('ES212', 'ES212')]",region_urban
-15,12000,"[('ES212', 'ES212')]",region_rural
+10,14000,"[('ES212', 'ES212')]",region_urban
+11,16000,"[('ES212', 'ES212')]",region_rural
+12,18000,"[('ES212', 'ES212')]",region_urban
+13,46000,"[('ES212', 'ES212')]",region_rural
+14,16000,"[('ES212', 'ES212')]",region_urban
+15,24000,"[('ES212', 'ES212')]",region_rural
 16,198000,"[('ES211', 'ES212')]",interregional
 20,194000,"[('ES213','ES212')]",interregional
 21,126000,"[('ES213','ES211')]",interregional
-28,7000,"[('ES213', 'ES213')]",region_urban
-29,8000,"[('ES213', 'ES213')]",region_rural
-30,9000,"[('ES213', 'ES213')]",region_urban
-31,23000,"[('ES213', 'ES213')]",region_rural
-32,8000,"[('ES213', 'ES213')]",region_urban
-33,12000,"[('ES213', 'ES213')]",region_rural
+28,14000,"[('ES213', 'ES213')]",region_urban
+29,16000,"[('ES213', 'ES213')]",region_rural
+30,18000,"[('ES213', 'ES213')]",region_urban
+31,46000,"[('ES213', 'ES213')]",region_rural
+32,16000,"[('ES213', 'ES213')]",region_urban
+33,24000,"[('ES213', 'ES213')]",region_rural
 34,194000,"[('ES212', 'ES213')]",interregional
 36,126000,"[('ES211','ES213')]",interregional
 42,170000,"[('ES220', 'ES212')]",interregional
 44,196000,"[('ES220', 'ES211')]",interregional
 49,312000,"[('ES220','ES212', 'ES213')]",interregional
-54,7000,"[('ES220', 'ES220')]",region_urban
-55,8000,"[('ES220', 'ES220')]",region_rural
-56,9000,"[('ES220', 'ES220')]",region_urban
-57,23000,"[('ES220', 'ES220')]",region_rural
-58,8000,"[('ES220', 'ES220')]",region_urban
-59,12000,"[('ES220', 'ES220')]",region_rural
+54,14000,"[('ES220', 'ES220')]",region_urban
+55,16000,"[('ES220', 'ES220')]",region_rural
+56,18000,"[('ES220', 'ES220')]",region_urban
+57,46000,"[('ES220', 'ES220')]",region_rural
+58,16000,"[('ES220', 'ES220')]",region_urban
+59,24000,"[('ES220', 'ES220')]",region_rural
 60,170000,"[('ES212', 'ES220')]",interregional
 64,196000,"[('ES211', 'ES220')]",interregional
 66,312000,"[('ES213','ES212', 'ES220')]",interregional
@@ -39,12 +39,12 @@
 74,192000,"[('ES230','ES211')]",interregional
 79,268000,"[('ES230','ES211', 'ES213')]",interregional
 83,384000,"[('ES230', 'ES220', 'ES212')]",interregional
-88,7000,"[('ES230', 'ES230')]",region_urban
-89,8000,"[('ES230', 'ES230')]",region_rural
-90,9000,"[('ES230', 'ES230')]",region_urban
-91,23000,"[('ES230', 'ES230')]",region_rural
-92,8000,"[('ES230', 'ES230')]",region_urban
-93,12000,"[('ES230', 'ES230')]",region_rural
+88,14000,"[('ES230', 'ES230')]",region_urban
+89,16000,"[('ES230', 'ES230')]",region_rural
+90,18000,"[('ES230', 'ES230')]",region_urban
+91,46000,"[('ES230', 'ES230')]",region_rural
+92,16000,"[('ES230', 'ES230')]",region_urban
+93,24000,"[('ES230', 'ES230')]",region_rural
 94,268000,"[('ES213','ES211', 'ES230')]",interregional
 95,178000,"[('ES220', 'ES230')]",interregional
 96,192000,"[('ES211', 'ES230')]",interregional
@@ -55,12 +55,12 @@
 118,306000,"[('ES412', 'ES213')]",interregional
 123,422000,"[('ES412', 'ES211','ES212')]",interregional
 125,416000,"[('ES412', 'ES230','ES220')]",interregional
-130,7000,"[('ES412', 'ES412')]",region_urban
-131,8000,"[('ES412', 'ES412')]",region_rural
-132,9000,"[('ES412', 'ES412')]",region_urban
-133,23000,"[('ES412', 'ES412')]",region_rural
-134,8000,"[('ES412', 'ES412')]",region_urban
-135,12000,"[('ES412', 'ES412')]",region_rural
+130,14000,"[('ES412', 'ES412')]",region_urban
+131,16000,"[('ES412', 'ES412')]",region_rural
+132,18000,"[('ES412', 'ES412')]",region_urban
+133,46000,"[('ES412', 'ES412')]",region_rural
+134,16000,"[('ES412', 'ES412')]",region_urban
+135,24000,"[('ES412', 'ES412')]",region_rural
 136,306000,"[('ES213', 'ES412')]",interregional
 137,228000,"[('ES211', 'ES412')]",interregional
 140,230000,"[('ES230', 'ES412')]",interregional
@@ -72,12 +72,12 @@
 165,472000,"[('ES130', 'ES213', 'ES211', 'ES230')]",interregional
 166,516000,"[('ES130', 'ES213', 'ES212', 'ES220')]",interregional
 173,396000,"[('ES130', 'ES213', 'ES212')]",interregional
-179,7000,"[('ES130', 'ES130')]",region_urban
-180,8000,"[('ES130', 'ES130')]",region_rural
-181,9000,"[('ES130', 'ES130')]",region_urban
-182,23000,"[('ES130', 'ES130')]",region_rural
-183,8000,"[('ES130', 'ES130')]",region_urban
-184,12000,"[('ES130', 'ES130')]",region_rural
+179,14000,"[('ES130', 'ES130')]",region_urban
+180,16000,"[('ES130', 'ES130')]",region_rural
+181,18000,"[('ES130', 'ES130')]",region_urban
+182,46000,"[('ES130', 'ES130')]",region_rural
+183,16000,"[('ES130', 'ES130')]",region_urban
+184,24000,"[('ES130', 'ES130')]",region_rural
 185,206000,"[('ES213','ES130')]",interregional
 189,396000,"[('ES212', 'ES213', 'ES130')]",interregional
 191,330000,"[('ES211', 'ES213','ES130')]",interregional
