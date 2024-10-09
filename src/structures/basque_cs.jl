@@ -24,7 +24,8 @@ initvehiclestocks = [InitialVehicleStock(initvehiclestock["id"], techvehicles[fi
 odpairs = [Odpair(odpair["id"], nodes[findfirst(nodes -> nodes.name == odpair["from"], nodes)], nodes[findfirst(nodes -> nodes.name == odpair["to"], nodes)], [paths[findfirst(p -> p.id == odpair["path_id"], paths)]], odpair["F"], products[findfirst(p -> p.name == odpair["product"], products)], [initvehiclestocks[findfirst(ivs -> ivs.id == vsi, initvehiclestocks)] for vsi in odpair["vehicle_stock_init"]], financial_stati[findfirst(fs -> fs.name == odpair["financial_status"], financial_stati)], odpair["urban"]) for odpair in data["Odpair"]]
 
 println("Data read successfully")
-# odpairs = odpairs[1:2]
+println("Number of odpairs: ", length(odpairs))
+# odpairs = odpairs[1:200]
 # print(odpairs)
 # ----------------------------- VEHICLE STOCK SIZING -----------------------------
 # similar to test case B 
@@ -182,7 +183,9 @@ for y in y_init:Y_end
 end
 # # Set the objective to minimize
 @objective(model, Min, total_cost_expr)
-
+set_optimizer_attribute(model, "Method", 0)
+set_optimizer_attribute(model, "Threads", 2)
+set_optimizer_attribute(model, "PreSparsify", 2)
 println("Solution .... ")
 optimize!(model)
 solution_summary(model)
