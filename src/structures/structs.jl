@@ -47,6 +47,8 @@ struct Vehicletype
     id::Int
     name::String
     mode::Mode
+    size_order::Int
+    product::Product
 end
 
 struct TechVehicle
