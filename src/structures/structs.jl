@@ -6,7 +6,7 @@ A 'Node' represents geographic region.
 # Fields
 - `id::Int`: unique identifier of the node
 - `name::String`: name the region
-# test comment
+
 """
 struct Node
     id::Int
