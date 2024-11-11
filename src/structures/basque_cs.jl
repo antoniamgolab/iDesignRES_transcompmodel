@@ -3,7 +3,7 @@ include("structs.jl")
 
 # Reading the data 
 # data = YAML.load_file("temp_data/transport_data_years_v5.yaml")
-data = YAML.load_file("C:/Users/Antonia/Documents/external sources/transport_data_years_v5/transport_data_years_v44.yaml")
+data = YAML.load_file("C:/Users/Antonia/Documents/external sources/transport_data_years_v5/transport_data_years_v45.yaml")
 case = "restricted_EVs_with_mode_restriction"
 
 # println(keys(data))
@@ -30,7 +30,7 @@ println("Data read successfully")
 println("Number of odpairs: ", length(odpairs))
 # 
 
-# odpairs = odpairs[1:20]
+odpairs = odpairs[1:20]
 
 
 # print(odpairs)
@@ -57,6 +57,25 @@ E = data["Model"]["E"] # number of edges
 N = data["Model"]["N"] # number of nodes
 p_r_k_e_pairs = Set((r.product.id, r.id, k.id, el) for r in odpairs for k in r.paths for el in k.sequence if typeof(el) == Int)
 p_r_k_n_pairs = Set((r.product.id, r.id, k.id, el) for r in odpairs for k in r.paths for el in k.sequence if typeof(el) == String)
+
+
+# creating here "empty" vehicle types for the modes that are not assigned to have 
+m_v_pairs = Set()
+counter_additional_vehs = length(techvehicles)
+for m in modes
+    global vehs_in_this_mode = False
+    for v in techvehicles
+        if v.vehicle_type.mode.id == m.id
+            push!(m_v_pairs, (m.id, v.id))
+            vehs_in_this_mode = True
+        end
+    end
+    if mode.
+        push!(m_v_pairs, (m.id, counter_additional_vehs + 1))
+        counter_additional_vehs += 1
+    end
+end
+
 m_v_pairs = Set((v.vehicle_type.mode.id, v.id) for v in techvehicles)
 println(m_v_pairs)
 # print(p_r_k_e_pairs)
@@ -67,20 +86,8 @@ gamma = data["Model"]["gamma"]
 # prinln(goal_no_new_ICEV)
 
 # --- decision variables ---
-# @variable(model, f[[y for y in 1:Y], [p.id for p in products], [k.id for k in paths], v_t_pairs, [g for g in 1:G]] >= 0)
-# old version
-# @variable(model, f[y in y_init:Y_end, p_r_k_pairs, v_t_pairs, g in g_init:Y_end; g <= y] >= 0)
-# @variable(model, h[y in y_init:Y_end, r_id in [r.id for r in odpairs], v_t_pairs, g in g_init:Y_end; g <= y] >= 0)
-# @variable(model, h_exist[y in y_init:Y_end, r_id in [r.id for r in odpairs], v_t_pairs, g in g_init:Y_end; g <= y] >= 0)
-# @variable(model, h_plus[y in y_init:Y_end, r_id in [r.id for r in odpairs], v_t_pairs, g in g_init:Y_end; g <= y] >= 0)
-# @variable(model, h_minus[y in y_init:Y_end, r_id in [r.id for r in odpairs], v_t_pairs, g in g_init:Y_end; g <= y] >= 0)
-# @variable(model, s_e[y in y_init:Y_end, p_r_k_e_pairs, v_t_pairs] >= 0)
-# @variable(model, s_n[y in y_init:Y_end, p_r_k_n_pairs, v_t_pairs] >= 0)
-# @variable(model, q_fuel_infr_plus_e[y in y_init:Y_end, v_t_pairs, [e.id for e in edge_list]] >= 0)
-# @variable(model, q_fuel_infr_plus_n[y in y_init:Y_end, v_t_pairs, [n.id for n in node_list]] >= 0)
 
-# new version
-# @variable(model, f[y in y_init:Y_end, p_r_k_pairs, tv_id in [tv.id for tv in techvehicles], g in g_init:Y_end; g <= y] >= 0)
+
 @variable(model, h[y in y_init:Y_end, r_id in [r.id for r in odpairs], tv_id in [tv.id for tv in techvehicles], g in g_init:Y_end; g <= y] >= 0)
 @variable(model, h_exist[y in y_init:Y_end, r_id in [r.id for r in odpairs], tv_id in [tv.id for tv in techvehicles], g in g_init:Y_end; g <= y] >= 0)
 @variable(model, h_plus[y in y_init:Y_end, r_id in [r.id for r in odpairs], tv_id in [tv.id for tv in techvehicles], g in g_init:Y_end; g <= y] >= 0)
@@ -89,23 +96,9 @@ gamma = data["Model"]["gamma"]
 @variable(model, s_n[y in y_init:Y_end, p_r_k_n_pairs, tv_id in [tv.id for tv in techvehicles]] >= 0)
 @variable(model, q_fuel_infr_plus_e[y in y_init:Y_end, t_id in [t.id for t in technologies], [e.id for e in edge_list]] >= 0)
 @variable(model, q_fuel_infr_plus_n[y in y_init:Y_end, t_id in [t.id for t in technologies], [n.id for n in node_list]] >= 0)
-
-# new version
-# @variable(model, f[y in y_init:Y_end, p_r_k_pairs, v_t_pairs, tv_id in [tv.id for tv in techvehicles], g in g_init:Y_end; g <= y] >= 0)
-# @variable(model, h[y in y_init:Y_end, r_id in [r.id for r in odpairs], v_t_pairs, tv_id in [tv.id for tv in techvehicles], g in g_init:Y_end; g <= y] >= 0)
-# @variable(model, h_exist[y in y_init:Y_end, r_id in [r.id for r in odpairs], v_t_pairs, tv_id in [tv.id for tv in techvehicles], g in g_init:Y_end; g <= y] >= 0)
-# @variable(model, h_plus[y in y_init:Y_end, r_id in [r.id for r in odpairs], v_t_pairs, tv_id in [tv.id for tv in techvehicles], g in g_init:Y_end; g <= y] >= 0)
-# @variable(model, h_minus[y in y_init:Y_end, r_id in [r.id for r in odpairs], v_t_pairs, tv_id in [tv.id for tv in techvehicles], g in g_init:Y_end; g <= y] >= 0)
-# @variable(model, s_e[y in y_init:Y_end, p_r_k_e_pairs, v_t_pairs, tv_id in [tv.id for tv in techvehicles]] >= 0)
-# @variable(model, s_n[y in y_init:Y_end, p_r_k_n_pairs, v_t_pairs, tv_id in [tv.id for tv in techvehicles]] >= 0)
-# @variable(model, q_fuel_infr_plus_e[y in y_init:Y_end, v_t_pairs, tv_id in [tv.id for tv in techvehicles], [e.id for e in edge_list]] >= 0)
-# @variable(model, q_fuel_infr_plus_n[y in y_init:Y_end, v_t_pairs, tv_id in [tv.id for tv in techvehicles], [n.id for n in node_list]] >= 0)
-
-# newer version with mode
 @variable(model, f[y in y_init:Y_end, p_r_k_pairs, m_v_pairs, g in g_init:Y_end; g <= y] >= 0)
+@variable(model, budget_penalty[y in y_init:Y_end, r_id in [r.id for r in odpairs]] >= 0) # variable for penalty of crossing the budget
 
-# variable for penalty of crossing the budget
-@variable(model, budget_penalty[y in y_init:Y_end, r_id in [r.id for r in odpairs]] >= 0)
 
 
 println("Variables created successfully")
