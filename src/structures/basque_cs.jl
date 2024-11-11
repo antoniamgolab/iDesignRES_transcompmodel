@@ -12,7 +12,7 @@ case = "restricted_EVs_with_mode_restriction"
 node_list = [Node(node["id"], node["name"]) for node in data["Node"]]
 edge_list = [Edge(edge["id"], edge["name"], edge["length"], node_list[findfirst(n -> n.name == edge["from"], node_list)], node_list[findfirst(n -> n.name == edge["to"], node_list)]) for edge in data["Edge"]]
 financial_stati =[FinancialStatus(financial_stat["id"], financial_stat["name"], financial_stat["weight"], financial_stat["VoT"], financial_stat["monetary_budget_operational"], financial_stat["monetary_budget_operational_lb"], financial_stat["monetary_budget_operational_ub"], financial_stat["monetary_budget_purchase"], financial_stat["monetary_budget_purchase_lb"], financial_stat["monetary_budget_purchase_ub"]) for financial_stat in data["FinancialStatus"]]
-modes = [Mode(mode["id"], mode["name"]) for mode in data["Mode"]]
+modes = [Mode(mode["id"], mode["name"], mode["quantify_by_vehs"]) for mode in data["Mode"]]
 products = [Product(product["id"], product["name"]) for product in data["Product"]]
 nodes = [Node(node["id"], node["name"]) for node in data["Node"]]
 paths = [Path(path["id"], path["name"], path["length"],[el for el in path["sequence"]]) for path in data["Path"]]
