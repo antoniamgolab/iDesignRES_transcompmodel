@@ -41,10 +41,12 @@ A 'Mode' represents a transport mode. Transport modes may differ either by the i
 # Fields
 - `id::Int`: unique identifier of the mode
 - `name::String`: name of the mode
+- `quantify_by_vehs::Bool`: if for this mode vehicles stock is sized or not. If this mode is considered with levelized costs, including the costs for vehicles and related costs. 
 """
 struct Mode
     id::Int 
-    name:: String 
+    name::String
+    quantify_by_vehs::Bool 
 end
 
 """
