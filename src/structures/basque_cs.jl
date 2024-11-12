@@ -4,7 +4,7 @@ include("structs.jl")
 # Reading the data 
 # data = YAML.load_file("temp_data/transport_data_years_v5.yaml")
 data = YAML.load_file("C:/Users/Antonia/Documents/external sources/transport_data_years_v5/transport_data_years_v45.yaml")
-case = "restricted_EVs_with_mode_restriction"
+case = "testing superficial mode shift"
 
 # println(keys(data))
 
@@ -12,7 +12,7 @@ case = "restricted_EVs_with_mode_restriction"
 node_list = [Node(node["id"], node["name"]) for node in data["Node"]]
 edge_list = [Edge(edge["id"], edge["name"], edge["length"], node_list[findfirst(n -> n.name == edge["from"], node_list)], node_list[findfirst(n -> n.name == edge["to"], node_list)]) for edge in data["Edge"]]
 financial_stati =[FinancialStatus(financial_stat["id"], financial_stat["name"], financial_stat["weight"], financial_stat["VoT"], financial_stat["monetary_budget_operational"], financial_stat["monetary_budget_operational_lb"], financial_stat["monetary_budget_operational_ub"], financial_stat["monetary_budget_purchase"], financial_stat["monetary_budget_purchase_lb"], financial_stat["monetary_budget_purchase_ub"]) for financial_stat in data["FinancialStatus"]]
-modes = [Mode(mode["id"], mode["name"], mode["quantify_by_vehs"], mode["cost_per_ukm"]) for mode in data["Mode"]]
+modes = [Mode(mode["id"], mode["name"], mode["quantify_by_vehs"], mode["costs_per_ukm"]) for mode in data["Mode"]]
 products = [Product(product["id"], product["name"]) for product in data["Product"]]
 nodes = [Node(node["id"], node["name"]) for node in data["Node"]]
 paths = [Path(path["id"], path["name"], path["length"],[el for el in path["sequence"]]) for path in data["Path"]]
@@ -29,8 +29,10 @@ odpairs = [Odpair(odpair["id"], nodes[findfirst(nodes -> nodes.name == odpair["f
 println("Data read successfully")
 println("Number of odpairs: ", length(odpairs))
 # 
+println(length(techvehicles))
 
-odpairs = odpairs[1:20]
+# modes = modes[1:1]
+# odpairs = odpairs[1:40]
 
 
 # print(odpairs)
@@ -63,16 +65,14 @@ p_r_k_n_pairs = Set((r.product.id, r.id, k.id, el) for r in odpairs for k in r.p
 m_v_pairs = Set()
 counter_additional_vehs = length(techvehicles)
 for m in modes
-    global vehs_in_this_mode = False
     for v in techvehicles
         if v.vehicle_type.mode.id == m.id
             push!(m_v_pairs, (m.id, v.id))
-            vehs_in_this_mode = True
         end
     end
-    if mode.
+    if !m.quantify_by_vehs
         push!(m_v_pairs, (m.id, counter_additional_vehs + 1))
-        counter_additional_vehs += 1
+        global counter_additional_vehs += 1
     end
 end
 
@@ -100,21 +100,31 @@ gamma = data["Model"]["gamma"]
 @variable(model, budget_penalty[y in y_init:Y_end, r_id in [r.id for r in odpairs]] >= 0) # variable for penalty of crossing the budget
 
 
-
 println("Variables created successfully")
 
 # --- constraints ---
-@constraint(model, [y in y_init:Y_end, m_id in [2]], sum(f[y, (r.product.id, r.id, k.id), (m_id, tv.id), g] * k.length for r in odpairs for k in r.paths for m in modes for tv in techvehicles for g in g_init:y if tv.vehicle_type.mode.id == m_id && r.urban) <= 0.1 * sum(r.F[y-y_init+1] * k.length for r in odpairs for k in r.paths))
-@constraint(model, [y in y_init:Y_end, m_id in [2]], sum(f[y, (r.product.id, r.id, k.id), (m_id, tv.id), g] * k.length for r in odpairs for k in r.paths for m in modes for tv in techvehicles for g in g_init:y if tv.vehicle_type.mode.id == m_id && r.urban == false) <= 0.03 * sum(r.F[y-y_init+1] * k.length for r in odpairs for k in r.paths))
-
-@constraint(model, [y in 2035:2050, r in odpairs, v in techvehicles; v.id==1 || v.id ==2 || v.id ==0], sum(h_plus[y, r.id, v.id, g] for g in g_init:y) == 0)
 
 # demand coverage
 # @constraint(model, [y in y_init:Y_end, r in odpairs], sum(f[y, (r.product.id, r.id, k.id), v.id, g] for k in r.paths for v in techvehicles for g in g_init:y) == r.F[y-y_init+1]) 
-@constraint(model, [y in y_init:Y_end, r in odpairs], sum(f[y, (r.product.id, r.id, k.id), mv, g] for k in r.paths for mv in m_v_pairs for g in g_init:y) == r.F[y-y_init+1]) 
+@constraint(model, [y in y_init:Y_end, r in odpairs], sum(f[y, (r.product.id, r.id, k.id), mv, g] for k in r.paths for mv in m_v_pairs for g in g_init:y) >= r.F[y-y_init+1]) 
+
+# external constraints on the mode shift, depending on region_type and mode
+@constraint(model, [y in y_init:Y_end, m_id in [2]], sum(f[y, (r.product.id, r.id, k.id), mv, g] * k.length for r in odpairs for k in r.paths for m in modes for mv in m_v_pairs for g in g_init:y if mv[1] == m_id && r.urban) <= 0.1 * sum(r.F[y-y_init+1] * k.length for r in odpairs for k in r.paths))
+@constraint(model, [y in y_init:Y_end, m_id in [2]], sum(f[y, (r.product.id, r.id, k.id), mv, g] * k.length for r in odpairs for k in r.paths for m in modes for mv in m_v_pairs for g in g_init:y if mv[1] == m_id && r.urban == false) <= 0.03 * sum(r.F[y-y_init+1] * k.length for r in odpairs for k in r.paths))
+
+# policy-related constraints
+# @constraint(model, [y in 2035:2050, r in odpairs, v in techvehicles; v.id==1 || v.id ==2 || v.id ==0], sum(h_plus[y, r.id, v.id, g] for g in g_init:y) == 0)
 
 # vehicle stock sizing
-@constraint(model, [y in y_init:Y_end, r in odpairs, mv in m_v_pairs, g in g_init:Y_end; g <= y], h[y, r.id, mv[2], g] >= sum((k.length/(techvehicles[findfirst(v0 -> v0.id == mv[2], techvehicles)].W[g-g_init+1]* techvehicles[findfirst(v0 -> v0.id == mv[2], techvehicles)].AnnualRange[g-g_init+1])) * f[y, (r.product.id, r.id, k.id), mv, g] for k in r.paths))
+for mv in m_v_pairs
+    println(modes[findfirst(m -> m.id == mv[1], modes)].quantify_by_vehs)
+end 
+@constraint(model, [y in y_init:Y_end, r in odpairs, mv in m_v_pairs, g in g_init:Y_end; modes[findfirst(m -> m.id == mv[1], modes)].quantify_by_vehs && g <= y], h[y, r.id, mv[2], g] >= sum((k.length/(techvehicles[findfirst(v0 -> v0.id == mv[2], techvehicles)].W[g-g_init+1]* techvehicles[findfirst(v0 -> v0.id == mv[2], techvehicles)].AnnualRange[g-g_init+1])) * f[y, (r.product.id, r.id, k.id), mv, g] for k in r.paths))
+
+@constraint(model, [y in y_init:Y_end, r in odpairs, mv in m_v_pairs, g in g_init:Y_end; !modes[findfirst(m -> m.id == mv[1], modes)].quantify_by_vehs && g <= y], h[y, r.id, mv[2], g] == 0)
+@constraint(model, [y in y_init:Y_end, r in odpairs, mv in m_v_pairs, g in g_init:Y_end; !modes[findfirst(m -> m.id == mv[1], modes)].quantify_by_vehs && g <= y], h_minus[y, r.id, mv[2], g] == 0)
+@constraint(model, [y in y_init:Y_end, r in odpairs, mv in m_v_pairs, g in g_init:Y_end; !modes[findfirst(m -> m.id == mv[1], modes)].quantify_by_vehs && g <= y], h_plus[y, r.id, mv[2], g] == 0)
+@constraint(model, [y in y_init:Y_end, r in odpairs, mv in m_v_pairs, g in g_init:Y_end; !modes[findfirst(m -> m.id == mv[1], modes)].quantify_by_vehs && g <= y], h_exist[y, r.id, mv[2], g] == 0)
 
 # fueling demand
 @constraint(model, [y in y_init:Y_end, p in products, r_k in r_k_pairs, v in techvehicles], sum(s_e[y, (p.id, r_k[1], r_k[2], el), v.id] for el in paths[findfirst(k0 -> k0.id == r_k[2], paths)].sequence if typeof(el) == Int) + sum(s_n[y, (p.id, r_k[1], r_k[2], el), v.id] for el in paths[findfirst(k0 -> k0.id == r_k[2], paths)].sequence if typeof(el) == String) >= sum(((gamma * v.spec_cons[g-g_init+1])/(v.W[g-g_init+1] * paths[findfirst(p0 -> p0.id == r_k[2], paths)].length)) * f[y, (p.id, r_k[1], r_k[2]), (tv.vehicle_type.mode.id, tv.id), g] for g in g_init:y for tv in techvehicles if tv.vehicle_type.id == v.id))
@@ -175,16 +185,19 @@ println("vehicle total: ", vehs_total)
 @constraint(model, [y in (y_init+1):Y_end, r in odpairs,  t in technologies], - (sum(h[y, r.id,tv.id, g] for g in g_init:y for v in vehicletypes for tv in techvehicles if g <= y && tv.technology.id == t.id) - sum(h[y-1, r.id, tv.id,  g] for g in g_init:y for v in vehicletypes for tv in techvehicles if g <= y-1 && tv.technology.id == t.id)) <= alpha_h*sum(h[y, r.id, tv.id, g] for g in g_init:(y-1) for tv in techvehicles) + beta_h * sum(h[y-1, r.id, tv.id, g] for v in vehicletypes for g in g_init:(y-1) for tv in techvehicles if tv.technology.id == t.id))
 
 # ... for transport demand
-@constraint(model, [y in (y_init+1):Y_end, r in odpairs, m in modes], (sum(f[y, (r.product.id, r.id, k.id), (m.id, tv.id), g] for k in r.paths for tv in techvehicles for g in g_init:y if tv.vehicle_type.mode.id == m.id) - sum(f[y-1, (r.product.id, r.id, k.id), (m.id, tv.id), g] for k in r.paths for g in g_init:(y-1) for tv in techvehicles if tv.vehicle_type.mode.id == m.id)) <= alpha_f*sum(f[y, (r.product.id, r.id, k.id), (m0.id, tv.id), g] for k in r.paths for g in g_init:y for m0 in modes for tv in techvehicles if tv.vehicle_type.mode.id == m0.id) + beta_f * sum(f[y-1, (r.product.id, r.id, k.id), (m0.id, tv.id), g] for m0 in modes for tv in techvehicles for k in r.paths for g in g_init:(y-1) if tv.vehicle_type.mode.id == m0.id))
-@constraint(model, [y in (y_init+1):Y_end, r in odpairs, m in modes], - (sum(f[y, (r.product.id, r.id, k.id), (m.id, tv.id), g] for k in r.paths for tv in techvehicles for g in g_init:y if tv.vehicle_type.mode.id == m.id) - sum(f[y-1, (r.product.id, r.id, k.id), (m.id, tv.id), g] for k in r.paths for g in g_init:(y-1) for tv in techvehicles if tv.vehicle_type.mode.id == m.id)) <= alpha_f*sum(f[y, (r.product.id, r.id, k.id), (m0.id, tv.id), g] for k in r.paths for g in g_init:y for m0 in modes for tv in techvehicles if tv.vehicle_type.mode.id == m0.id) + beta_f * sum(f[y-1, (r.product.id, r.id, k.id), (m0.id, tv.id), g] for m0 in modes for tv in techvehicles for k in r.paths for g in g_init:(y-1) if tv.vehicle_type.mode.id == m0.id))
+@constraint(model, [y in (y_init+1):Y_end, r in odpairs, m in modes], (sum(f[y, (r.product.id, r.id, k.id), mv, g] for k in r.paths for mv in m_v_pairs for g in g_init:y if mv[1] == m.id) - sum(f[y-1, (r.product.id, r.id, k.id), mv, g] for k in r.paths for g in g_init:(y-1) for mv in m_v_pairs if mv[1] == m.id)) <= alpha_f*sum(f[y, (r.product.id, r.id, k.id), mv, g] for k in r.paths for g in g_init:y for mv in m_v_pairs) + beta_f * sum(f[y-1, (r.product.id, r.id, k.id), mv, g] for m0 in modes for mv in m_v_pairs for k in r.paths for g in g_init:(y-1)))
+
+@constraint(model, [y in (y_init+1):Y_end, r in odpairs, m in modes], - (sum(f[y, (r.product.id, r.id, k.id), mv, g] for k in r.paths for mv in m_v_pairs for g in g_init:y if mv[1] == m.id) - sum(f[y-1, (r.product.id, r.id, k.id), mv, g] for k in r.paths for g in g_init:(y-1) for mv in m_v_pairs if mv[1] == m.id)) <= alpha_f*sum(f[y, (r.product.id, r.id, k.id), mv, g] for k in r.paths for g in g_init:y for mv in m_v_pairs) + beta_f * sum(f[y-1, (r.product.id, r.id, k.id), mv, g] for m0 in modes for mv in m_v_pairs for k in r.paths for g in g_init:(y-1)))
 
 # constraints for fueling infrastucture
 @constraint(model, [y in y_init:Y_end, t in technologies, e in edge_list], sum(q_fuel_infr_plus_e[y0, t.id, e.id] for y0 in y_init:y)>= sum(s_e[y, p_r_k_e, tv.id] for p_r_k_e in p_r_k_e_pairs for tv in techvehicles if p_r_k_e[4] == e.id && tv.technology.id == t.id))
+
 @constraint(model, [y in y_init:Y_end, t in technologies, n in node_list], sum(q_fuel_infr_plus_n[y0, t.id, n.id] for y0 in y_init:y)>= sum(s_n[y, p_r_k_n, tv.id] for p_r_k_n in p_r_k_n_pairs for tv in techvehicles if p_r_k_n[4] == n.name && tv.technology.id == t.id))
 
 # constraints for monetary monetary_budget_investment
-@constraint(model, [r in odpairs], sum([(h_plus[y, r.id, v.id,  g] * v.capital_cost[g-g_init+1]) for y in y_init:Y_end for v in techvehicles for g in g_init:y]) - sum(budget_penalty[y, r.id] for y in y_init:Y_end) <= r.financial_status.monetary_budget_purchase_ub)   
-@constraint(model, [r in odpairs], sum([(h_plus[y, r.id, v.id, g] * v.capital_cost[g-g_init+1]) for y in y_init:Y_end for v in techvehicles for g in g_init:y]) + sum(budget_penalty[y, r.id] for y in y_init:Y_end) >= r.financial_status.monetary_budget_purchase_lb)   
+@constraint(model, [r in odpairs], sum([(h_plus[y, r.id, v.id, g] * v.capital_cost[g-g_init+1]) for y in y_init:Y_end for v in techvehicles for g in g_init:y]) - sum(budget_penalty[y, r.id] for y in y_init:Y_end) <= r.financial_status.monetary_budget_purchase_ub)   
+@constraint(model, [r in odpairs], sum([(h_plus[y, r.id, v.id, g] * v.capital_cost[g-g_init+1]) for y in y_init:Y_end for v in techvehicles for g in g_init:y]) >= r.financial_status.monetary_budget_purchase_lb)   
+
 
 # constraining for vehicle amount
 # @constraint(model, sum(h_plus[2020, r.id, (v.vehicle_type.id, v.technology.id), y] for r in odpairs for v in techvehicles if v.technology.name == "ICEV-g") <= 0)
@@ -215,7 +228,7 @@ weight_map = Dict(fs.name => fs.weight for fs in financial_stati)
 # Build the objective function more efficiently
 for y in y_init:Y_end
     for r in odpairs
-    add_to_expression!(total_cost_expr, budget_penalty[y, r.id]*1000000)
+    add_to_expression!(total_cost_expr, budget_penalty[y, r.id]*1000)
     end
     for v in techvehicles
         for r in odpairs
@@ -276,13 +289,22 @@ for y in y_init:Y_end
                 los = route_length / speed + charging_time
                 
                 intangible_costs = vot * los
-                # add_to_expression!(total_cost_expr, intangible_costs * sum(f[y, (r.product.id, r.id, k.id), (v.vehicle_type.id, v.technology.id), g] * k.length * v.W[g-g_init+1] for k in r.paths))
+                add_to_expression!(total_cost_expr, intangible_costs * sum(f[y, (r.product.id, r.id, k.id), mv, g] * k.length * v.W[g-g_init+1] for k in r.paths for mv in m_v_pairs if mv[2] == v.id))
                 
                 
             end
 
         end
         
+    end
+    for m in modes 
+        if !m.quantify_by_vehs
+            for mv in m_v_pairs
+                if mv[1] == m.id
+                    add_to_expression!(total_cost_expr, sum(f[y, (r.product.id, r.id, k.id), mv, g] * k.length * m.cost_per_ukm[y-y_init+1] for r in odpairs for k in r.paths for g in g_init:y))
+                end
+            end
+        end
     end
     for t in technologies
         for e in edge_list
