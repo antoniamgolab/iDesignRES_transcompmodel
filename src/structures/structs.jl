@@ -42,13 +42,13 @@ A 'Mode' represents a transport mode. Transport modes may differ either by the i
 - `id::Int`: unique identifier of the mode
 - `name::String`: name of the mode
 - `quantify_by_vehs::Bool`: if for this mode vehicles stock is sized or not. If this mode is considered with levelized costs, including the costs for vehicles and related costs.
-- `cost_per_ukm::Float64`: cost per km in €/km (only relevant when quantify_by_vehs is false) 
+- `cost_per_ukm::Array{Float64, 1}`: cost per km in €/km (only relevant when quantify_by_vehs is false) 
 """
 struct Mode
     id::Int 
     name::String
     quantify_by_vehs::Bool
-    cost_per_ukm::Float64
+    cost_per_ukm::Array{Float64, 1}
 end
 
 """
