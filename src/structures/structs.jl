@@ -260,6 +260,8 @@ A 'Regiontype' describes a region based on its characteristics that induces diff
 - `name::String`: name of the regiontype
 - `weight`: weight of the regiontype
 - `speed`: average speed in km/h
+- `costs_var::Array{Float64, 1}`: variable costs in €/vehicle-km
+- `costs_fix::Array{Float64, 1}`: fixed costs in €/year
 
 """
 struct Regiontype
@@ -267,6 +269,8 @@ struct Regiontype
     name::String
     weight
     speed
+    costs_var::Array{Float64, 1}
+    costs_fix::Array{Float64, 1} 
 end
 
 """
@@ -285,4 +289,366 @@ struct F_init_mode_share
     mode::Mode
     share::Float64
     f_init::Float64
+end
+
+"""
+    Market_shares
+
+A 'Market_shares' describes the market share of a vehicle type with a specific drivetrain technology in a specific year.
+
+# Fields
+- `id::Int`: unique identifier of the market share
+- `type::TechVehicle`: vehicle type and technology
+- `share::Float64`: market share of the vehicle type
+- `year::Int`: year of the expected market share
+"""
+
+struct Market_shares
+    id::Int
+    type::TechVehicle
+    share::Float64
+    year::Int
+end
+
+"""
+    Mode_shares
+
+A 'Mode_shares' describes the mode share of a transport mode in a specific year.
+
+# Fields
+- `id::Int`: unique identifier of the mode share
+- `mode::Mode`: mode of transport
+- `share::Float64`: share of the mode
+- `year::Int`: year of the mode share
+
+"""
+
+struct Mode_shares
+    id::Int
+    mode::Mode
+    share::Float64
+    year::Int
+    financial_status::Array{FinancialStatus, 1}
+end
+
+"""
+    Mode_share_max_by_year
+
+Maximum mode shares of a transport mode in a specific year.
+
+# Fields
+- `id::Int`: unique identifier of the mode share
+- `mode::Mode`: mode of transport
+- `share::Float64`: maximum share of the mode
+- `year::Int`: year of the maximum mode share
+- `financial_status::Array{FinancialStatus, 1}`: financial status that is affected by this mode share constraint
+
+"""
+struct Mode_share_max_by_year
+    id::Int
+    mode::Mode
+    share::Float64
+    year::Int
+    financial_status::Array{FinancialStatus, 1}
+end
+
+"""
+    Mode_share_min_by_year
+
+Minimum mode shares of a transport mode in a specific year.
+
+# Fields
+- `id::Int`: unique identifier of the mode share
+- `mode::Mode`: mode of transport
+- `share::Float64`: minimum share of the mode
+- `year::Int`: year of the minimum mode share
+- `financial_status::Array{FinancialStatus, 1}`: financial status that is affected by this mode share constraint
+"""
+struct Mode_share_min_by_year
+    id::Int
+    mode::Mode
+    share::Float64
+    year::Int
+    financial_status::Array{FinancialStatus, 1}
+end
+
+"""
+    Mode_share_max
+
+Maximum mode shares of a transport mode independent of year, i.e. over total horizon.
+
+# Fields
+- `id::Int`: unique identifier of the mode share
+- `mode::Mode`: mode of transport
+- `share::Float64`: maximum share of the mode
+- `financial_status::Array{FinancialStatus, 1}`: array of financial status that is affected by this mode share constraint
+"""
+struct Mode_share_max
+    id::Int
+    mode::Mode
+    share::Float64
+    financial_status::Array{FinancialStatus, 1}
+end
+
+"""
+    Mode_share_max
+
+Maximum mode shares of a transport mode independent of year, i.e. over total horizon.
+
+# Fields
+- `id::Int`: unique identifier of the mode share
+- `mode::Mode`: mode of transport
+- `share::Float64`: maximum share of the mode
+- `financial_status::Array{FinancialStatus, 1}`: array of financial status that is affected by this mode share constraint
+"""
+struct Mode_share_max
+    id::Int
+    mode::Mode
+    share::Float64
+    financial_status::Array{FinancialStatus, 1}
+end
+
+"""
+    Mode_share_min
+
+Maximum mode shares of a transport mode independent of year, i.e. over total horizon.
+
+# Fields
+- `id::Int`: unique identifier of the mode share
+- `mode::Mode`: mode of transport
+- `share::Float64`: maximum share of the mode
+- `financial_status::Array{FinancialStatus, 1}`: array of financial status that is affected by this mode share constraint
+"""
+struct Mode_share_min
+    id::Int
+    mode::Mode
+    share::Float64
+    financial_status::Array{FinancialStatus, 1}
+end
+
+"""
+    Technology_share_max_by_year
+
+Maximum technology shares of a vehicle technology in a specific year.
+
+# Fields
+- `id::Int`: unique identifier of the technology share
+- `technology::Technology`: vehicle technology
+- `share::Float64`: maximum share of the technology
+- `year::Int`: year of the maximum technology share
+- `financial_status::Array{FinancialStatus, 1}`: financial status that is affected by this technology share constraint
+"""
+struct Technology_share_max_by_year
+    id::Int
+    technology::Technology
+    share::Float64
+    year::Int
+    financial_status::Array{FinancialStatus, 1}
+end
+
+"""
+    Technology_share_min_by_year
+
+Minimum technology shares of a vehicle technology in a specific year.
+
+# Fields
+- `id::Int`: unique identifier of the technology share
+- `technology::Technology`: vehicle technology
+- `share::Float64`: minimum share of the technology
+- `year::Int`: year of the minimum technology share
+- `financial_status::Array{FinancialStatus, 1}`: financial status that is affected by this technology share constraint
+"""
+struct Technology_share_min_by_year
+    id::Int
+    technology::Technology
+    share::Float64
+    year::Int
+    financial_status::Array{FinancialStatus, 1}
+end
+
+"""
+    Technology_share_max
+
+Maximum technology shares of a vehicle technology independent of year, i.e. over total horizon.
+
+# Fields
+- `id::Int`: unique identifier of the technology share
+- `technology::Technology`: vehicle technology
+- `share::Float64`: maximum share of the technology
+- `financial_status::Array{FinancialStatus, 1}`: array of financial status that is affected by this technology share constraint
+"""
+struct Technology_share_max
+    id::Int
+    technology::Technology
+    share::Float64
+    financial_status::Array{FinancialStatus, 1}
+end
+
+"""
+    Technology_share_min
+
+Minimum technology shares of a vehicle technology independent of year, i.e. over total horizon.
+
+# Fields
+- `id::Int`: unique identifier of the technology share
+- `technology::Technology`: vehicle technology
+- `share::Float64`: minimum share of the technology
+- `financial_status::Array{FinancialStatus, 1}`: array of financial status that is affected by this technology share constraint
+"""
+struct Technology_share_min
+    id::Int
+    technology::Technology
+    share::Float64
+    financial_status::Array{FinancialStatus, 1}
+end
+
+"""
+    VehicleType_share_max_by_year
+
+Maximum vehicle type shares of a vehicle type in a specific year.
+
+# Fields
+- `id::Int`: unique identifier of the vehicle type share
+- `vehicle_type::Vehicletype`: vehicle type
+- `share::Float64`: maximum share of the vehicle type
+- `year::Int`: year of the maximum vehicle type share
+- `financial_status::Array{FinancialStatus, 1}`: financial status that is affected by this vehicle type share constraint
+"""
+struct VehicleType_share_max_by_year
+    id::Int
+    vehicle_type::Vehicletype
+    share::Float64
+    year::Int
+    financial_status::Array{FinancialStatus, 1}
+end
+
+"""
+    VehicleType_share_min_by_year
+
+Minimum vehicle type shares of a vehicle type in a specific year.
+
+# Fields
+- `id::Int`: unique identifier of the vehicle type share
+- `vehicle_type::Vehicletype`: vehicle type
+- `share::Float64`: minimum share of the vehicle type
+- `year::Int`: year of the minimum vehicle type share
+- `financial_status::Array{FinancialStatus, 1}`: financial status that is affected by this vehicle type share constraint
+"""
+struct VehicleType_share_min_by_year
+    id::Int
+    vehicle_type::Vehicletype
+    share::Float64
+    year::Int
+    financial_status::Array{FinancialStatus, 1}
+end
+
+"""
+    VehicleType_share_max
+
+Maximum vehicle type shares of a vehicle type independent of year, i.e. over total horizon.
+
+# Fields
+- `id::Int`: unique identifier of the vehicle type share
+- `vehicle_type::Vehicletype`: vehicle type
+- `share::Float64`: maximum share of the vehicle type
+- `financial_status::Array{FinancialStatus, 1}`: array of financial status that is affected by this vehicle type share constraint
+"""
+struct VehicleType_share_max
+    id::Int
+    vehicle_type::Vehicletype
+    share::Float64
+    financial_status::Array{FinancialStatus, 1}
+end
+
+"""
+    VehicleType_share_min
+
+Minimum vehicle type shares of a vehicle type independent of year, i.e. over total horizon.
+
+# Fields
+- `id::Int`: unique identifier of the vehicle type share
+- `vehicle_type::Vehicletype`: vehicle type
+- `share::Float64`: minimum share of the vehicle type
+- `financial_status::Array{FinancialStatus, 1}`: array of financial status that is affected by this vehicle type share constraint
+"""
+struct VehicleType_share_min
+    id::Int
+    vehicle_type::Vehicletype
+    share::Float64
+    financial_status::Array{FinancialStatus, 1}
+end
+"""
+    TechVehicle_share_max_by_year
+
+Maximum vehicle type shares of a TechVehicle in a specific year.
+
+# Fields
+- `id::Int`: unique identifier of the TechVehicle share
+- `techvehicle::TechVehicle`: TechVehicle
+- `share::Float64`: maximum share of the TechVehicle
+- `year::Int`: year of the maximum TechVehicle share
+- `financial_status::Array{FinancialStatus, 1}`: financial status that is affected by this TechVehicle share constraint
+"""
+struct TechVehicle_share_max_by_year
+    id::Int
+    techvehicle::TechVehicle
+    share::Float64
+    year::Int
+    financial_status::Array{FinancialStatus, 1}
+end
+
+"""
+    TechVehicle_share_min_by_year
+
+Minimum vehicle type shares of a TechVehicle in a specific year.
+
+# Fields
+- `id::Int`: unique identifier of the TechVehicle share
+- `techvehicle::TechVehicle`: TechVehicle
+- `share::Float64`: minimum share of the TechVehicle
+- `year::Int`: year of the minimum TechVehicle share
+- `financial_status::Array{FinancialStatus, 1}`: financial status that is affected by this TechVehicle share constraint
+"""
+struct TechVehicle_share_min_by_year
+    id::Int
+    techvehicle::TechVehicle
+    share::Float64
+    year::Int
+    financial_status::Array{FinancialStatus, 1}
+end
+
+"""
+    TechVehicle_share_max
+
+Maximum vehicle type shares of a TechVehicle independent of year, i.e. over total horizon.
+
+# Fields
+- `id::Int`: unique identifier of the TechVehicle share
+- `techvehicle::TechVehicle`: TechVehicle
+- `share::Float64`: maximum share of the TechVehicle
+- `financial_status::Array{FinancialStatus, 1}`: array of financial status that is affected by this TechVehicle share constraint
+"""
+struct TechVehicle_share_max
+    id::Int
+    techvehicle::TechVehicle
+    share::Float64
+    financial_status::Array{FinancialStatus, 1}
+end
+
+"""
+    TechVehicle_share_min
+
+Minimum vehicle type shares of a TechVehicle independent of year, i.e. over total horizon.
+
+# Fields
+- `id::Int`: unique identifier of the TechVehicle share
+- `techvehicle::TechVehicle`: TechVehicle
+- `share::Float64`: minimum share of the TechVehicle
+- `financial_status::Array{FinancialStatus, 1}`: array of financial status that is affected by this TechVehicle share constraint
+"""
+struct TechVehicle_share_min
+    id::Int
+    techvehicle::TechVehicle
+    share::Float64
+    financial_status::Array{FinancialStatus, 1}
 end
