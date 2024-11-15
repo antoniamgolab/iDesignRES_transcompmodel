@@ -33,3 +33,15 @@ temp_data/ES_edges_nuts_3.dbf
 temp_data/transport_data_years_v46.yaml
 temp_data/transport_data_years_v45.yaml
 basque_country_results.ipynb
+region_dep_costs_s_n_dict.yaml
+region_dep_costs_s_e_dict.yaml
+region_dep_costs_q_fuel_infr_plus_n_dict.yaml
+region_dep_costs_q_fuel_infr_plus_e_dict.yaml
+region_dep_costs_h_plus_dict.yaml
+region_dep_costs_h_minus_dict.yaml
+region_dep_costs_h_exist_dict.yaml
+region_dep_costs_h_dict.yaml
+region_dep_costs_f_dict.yaml
+region_dep_costs_budget_penalty_dict.yaml
+solution.yaml
+solution.yaml

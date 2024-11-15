@@ -391,24 +391,6 @@ struct Mode_share_max
 end
 
 """
-    Mode_share_max
-
-Maximum mode shares of a transport mode independent of year, i.e. over total horizon.
-
-# Fields
-- `id::Int`: unique identifier of the mode share
-- `mode::Mode`: mode of transport
-- `share::Float64`: maximum share of the mode
-- `financial_status::Array{FinancialStatus, 1}`: array of financial status that is affected by this mode share constraint
-"""
-struct Mode_share_max
-    id::Int
-    mode::Mode
-    share::Float64
-    financial_status::Array{FinancialStatus, 1}
-end
-
-"""
     Mode_share_min
 
 Maximum mode shares of a transport mode independent of year, i.e. over total horizon.

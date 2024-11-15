@@ -2,13 +2,11 @@ using YAML, JuMP, Gurobi, Printf
 include("structs.jl")
 
 # Reading the data 
-# data = YAML.load_file("temp_data/transport_data_years_v5.yaml")
-data = YAML.load_file("C:/Users/Antonia/Documents/external sources/transport_data_years_v5/transport_data_years_v45.yaml")
-case = "testing superficial mode shift"
+data = YAML.load_file("C:/Users/Antonia/Documents/external sources/transport_data_years_v5/transport_data_years_v46.yaml")
+case = "region_dep_costs"
 
 # println(keys(data))
 
-# "Mode", "Product", "Vehicletype", "Technology", "Path", "Fuel", "Odpair", "Node", "TechVehicle"
 node_list = [Node(node["id"], node["name"]) for node in data["Node"]]
 edge_list = [Edge(edge["id"], edge["name"], edge["length"], node_list[findfirst(n -> n.name == edge["from"], node_list)], node_list[findfirst(n -> n.name == edge["to"], node_list)]) for edge in data["Edge"]]
 financial_stati =[FinancialStatus(financial_stat["id"], financial_stat["name"], financial_stat["weight"], financial_stat["VoT"], financial_stat["monetary_budget_operational"], financial_stat["monetary_budget_operational_lb"], financial_stat["monetary_budget_operational_ub"], financial_stat["monetary_budget_purchase"], financial_stat["monetary_budget_purchase_lb"], financial_stat["monetary_budget_purchase_ub"]) for financial_stat in data["FinancialStatus"]]
@@ -19,7 +17,7 @@ paths = [Path(path["id"], path["name"], path["length"],[el for el in path["seque
 fuels = [Fuel(fuel["id"], fuel["name"], fuel["cost_per_kWh"], fuel["cost_per_kW"]) for fuel in data["Fuel"]]
 technologies = [Technology(technology["id"], technology["name"], fuels[findfirst(f -> f.name == technology["fuel"], fuels)]) for technology in data["Technology"]]
 vehicletypes = [Vehicletype(vehicletype["id"], vehicletype["name"], modes[findfirst(m -> m.id == vehicletype["mode"], modes)],vehicletype["size_order"], products[findfirst(p -> p.name == vehicletype["product"], products)]) for vehicletype in data["Vehicletype"]]
-regiontypes = [Regiontype(regiontype["id"], regiontype["name"], regiontype["weight"], regiontype["speed"]) for regiontype in data["Regiontypes"]]
+regiontypes = [Regiontype(regiontype["id"], regiontype["name"], regiontype["weight"], regiontype["speed"], regiontype["costs_var"], regiontype["costs_fix"]) for regiontype in data["Regiontypes"]]
 
 techvehicles = [TechVehicle(techvehicle["id"], techvehicle["name"], vehicletypes[findfirst(v -> v.name == techvehicle["vehicle_type"], vehicletypes)], technologies[findfirst(t -> t.id == techvehicle["technology"], technologies)], techvehicle["capital_cost"], techvehicle["maintnanace_cost_annual"], techvehicle["maintnance_cost_distance"], techvehicle["W"], techvehicle["spec_cons"], techvehicle["Lifetime"], techvehicle["AnnualRange"], [products[findfirst(p -> p.name == prod, products)] for prod in techvehicle["products"]], techvehicle["battery_capacity"], techvehicle["peak_charging"]) for techvehicle in data["TechVehicle"]]
 initvehiclestocks = [InitialVehicleStock(initvehiclestock["id"], techvehicles[findfirst(tv -> tv.id == initvehiclestock["techvehicle"], techvehicles)], initvehiclestock["year_of_purchase"], initvehiclestock["stock"]) for initvehiclestock in data["InitialVehicleStock"]]
@@ -278,8 +276,13 @@ for y in y_init:Y_end
                     add_to_expression!(total_cost_expr, h[y, r.id, v.id, g] * v.maintnanace_cost_annual[g-g_init+1][y-g+1])
                     add_to_expression!(total_cost_expr, h[y, r.id, v.id, g] * v.maintnance_cost_distance[g-g_init+1][y-g+1] * route_length)
                 end 
+                if y - g == v.Lifetime[g-g_init+1] && r.urban
+                    add_to_expression!(total_cost_expr, h[y, r.id, v.id, g] * regiontypes[findfirst(rt -> rt.name == "urban", regiontypes)].costs_fix[y-y+1])
+                else
+                    add_to_expression!(total_cost_expr, h[y, r.id, v.id, g] * regiontypes[findfirst(rt -> rt.name == "rural", regiontypes)].costs_fix[y-y+1])
+                end
                 driving_range = 0.8 * v.battery_capacity[g-g_init+1] * (1/v.spec_cons[g-g_init+1])
-                if driving_range * 1000 < route_length
+                if driving_range < route_length
                     charging_time = 0
                 else
                     charging_time = v.battery_capacity[g-g_init+1] / v.peak_charging[g-g_init+1]
@@ -289,7 +292,7 @@ for y in y_init:Y_end
                 los = route_length / speed + charging_time
                 
                 intangible_costs = vot * los
-                add_to_expression!(total_cost_expr, intangible_costs * sum(f[y, (r.product.id, r.id, k.id), mv, g] * k.length * v.W[g-g_init+1] for k in r.paths for mv in m_v_pairs if mv[2] == v.id))
+                add_to_expression!(total_cost_expr, intangible_costs * sum(f[y, (r.product.id, r.id, k.id), mv, g] * k.length/1000 * v.W[g-g_init+1] for k in r.paths for mv in m_v_pairs if mv[2] == v.id))
                 
                 
             end
@@ -301,7 +304,7 @@ for y in y_init:Y_end
         if !m.quantify_by_vehs
             for mv in m_v_pairs
                 if mv[1] == m.id
-                    add_to_expression!(total_cost_expr, sum(f[y, (r.product.id, r.id, k.id), mv, g] * k.length * m.cost_per_ukm[y-y_init+1] for r in odpairs for k in r.paths for g in g_init:y))
+                    add_to_expression!(total_cost_expr, 0.001 * sum(f[y, (r.product.id, r.id, k.id), mv, g] * route_length * m.cost_per_ukm[y-y_init+1] for r in odpairs for g in g_init:y))
                 end
             end
         end
@@ -375,6 +378,7 @@ solved_data["h_plus"] = value.(h_plus)
 solved_data["h_minus"] = value.(h_minus)
 solved_data["h_exist"] = value.(h_exist)
 solved_data["f"] = value.(f)
+solved_data["budget_penalty"] = value.(budget_penalty)
 
 output_file = "solved_data.yaml"
 open("solution.yaml", "w") do file
@@ -412,6 +416,36 @@ for y in y_init:Y_end, r in odpairs, tv in techvehicles, g in g_init:y
     h_minus_dict[(y, r.id, tv.id, g)] = value(h_minus[y, r.id, tv.id, g])
 end
 
+# Dictionary for 's_e' variable
+s_e_dict = Dict()
+for y in y_init:Y_end, (p, r, k, e) in p_r_k_e_pairs, tv in techvehicles
+    s_e_dict[(y, (p, r, k, e), tv.id)] = value(s_e[y, (p, r, k, e), tv.id])
+end
+
+# Dictionary for 's_n' variable
+s_n_dict = Dict()
+for y in y_init:Y_end, (p, r, k, n) in p_r_k_n_pairs, tv in techvehicles
+    s_n_dict[(y, (p, r, k, n), tv.id)] = value(s_n[y, (p, r, k, n), tv.id])
+end
+
+# Dictionary for 'q_fuel_infr_plus_e' variable
+q_fuel_infr_plus_e_dict = Dict()
+for y in y_init:Y_end, t in technologies, e in edge_list
+    q_fuel_infr_plus_e_dict[(y, t.id, e.id)] = value(q_fuel_infr_plus_e[y, t.id, e.id])
+end
+
+# Dictionary for 'q_fuel_infr_plus_n' variable
+q_fuel_infr_plus_n_dict = Dict()
+for y in y_init:Y_end, t in technologies, n in node_list
+    q_fuel_infr_plus_n_dict[(y, t.id, n.id)] = value(q_fuel_infr_plus_n[y, t.id, n.id])
+end
+
+# Dictionary for 'budget_penalty' variable
+budget_penalty_dict = Dict()
+for y in y_init:Y_end, r in odpairs
+    budget_penalty_dict[(y, r.id)] = value(budget_penalty[y, r.id])
+end
+
 function stringify_keys(dict::Dict)
     return Dict(
         string(k) => (v isa Float64 ? @sprintf("%.6f", v) : string(v)) 
@@ -425,6 +459,11 @@ h_dict_str = stringify_keys(h_dict)
 h_exist_dict_str = stringify_keys(h_exist_dict)
 h_plus_dict_str = stringify_keys(h_plus_dict)
 h_minus_dict_str = stringify_keys(h_minus_dict)
+s_e_dict_str = stringify_keys(s_e_dict)
+s_n_dict_str = stringify_keys(s_n_dict)
+q_fuel_infr_plus_e_dict_str = stringify_keys(q_fuel_infr_plus_e_dict)
+q_fuel_infr_plus_n_dict_str = stringify_keys(q_fuel_infr_plus_n_dict)
+budget_penalty_dict_str = stringify_keys(budget_penalty_dict)
 
 # Save the dictionaries to YAML files
 YAML.write_file(case * "_f_dict.yaml", f_dict_str)
@@ -437,3 +476,13 @@ YAML.write_file(case * "_h_plus_dict.yaml", h_plus_dict_str)
 println(case * "_h_plus_dict.yaml written successfully")
 YAML.write_file(case * "_h_minus_dict.yaml", h_minus_dict_str)
 println("h_minus_dict.yaml written successfully")
+YAML.write_file(case * "_s_e_dict.yaml", s_e_dict_str)
+println("s_e_dict.yaml written successfully")
+YAML.write_file(case * "_s_n_dict.yaml", s_n_dict_str)
+println("s_n_dict.yaml written successfully")
+YAML.write_file(case * "_q_fuel_infr_plus_e_dict.yaml", q_fuel_infr_plus_e_dict_str)
+println("q_fuel_infr_plus_e_dict.yaml written successfully")
+YAML.write_file(case * "_q_fuel_infr_plus_n_dict.yaml", q_fuel_infr_plus_n_dict_str)
+println("q_fuel_infr_plus_n_dict.yaml written successfully")
+YAML.write_file(case * "_budget_penalty_dict.yaml", budget_penalty_dict_str)
+println("budget_penalty_dict.yaml written successfully")
