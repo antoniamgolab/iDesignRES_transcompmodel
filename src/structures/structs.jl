@@ -43,12 +43,14 @@ A 'Mode' represents a transport mode. Transport modes may differ either by the i
 - `name::String`: name of the mode
 - `quantify_by_vehs::Bool`: if for this mode vehicles stock is sized or not. If this mode is considered with levelized costs, including the costs for vehicles and related costs.
 - `cost_per_ukm::Array{Float64, 1}`: cost per km in €/km (only relevant when quantify_by_vehs is false) 
+- `emission_factor::Float64`: emission factor of the mode in gCO2/ukm (only relevant when quantify_by_vehs is false)
 """
 struct Mode
     id::Int 
     name::String
     quantify_by_vehs::Bool
     cost_per_ukm::Array{Float64, 1}
+    emission_factor::Float64 # gCO2/ukm
 end
 
 """
@@ -93,14 +95,17 @@ A 'Fuel' represents the energy source used for the vehicle propulsion.
 # Fields
 - `id::Int`: unique identifier of the fuel
 - `name::String`: name of the fuel
+- `emission_factor::Float64`: emission factor of the fuel in gCO2/kWh
 - `cost_per_kWh`: cost per kWh of the fuel in €
 - `cost_per_kW`: cost per kW of the fuel in €
 """
 struct Fuel
     id::Int
     name::String
+    emission_factor::Float64
     cost_per_kWh   # € per kWh 
     cost_per_kW 
+
 end
 
 """
@@ -633,4 +638,38 @@ struct TechVehicle_share_min
     techvehicle::TechVehicle
     share::Float64
     financial_status::Array{FinancialStatus, 1}
+end
+
+"""
+    Emission_constraints_by_mode
+
+An 'Emission_constraints_by_mode' describes emissions constrained for a mode.
+
+# Fields
+- `id::Int`: unique identifier of the emission constraint
+- `mode::Mode`: mode of transport
+- `emission::Float64`: emission constraint of the vehicle type
+- `year::Int`: year of the expected emission constraint
+"""
+struct Emission_constraints_by_mode
+    id::Int
+    mode::Mode
+    emission::Float64
+    year::Int
+end
+
+"""
+    Emission_constraints_by_year
+
+An 'Emission_constraints_by_year' describes an emission goal for a specific year for the total emissions.
+
+# Fields
+- `id::Int`: unique identifier of the emission constraint
+- `emission::Float64`: emission constraint
+- `year::Int`: year of the expected emission constraint
+"""
+struct Emission_constraints_by_year
+    id::Int
+    emission::Float64
+    year::Int
 end

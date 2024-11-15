@@ -10,7 +10,7 @@ case = "region_dep_costs"
 node_list = [Node(node["id"], node["name"]) for node in data["Node"]]
 edge_list = [Edge(edge["id"], edge["name"], edge["length"], node_list[findfirst(n -> n.name == edge["from"], node_list)], node_list[findfirst(n -> n.name == edge["to"], node_list)]) for edge in data["Edge"]]
 financial_stati =[FinancialStatus(financial_stat["id"], financial_stat["name"], financial_stat["weight"], financial_stat["VoT"], financial_stat["monetary_budget_operational"], financial_stat["monetary_budget_operational_lb"], financial_stat["monetary_budget_operational_ub"], financial_stat["monetary_budget_purchase"], financial_stat["monetary_budget_purchase_lb"], financial_stat["monetary_budget_purchase_ub"]) for financial_stat in data["FinancialStatus"]]
-modes = [Mode(mode["id"], mode["name"], mode["quantify_by_vehs"], mode["costs_per_ukm"]) for mode in data["Mode"]]
+modes = [Mode(mode["id"], mode["name"], mode["quantify_by_vehs"], mode["costs_per_ukm"], emission_factor[]) for mode in data["Mode"]]
 products = [Product(product["id"], product["name"]) for product in data["Product"]]
 nodes = [Node(node["id"], node["name"]) for node in data["Node"]]
 paths = [Path(path["id"], path["name"], path["length"],[el for el in path["sequence"]]) for path in data["Path"]]
@@ -23,6 +23,19 @@ techvehicles = [TechVehicle(techvehicle["id"], techvehicle["name"], vehicletypes
 initvehiclestocks = [InitialVehicleStock(initvehiclestock["id"], techvehicles[findfirst(tv -> tv.id == initvehiclestock["techvehicle"], techvehicles)], initvehiclestock["year_of_purchase"], initvehiclestock["stock"]) for initvehiclestock in data["InitialVehicleStock"]]
 
 odpairs = [Odpair(odpair["id"], nodes[findfirst(nodes -> nodes.name == odpair["from"], nodes)], nodes[findfirst(nodes -> nodes.name == odpair["to"], nodes)], [paths[findfirst(p -> p.id == odpair["path_id"], paths)]], odpair["F"], products[findfirst(p -> p.name == odpair["product"], products)], [initvehiclestocks[findfirst(ivs -> ivs.id == vsi, initvehiclestocks)] for vsi in odpair["vehicle_stock_init"]], financial_stati[findfirst(fs -> fs.name == odpair["financial_status"], financial_stati)], odpair["urban"]) for odpair in data["Odpair"]]
+
+# optional input data 
+# Check if "data" has a specific key
+if haskey(data, "Emission_constraints_by_mode")
+    emission_constraints_by_modes = [EmissionConstraintByMode(emission_constraint["id"], modes[findfirst(m -> m.name == emission_constraint["mode"], modes)], emission_constraint["emission_constraint"]) for emission_constraint in data["Emission_constraints_by_mode"]]
+else
+
+end
+
+if haskey(data, "Emission_constraints_by_year")
+    emission_constraints_by_years = [EmissionConstraintByYear(emission_constraint["id"], emission_constraint["year"], emission_constraint["emission_constraint"]) for emission_constraint in data["Emission_constraints_by_year"]]
+end
+
 
 println("Data read successfully")
 println("Number of odpairs: ", length(odpairs))
@@ -196,6 +209,13 @@ println("vehicle total: ", vehs_total)
 @constraint(model, [r in odpairs], sum([(h_plus[y, r.id, v.id, g] * v.capital_cost[g-g_init+1]) for y in y_init:Y_end for v in techvehicles for g in g_init:y]) - sum(budget_penalty[y, r.id] for y in y_init:Y_end) <= r.financial_status.monetary_budget_purchase_ub)   
 @constraint(model, [r in odpairs], sum([(h_plus[y, r.id, v.id, g] * v.capital_cost[g-g_init+1]) for y in y_init:Y_end for v in techvehicles for g in g_init:y]) >= r.financial_status.monetary_budget_purchase_lb)   
 
+
+println("Policy related constraints")
+@constraint(model, [entry in emission_constraints_by_years], sum(f[entry.year, (r.product.id, r.id, k.id), (m.id, v.id), g] * k.length * v.spec_cons[g-g_init+1] * v.technology.fuel.emission_factor for r in odpairs for k in r.paths for m in modes for v in techvehicles for g in g_init:y if (m.id, v.id) in m_v_pairs && m.quantify_by_vehs) + sum(f[entry.year, (r.product.id, r.id, k.id), (m.id, mv[2]), g] * k.length  * m.emission_factor for m in modes for m_v in m_v_pairs if m.id == m[1] && !m.quantify_by_vehs) <= entry.emission)
+
+@constraint(model, [entry in emission_constraints_by_modes], sum(f[entry.year, (r.product.id, r.id, k.id), (entry.mode.id, v.id), g] * k.length * v.spec_cons[g-g_init+1] * v.technology.fuel.emission_factor for r in odpairs for k in r.paths for v in techvehicles for g in g_init:y if (m.id, v.id) in m_v_pairs && m.quantify_by_vehs) + sum(f[entry.year, (r.product.id, r.id, k.id), (entry.mode.id, mv[2]), g] * k.length  * m.emission_factor for m in modes for m_v in m_v_pairs if m.id == m[1] && !m.quantify_by_vehs) <= entry.emission)
+
+# sum(f[y, (r.product.id, r.id, k.id), mv, g] * k.length * v.spec_cons[g-g_init+1] for r in odpairs for k in r.paths for mv in m_v_pairs for v in techvehicles for g in g_init:y) <= emiss_constr_by_year.emission_constraint)
 
 # constraining for vehicle amount
 # @constraint(model, sum(h_plus[2020, r.id, (v.vehicle_type.id, v.technology.id), y] for r in odpairs for v in techvehicles if v.technology.name == "ICEV-g") <= 0)
