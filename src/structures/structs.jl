@@ -133,14 +133,12 @@ A 'Vehicletype' represents a type of vehicle that is used for transportation. Th
 - `id::Int`: unique identifier of the vehicle type
 - `name::String`: name of the vehicle type
 - `mode::Mode`: mode of transport that the vehicle type is used for
-- `size_order::Int`: order of the vehicle type in terms of size
 - `product::Product`: product that the vehicle type is used for
 """
 struct Vehicletype
     id::Int
     name::String
     mode::Mode
-    size_order::Int
     product::Product
 end
 
