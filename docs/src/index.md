@@ -1,4 +1,5 @@
 # Transcomp Model Documentation
+[![Documenter: dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://domluna.github.io/JuliaFormatter.jl/dev/)
 
 The *Transcomp* model is a linear optimization model developed within the EU Horizon project [iDesignRES](https://idesignres.eu/) in workpage 1. It is implemented in Julia and is based on the JuMP package. 
 
@@ -7,6 +8,7 @@ The *Transcomp* model is aimed at modeling developments in subsectors of the tra
 ## Manual outline
 
 
-```@docs
-TransComp.constraint_fueling_demand
+```@autodocs
+Modules = [TransComp]
+Order   = [:function, :type]
 ```
