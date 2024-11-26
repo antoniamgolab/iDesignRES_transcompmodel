@@ -1,3 +1,20 @@
+"""
+This file contains the functions that are used in the model but are not directly related to the optimization problem.
+
+"""
+
+"""
+    depreciation_factor(y, g)
+
+Calculate the depreciation factor for a vehicle based on its age.
+
+# Arguments
+- `y::Int`: The year of the vehicle.
+- `g::Int`: The year the vehicle was purchased.
+
+# Returns
+- `Float64`: The depreciation factor.
+"""
 function depreciation_factor(y, g)
     age = y - g  # Lifetime of the vehicle
     if age == 0
