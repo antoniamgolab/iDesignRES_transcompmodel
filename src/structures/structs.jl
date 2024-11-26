@@ -29,7 +29,7 @@ struct Edge
     id::Int
     name::String
     length::Float64
-    from::Node 
+    from::Node
     to::Node
 end
 
@@ -43,12 +43,14 @@ A 'Mode' represents a transport mode. Transport modes may differ either by the i
 - `name::String`: name of the mode
 - `quantify_by_vehs::Bool`: if for this mode vehicles stock is sized or not. If this mode is considered with levelized costs, including the costs for vehicles and related costs.
 - `cost_per_ukm::Array{Float64, 1}`: cost per km in €/km (only relevant when quantify_by_vehs is false) 
+- `emission_factor::Array{Float64,1}`: emission factor of the mode in gCO2/ukm (only relevant when quantify_by_vehs is false)
 """
 struct Mode
-    id::Int 
+    id::Int
     name::String
     quantify_by_vehs::Bool
-    cost_per_ukm::Array{Float64, 1}
+    cost_per_ukm::Array{Float64,1}
+    emission_factor::Array{Float64,1} # gCO2/ukm
 end
 
 """
@@ -82,7 +84,7 @@ struct Path
     id::Int
     name::String
     length::Float64
-    sequence
+    sequence::Any
 end
 
 """
@@ -93,14 +95,16 @@ A 'Fuel' represents the energy source used for the vehicle propulsion.
 # Fields
 - `id::Int`: unique identifier of the fuel
 - `name::String`: name of the fuel
+- `emission_factor::Float64`: emission factor of the fuel in gCO2/kWh
 - `cost_per_kWh`: cost per kWh of the fuel in €
 - `cost_per_kW`: cost per kW of the fuel in €
 """
 struct Fuel
     id::Int
     name::String
-    cost_per_kWh   # € per kWh 
-    cost_per_kW 
+    emission_factor::Array{Float64,1}  # gCO2/kWh
+    cost_per_kWh::Any   # € per kWh 
+    cost_per_kW::Any
 end
 
 """
@@ -117,7 +121,7 @@ struct Technology
     id::Int
     name::String
     fuel::Fuel
-end 
+end
 
 """
     Vehicletype
@@ -128,15 +132,13 @@ A 'Vehicletype' represents a type of vehicle that is used for transportation. Th
 - `id::Int`: unique identifier of the vehicle type
 - `name::String`: name of the vehicle type
 - `mode::Mode`: mode of transport that the vehicle type is used for
-- `size_order::Int`: order of the vehicle type in terms of size
 - `product::Product`: product that the vehicle type is used for
 """
 struct Vehicletype
     id::Int
     name::String
     mode::Mode
-    size_order::Int
-    product::Product
+    products::Array{Product,1}
 end
 
 """
@@ -148,17 +150,17 @@ struct TechVehicle
     id::Int
     name::String
     vehicle_type::Vehicletype
-    technology::Technology 
-    capital_cost:: Array{Float64, 1}  # capital cost in €
-    maintnanace_cost_annual
-    maintnance_cost_distance 
-    W::Array{Float64, 1}  # load capacity in t
-    spec_cons::Array{Float64, 1}  # specific consumption in kWh/km  
-    Lifetime:: Array{Int, 1} # Array if multiple generations are considered 
-    AnnualRange::Array{Float64, 1} # annual range in km
-    products::Array{Product, 1} # number of vehicles of this type
-    battery_capacity::Array{Float64, 1} # battery capacity in kWh
-    peak_charging::Array{Float64, 1} # peak charging power in kW
+    technology::Technology
+    capital_cost::Array{Float64,1}  # capital cost in €
+    maintnanace_cost_annual::Any
+    maintnance_cost_distance::Any
+    W::Array{Float64,1}  # load capacity in t
+    spec_cons::Array{Float64,1}  # specific consumption in kWh/km  
+    Lifetime::Array{Int,1} # Array if multiple generations are considered 
+    AnnualRange::Array{Float64,1} # annual range in km
+    products::Array{Product,1} # number of vehicles of this type
+    battery_capacity::Array{Float64,1} # battery capacity in kWh
+    peak_charging::Array{Float64,1} # peak charging power in kW
 end
 
 """
@@ -175,7 +177,7 @@ An 'InitialVehicleStock' represents a vehicle fleet that exisits at the initial 
 """
 struct InitialVehicleStock
     id::Int
-    techvehicle::TechVehicle 
+    techvehicle::TechVehicle
     year_of_purchase::Int
     stock::Float64
 end
@@ -188,7 +190,6 @@ A 'FinancialStatus' describes a demographic group based on what there average bu
 # Fields
 - `id::Int`: unique identifier of the financial status
 - `name::String`: name of the financial status
-- `weight::Float64`: weight of the financial status
 - `VoT`: value of time in €/h
 - `monetary_budget_operational`: budget for operational costs in €/year
 - `monetary_budget_operational_lb`: lower bound of the budget for operational costs in €/year
@@ -200,14 +201,33 @@ A 'FinancialStatus' describes a demographic group based on what there average bu
 struct FinancialStatus
     id::Int
     name::String
-    weight::Float64
-    VoT
-    monetary_budget_operational
-    monetary_budget_operational_lb
-    monetary_budget_operational_ub
-    monetary_budget_purchase
-    monetary_budget_purchase_lb
-    monetary_budget_purchase_ub
+    VoT::Any
+    monetary_budget_operational::Any
+    monetary_budget_operational_lb::Any
+    monetary_budget_operational_ub::Any
+    monetary_budget_purchase::Any
+    monetary_budget_purchase_lb::Any
+    monetary_budget_purchase_ub::Any
+end
+
+"""
+    Regiontype
+
+A 'Regiontype' describes a region based on its characteristics that induces differences in transportation needs (for example, urban vs. rural area).
+
+# Fields
+- `id::Int`: unique identifier of the regiontype
+- `name::String`: name of the regiontype
+- `speed::Float64`: average speed in km/h
+- `costs_var::Array{Float64, 1}`: variable costs in €/vehicle-km
+- `costs_fix::Array{Float64, 1}`: fixed costs in €/year
+
+"""
+struct Regiontype
+    id::Int
+    name::String
+    costs_var::Array{Float64,1}
+    costs_fix::Array{Float64,1}
 end
 
 """
@@ -226,12 +246,12 @@ struct Odpair
     id::Int
     origin::Node
     destination::Node
-    paths::Array{Path, 1} # this needs to be adaoted later as for each odpair different paths exist depending also on the mode
-    F
+    paths::Array{Path,1} # this needs to be adaoted later as for each odpair different paths exist depending also on the mode
+    F::Any
     product::Product
-    vehicle_stock_init::Array{InitialVehicleStock, 1}# initial vehicle stock
+    vehicle_stock_init::Array{InitialVehicleStock,1}# initial vehicle stock
     financial_status::FinancialStatus
-    urban::Bool
+    region_type::Regiontype
 end
 
 """
@@ -247,30 +267,7 @@ A 'Generation' referes to model year of a vehicle type to include the variation 
 struct Generation
     id::Int
     year::Int
-    y:: Int
-end
-
-"""
-    Regiontype
-
-A 'Regiontype' describes a region based on its characteristics that induces differences in transportation needs (for example, urban vs. rural area).
-
-# Fields
-- `id::Int`: unique identifier of the regiontype
-- `name::String`: name of the regiontype
-- `weight`: weight of the regiontype
-- `speed`: average speed in km/h
-- `costs_var::Array{Float64, 1}`: variable costs in €/vehicle-km
-- `costs_fix::Array{Float64, 1}`: fixed costs in €/year
-
-"""
-struct Regiontype
-    id::Int
-    name::String
-    weight
-    speed
-    costs_var::Array{Float64, 1}
-    costs_fix::Array{Float64, 1} 
+    y::Int
 end
 
 """
@@ -299,7 +296,7 @@ A 'Market_shares' describes the market share of a vehicle type with a specific d
 # Fields
 - `id::Int`: unique identifier of the market share
 - `type::TechVehicle`: vehicle type and technology
-- `share::Float64`: market share of the vehicle type
+- `share::Float64`: market share of the vehicle type (in %)
 - `year::Int`: year of the expected market share
 """
 
@@ -328,7 +325,7 @@ struct Mode_shares
     mode::Mode
     share::Float64
     year::Int
-    financial_status::Array{FinancialStatus, 1}
+    financial_status::Array{FinancialStatus,1}
 end
 
 """
@@ -349,7 +346,7 @@ struct Mode_share_max_by_year
     mode::Mode
     share::Float64
     year::Int
-    financial_status::Array{FinancialStatus, 1}
+    financial_status::Array{FinancialStatus,1}
 end
 
 """
@@ -369,7 +366,7 @@ struct Mode_share_min_by_year
     mode::Mode
     share::Float64
     year::Int
-    financial_status::Array{FinancialStatus, 1}
+    financial_status::Array{FinancialStatus,1}
 end
 
 """
@@ -387,25 +384,7 @@ struct Mode_share_max
     id::Int
     mode::Mode
     share::Float64
-    financial_status::Array{FinancialStatus, 1}
-end
-
-"""
-    Mode_share_max
-
-Maximum mode shares of a transport mode independent of year, i.e. over total horizon.
-
-# Fields
-- `id::Int`: unique identifier of the mode share
-- `mode::Mode`: mode of transport
-- `share::Float64`: maximum share of the mode
-- `financial_status::Array{FinancialStatus, 1}`: array of financial status that is affected by this mode share constraint
-"""
-struct Mode_share_max
-    id::Int
-    mode::Mode
-    share::Float64
-    financial_status::Array{FinancialStatus, 1}
+    financial_status::Array{FinancialStatus,1}
 end
 
 """
@@ -423,7 +402,7 @@ struct Mode_share_min
     id::Int
     mode::Mode
     share::Float64
-    financial_status::Array{FinancialStatus, 1}
+    financial_status::Array{FinancialStatus,1}
 end
 
 """
@@ -443,7 +422,7 @@ struct Technology_share_max_by_year
     technology::Technology
     share::Float64
     year::Int
-    financial_status::Array{FinancialStatus, 1}
+    financial_status::Array{FinancialStatus,1}
 end
 
 """
@@ -463,7 +442,7 @@ struct Technology_share_min_by_year
     technology::Technology
     share::Float64
     year::Int
-    financial_status::Array{FinancialStatus, 1}
+    financial_status::Array{FinancialStatus,1}
 end
 
 """
@@ -481,7 +460,7 @@ struct Technology_share_max
     id::Int
     technology::Technology
     share::Float64
-    financial_status::Array{FinancialStatus, 1}
+    financial_status::Array{FinancialStatus,1}
 end
 
 """
@@ -499,7 +478,7 @@ struct Technology_share_min
     id::Int
     technology::Technology
     share::Float64
-    financial_status::Array{FinancialStatus, 1}
+    financial_status::Array{FinancialStatus,1}
 end
 
 """
@@ -519,7 +498,7 @@ struct VehicleType_share_max_by_year
     vehicle_type::Vehicletype
     share::Float64
     year::Int
-    financial_status::Array{FinancialStatus, 1}
+    financial_status::Array{FinancialStatus,1}
 end
 
 """
@@ -539,7 +518,7 @@ struct VehicleType_share_min_by_year
     vehicle_type::Vehicletype
     share::Float64
     year::Int
-    financial_status::Array{FinancialStatus, 1}
+    financial_status::Array{FinancialStatus,1}
 end
 
 """
@@ -557,7 +536,7 @@ struct VehicleType_share_max
     id::Int
     vehicle_type::Vehicletype
     share::Float64
-    financial_status::Array{FinancialStatus, 1}
+    financial_status::Array{FinancialStatus,1}
 end
 
 """
@@ -575,7 +554,7 @@ struct VehicleType_share_min
     id::Int
     vehicle_type::Vehicletype
     share::Float64
-    financial_status::Array{FinancialStatus, 1}
+    financial_status::Array{FinancialStatus,1}
 end
 """
     TechVehicle_share_max_by_year
@@ -594,7 +573,7 @@ struct TechVehicle_share_max_by_year
     techvehicle::TechVehicle
     share::Float64
     year::Int
-    financial_status::Array{FinancialStatus, 1}
+    financial_status::Array{FinancialStatus,1}
 end
 
 """
@@ -614,7 +593,7 @@ struct TechVehicle_share_min_by_year
     techvehicle::TechVehicle
     share::Float64
     year::Int
-    financial_status::Array{FinancialStatus, 1}
+    financial_status::Array{FinancialStatus,1}
 end
 
 """
@@ -632,7 +611,7 @@ struct TechVehicle_share_max
     id::Int
     techvehicle::TechVehicle
     share::Float64
-    financial_status::Array{FinancialStatus, 1}
+    financial_status::Array{FinancialStatus,1}
 end
 
 """
@@ -650,5 +629,107 @@ struct TechVehicle_share_min
     id::Int
     techvehicle::TechVehicle
     share::Float64
-    financial_status::Array{FinancialStatus, 1}
+    financial_status::Array{FinancialStatus,1}
 end
+
+"""
+    Emission_constraints_by_mode
+
+An 'Emission_constraints_by_mode' describes emissions constrained for a mode.
+
+# Fields
+- `id::Int`: unique identifier of the emission constraint
+- `mode::Mode`: mode of transport
+- `emission::Float64`: emission constraint of the vehicle type
+- `year::Int`: year of the expected emission constraint
+"""
+struct Emission_constraints_by_mode
+    id::Int
+    mode::Mode
+    emission::Float64
+    year::Int
+end
+
+"""
+    Emission_constraints_by_year
+
+An 'Emission_constraints_by_year' describes an emission goal for a specific year for the total emissions.
+
+# Fields
+- `id::Int`: unique identifier of the emission constraint
+- `emission::Float64`: emission constraint
+- `year::Int`: year of the expected emission constraint
+"""
+struct Emission_constraints_by_year
+    id::Int
+    emission::Float64
+    year::Int
+end
+
+"""
+    Transportation_speeds
+
+A 'Speed' describes the speed of a vehicle type in a specific year.
+
+# Fields
+
+
+"""
+struct Transportation_speeds
+    id::Int
+    definition_mode_based::Bool
+    mode::Mode
+    vehicle_type::Vehicletype
+    travel_speed::Float64
+    year::Int
+end
+
+global model_parameters = ["Y", "y_init", "pre_y"]
+
+global parameters_extended = ["alpha_f", "beta_f", "alpha_h", "beta_h", "gamma"]
+
+global struct_names_base = [
+    "Model",
+    "Node",
+    "Edge",
+    "Mode",
+    "Product",
+    "Path",
+    "Fuel",
+    "Technology",
+    "Vehicletype",
+    "TechVehicle",
+    "InitialVehicleStock",
+    "FinancialStatus",
+    "Regiontype",
+    "Odpair",
+]
+
+global struct_names_extended = [
+    "F_init_mode_share",
+    "Market_shares",
+    "Mode_shares",
+    "Mode_share_max_by_year",
+    "Mode_share_min_by_year",
+    "Mode_share_max",
+    "Mode_share_min",
+    "Technology_share_max_by_year",
+    "Technology_share_min_by_year",
+    "Technology_share_max",
+    "Technology_share_min",
+    "VehicleType_share_max_by_year",
+    "VehicleType_share_min_by_year",
+    "VehicleType_share_max",
+    "VehicleType_share_min",
+    "TechVehicle_share_max_by_year",
+    "TechVehicle_share_min_by_year",
+    "TechVehicle_share_max",
+    "TechVehicle_share_min",
+    "Emission_constraints_by_mode",
+    "Emission_constraints_by_year",
+    "Transportation_speeds",
+]
+
+global default_data = Dict(
+    "alpha_f" => 0.1, "beta_f" => 0.1, "alpha_h" => 0.1, "beta_h" => 0.1
+)

@@ -5,6 +5,3 @@ Definition of constraints related to the sizing of fueling infrastructure to sup
     @Dateofcreation: 2024-04-18
 
 """
-
-
-
