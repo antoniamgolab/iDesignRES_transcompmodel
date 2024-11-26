@@ -3,17 +3,20 @@ include("structs.jl")
 include("model_functions.jl")
 include("other_functions.jl")
 
-# Reading the data 
+# reading input data
 data = YAML.load_file(
     "C:/Users/Antonia/Documents/external sources/transport_data_years_v5/transport_data_years_v47.yaml",
 )
 case = "region_dep_costs"
 file = "C:/Users/Antonia/Documents/external sources/transport_data_years_v5/transport_data_years_v47.yaml"
+
+# reading input data and initializing the model
 @info "Initialization ..."
 data_structures = get_input_data(file)
 model, data_structures = create_model(data_structures, case)
 @info "Model created successfully"
 
+# -------- constraints --------
 constraint_demand_coverage(model, data_structures)
 @info "Constraint for demand coverage created successfully"
 
@@ -36,13 +39,14 @@ constraint_fueling_infrastructure(model, data_structures)
 @info "Constraint for fueling infrastructure created successfully"
 
 constraint_monetary_budget(model::Model, data_structures::Dict)
-
 @info "Policy related constraints created successfully"
 
 @info "Constraints created successfully"
 
+# -------- objective --------
 objective(model, data_structures)
 
+# -------- model solution and saving of results --------
 set_optimizer_attribute(model, "ScaleFlag", 2)
 set_optimizer_attribute(model, "NumericFocus", 1)
 set_optimizer_attribute(model, "PreSparsify", 2)

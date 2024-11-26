@@ -52,7 +52,7 @@ function read_excel_and_define_struct(file_path::String, sheet_name::String)::Da
 
     # Create an empty DataFrame with the struct attributes as columns
     df = DataFrame()
-    for attribute in struct_attributes
+    for attribute ∈ struct_attributes
         df[!, attribute] = Any[]
     end
 

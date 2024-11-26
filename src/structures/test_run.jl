@@ -326,106 +326,107 @@ model = Model(Gurobi.Optimizer)
 # creating variables 
 # flow variable pkvt
 
-v_t_pairs = Set((tv.vehicle_type.id, tv.technology.id) for tv in vehicles)
+v_t_pairs = Set((tv.vehicle_type.id, tv.technology.id) for tv ∈ vehicles)
 m_t_v_pairs = Set(
-    (mtv.vehicle_type.mode.id, mtv.vehicle_type.id, mtv.technology.id) for mtv in vehicles
+    (mtv.vehicle_type.mode.id, mtv.vehicle_type.id, mtv.technology.id) for mtv ∈ vehicles
 )
 p_m_t_v_pairs = Set(
     (p.id, pmtv.vehicle_type.mode.id, pmtv.vehicle_type.id, pmtv.technology.id) for
-    pmtv in vehicles for p in pmtv.products
+    pmtv ∈ vehicles for p ∈ pmtv.products
 )
 alpha_h = 0.25
 beta_h = 0.25
 alpha_f = 0.25
 beta_f = 0.25
 if case == "A.1"
-    @variable(model, f[[p.id for p in product], [k.id for k in paths], v_t_pairs] >= 0)
-    @variable(model, h[[r.id for r in odpairs], v_t_pairs] >= 0)
+    @variable(model, f[[p.id for p ∈ product], [k.id for k ∈ paths], v_t_pairs] >= 0)
+    @variable(model, h[[r.id for r ∈ odpairs], v_t_pairs] >= 0)
 elseif case == "A.2"
     @variable(
         model,
-        f[[y for y in 1:Y], [p.id for p in product], [k.id for k in paths], v_t_pairs] >= 0
+        f[[y for y ∈ 1:Y], [p.id for p ∈ product], [k.id for k ∈ paths], v_t_pairs] >= 0
     )
-    @variable(model, h[[y for y in 1:Y], [r.id for r in odpairs], v_t_pairs] >= 0)
+    @variable(model, h[[y for y ∈ 1:Y], [r.id for r ∈ odpairs], v_t_pairs] >= 0)
 elseif case in ["B", "C.1", "C.2"]
     @variable(
         model,
         f[
-            [y for y in 1:Y],
-            [p.id for p in product],
-            [k.id for k in paths],
+            [y for y ∈ 1:Y],
+            [p.id for p ∈ product],
+            [k.id for k ∈ paths],
             v_t_pairs,
-            [g for g in 1:G],
+            [g for g ∈ 1:G],
         ] >= 0
     )
     @variable(
-        model, h[[y for y in 1:Y], [r.id for r in odpairs], v_t_pairs, [g for g in 1:G]] >= 0
+        model,
+        h[[y for y ∈ 1:Y], [r.id for r ∈ odpairs], v_t_pairs, [g for g ∈ 1:G]] >= 0
     )
     @variable(
         model,
-        h_exist[[y for y in 1:Y], [r.id for r in odpairs], v_t_pairs, [g for g in 1:G]] >= 0
+        h_exist[[y for y ∈ 1:Y], [r.id for r ∈ odpairs], v_t_pairs, [g for g ∈ 1:G]] >= 0
     )
     @variable(
         model,
-        h_plus[[y for y in 1:Y], [r.id for r in odpairs], v_t_pairs, [g for g in 1:G]] >= 0
+        h_plus[[y for y ∈ 1:Y], [r.id for r ∈ odpairs], v_t_pairs, [g for g ∈ 1:G]] >= 0
     )
     @variable(
         model,
-        h_minus[[y for y in 1:Y], [r.id for r in odpairs], v_t_pairs, [g for g in 1:G]] >= 0
+        h_minus[[y for y ∈ 1:Y], [r.id for r ∈ odpairs], v_t_pairs, [g for g ∈ 1:G]] >= 0
     )
 elseif case in ["C.3"]
     @variable(
         model,
         f[
-            [y for y in 1:Y],
-            [p.id for p in product],
-            [k.id for k in paths],
+            [y for y ∈ 1:Y],
+            [p.id for p ∈ product],
+            [k.id for k ∈ paths],
             m_t_v_pairs,
-            [g for g in 1:G],
+            [g for g ∈ 1:G],
         ] >= 0
     )
     @variable(
         model,
-        h[[y for y in 1:Y], [r.id for r in odpairs], m_t_v_pairs, [g for g in 1:G]] >= 0
+        h[[y for y ∈ 1:Y], [r.id for r ∈ odpairs], m_t_v_pairs, [g for g ∈ 1:G]] >= 0
     )
     @variable(
         model,
-        h_exist[[y for y in 1:Y], [r.id for r in odpairs], m_t_v_pairs, [g for g in 1:G]] >= 0
+        h_exist[[y for y ∈ 1:Y], [r.id for r ∈ odpairs], m_t_v_pairs, [g for g ∈ 1:G]] >= 0
     )
     @variable(
         model,
-        h_plus[[y for y in 1:Y], [r.id for r in odpairs], m_t_v_pairs, [g for g in 1:G]] >= 0
+        h_plus[[y for y ∈ 1:Y], [r.id for r ∈ odpairs], m_t_v_pairs, [g for g ∈ 1:G]] >= 0
     )
     @variable(
         model,
-        h_minus[[y for y in 1:Y], [r.id for r in odpairs], m_t_v_pairs, [g for g in 1:G]] >= 0
+        h_minus[[y for y ∈ 1:Y], [r.id for r ∈ odpairs], m_t_v_pairs, [g for g ∈ 1:G]] >= 0
     )
 elseif case in ["C.4", "C.5"]
     @variable(
         model,
         f[
-            [y for y in 1:Y],
-            [r.id for r in odpairs],
+            [y for y ∈ 1:Y],
+            [r.id for r ∈ odpairs],
             p_m_t_v_pairs,
-            [k.id for k in paths],
-            [g for g in 1:G],
+            [k.id for k ∈ paths],
+            [g for g ∈ 1:G],
         ] >= 0
     )
     @variable(
         model,
-        h[[y for y in 1:Y], [r.id for r in odpairs], m_t_v_pairs, [g for g in 1:G]] >= 0
+        h[[y for y ∈ 1:Y], [r.id for r ∈ odpairs], m_t_v_pairs, [g for g ∈ 1:G]] >= 0
     )
     @variable(
         model,
-        h_exist[[y for y in 1:Y], [r.id for r in odpairs], m_t_v_pairs, [g for g in 1:G]] >= 0
+        h_exist[[y for y ∈ 1:Y], [r.id for r ∈ odpairs], m_t_v_pairs, [g for g ∈ 1:G]] >= 0
     )
     @variable(
         model,
-        h_plus[[y for y in 1:Y], [r.id for r in odpairs], m_t_v_pairs, [g for g in 1:G]] >= 0
+        h_plus[[y for y ∈ 1:Y], [r.id for r ∈ odpairs], m_t_v_pairs, [g for g ∈ 1:G]] >= 0
     )
     @variable(
         model,
-        h_minus[[y for y in 1:Y], [r.id for r in odpairs], m_t_v_pairs, [g for g in 1:G]] >= 0
+        h_minus[[y for y ∈ 1:Y], [r.id for r ∈ odpairs], m_t_v_pairs, [g for g ∈ 1:G]] >= 0
     )
 end
 print()
@@ -436,14 +437,14 @@ if case == "A.1"
     @constraint(
         model,
         [r in odpairs],
-        sum(f[r.product.id, k.id, v_t] for k in r.paths for v_t in v_t_pairs) == r.F
+        sum(f[r.product.id, k.id, v_t] for k ∈ r.paths for v_t ∈ v_t_pairs) == r.F
     )
     @constraint(
         model,
         [r in odpairs, v in vehicles],
         h[r.id, (v.vehicle_type.id, v.technology.id)] >= sum(
             (k.length / (v.W[1] * v.AnnualRange[1])) *
-            f[r.product.id, k.id, (v.vehicle_type.id, v.technology.id)] for k in r.paths
+            f[r.product.id, k.id, (v.vehicle_type.id, v.technology.id)] for k ∈ r.paths
         )
     )
 
@@ -451,14 +452,14 @@ elseif case == "A.2"
     @constraint(
         model,
         [y in 1:Y, r in odpairs],
-        sum(f[y, r.product.id, k.id, v_t] for k in r.paths for v_t in v_t_pairs) == r.F[y]
+        sum(f[y, r.product.id, k.id, v_t] for k ∈ r.paths for v_t ∈ v_t_pairs) == r.F[y]
     )
     @constraint(
         model,
         [y in 1:Y, r in odpairs, v in vehicles],
         h[y, r.id, (v.vehicle_type.id, v.technology.id)] >= sum(
             (k.length / (v.W[y] * v.AnnualRange[y])) *
-            f[y, r.product.id, k.id, (v.vehicle_type.id, v.technology.id)] for k in r.paths
+            f[y, r.product.id, k.id, (v.vehicle_type.id, v.technology.id)] for k ∈ r.paths
         )
     )
 elseif case in ["B", "C.1", "C.2"]
@@ -467,7 +468,7 @@ elseif case in ["B", "C.1", "C.2"]
         [y in 1:Y, r in odpairs],
         sum(
             f[y, r.product.id, k.id, (v.vehicle_type.id, v.technology.id), g] for
-            k in r.paths for v in vehicles for g in 1:G
+            k ∈ r.paths for v ∈ vehicles for g ∈ 1:G
         ) == r.F[y]
     )
     @constraint(
@@ -476,19 +477,19 @@ elseif case in ["B", "C.1", "C.2"]
         h[y, r.id, (v.vehicle_type.id, v.technology.id), g] >= sum(
             (k.length / (v.W[y] * v.AnnualRange[y])) *
             f[y, r.product.id, k.id, (v.vehicle_type.id, v.technology.id), g] for
-            k in r.paths
+            k ∈ r.paths
         )
     )
     # vehicle stock aging
-    for r in odpairs
-        for v in vehicles
-            for y in 1:Y
-                for g in 1:G
+    for r ∈ odpairs
+        for v ∈ vehicles
+            for y ∈ 1:Y
+                for g ∈ 1:G
                     if y >= g
                         @constraint(
                             model,
                             h[y, r.id, (v.vehicle_type.id, v.technology.id), g] ==
-                                h_exist[y, r.id, (v.vehicle_type.id, v.technology.id), g] +
+                            h_exist[y, r.id, (v.vehicle_type.id, v.technology.id), g] +
                             h_plus[y, r.id, (v.vehicle_type.id, v.technology.id), g] -
                             h_minus[y, r.id, (v.vehicle_type.id, v.technology.id), g]
                         )
@@ -496,20 +497,20 @@ elseif case in ["B", "C.1", "C.2"]
                             @constraint(
                                 model,
                                 h_exist[y, r.id, (v.vehicle_type.id, v.technology.id), g] ==
-                                    0
+                                0
                             )
                         else
                             @constraint(
                                 model,
                                 h_exist[y, r.id, (v.vehicle_type.id, v.technology.id), g] ==
-                                    h[y - 1, r.id, (v.vehicle_type.id, v.technology.id), g]
+                                h[y-1, r.id, (v.vehicle_type.id, v.technology.id), g]
                             )
                         end
                         if y != g
                             @constraint(
                                 model,
                                 h_plus[y, r.id, (v.vehicle_type.id, v.technology.id), g] ==
-                                    0
+                                0
                             )
                         end
 
@@ -518,8 +519,8 @@ elseif case in ["B", "C.1", "C.2"]
                             @constraint(
                                 model,
                                 h_minus[y, r.id, (v.vehicle_type.id, v.technology.id), g] ==
-                                    h_plus[
-                                    y - v.Lifetime[g],
+                                h_plus[
+                                    y-v.Lifetime[g],
                                     r.id,
                                     (v.vehicle_type.id, v.technology.id),
                                     g,
@@ -529,12 +530,13 @@ elseif case in ["B", "C.1", "C.2"]
                             @constraint(
                                 model,
                                 h_minus[y, r.id, (v.vehicle_type.id, v.technology.id), g] ==
-                                    0
+                                0
                             )
                         end
                     elseif y < g    # there can be no vehicles at year y that are of generation g = y - 1
                         @constraint(
-                            model, h[y, r.id, (v.vehicle_type.id, v.technology.id), g] == 0
+                            model,
+                            h[y, r.id, (v.vehicle_type.id, v.technology.id), g] == 0
                         )
                         @constraint(
                             model,
@@ -564,7 +566,7 @@ elseif case in ["C.3"]
                 k.id,
                 (v.vehicle_type.mode.id, v.vehicle_type.id, v.technology.id),
                 g,
-            ] for k in r.paths for v in vehicles for g in 1:G
+            ] for k ∈ r.paths for v ∈ vehicles for g ∈ 1:G
         ) == r.F[y]
     )
     @constraint(
@@ -577,14 +579,14 @@ elseif case in ["C.3"]
                 k.id,
                 (v.vehicle_type.mode.id, v.vehicle_type.id, v.technology.id),
                 g,
-            ] for k in r.paths
+            ] for k ∈ r.paths
         )
     )
     # vehicle stock aging
-    for r in odpairs
-        for v in vehicles
-            for y in 1:Y
-                for g in 1:G
+    for r ∈ odpairs
+        for v ∈ vehicles
+            for y ∈ 1:Y
+                for g ∈ 1:G
                     if y >= g
                         @constraint(
                             model,
@@ -598,7 +600,7 @@ elseif case in ["C.3"]
                                 ),
                                 g,
                             ] ==
-                                h_exist[
+                            h_exist[
                                 y,
                                 r.id,
                                 (
@@ -654,7 +656,7 @@ elseif case in ["C.3"]
                                     ),
                                     g,
                                 ] == h[
-                                    y - 1,
+                                    y-1,
                                     r.id,
                                     (
                                         v.vehicle_type.mode.id,
@@ -695,7 +697,7 @@ elseif case in ["C.3"]
                                     ),
                                     g,
                                 ] == h_plus[
-                                    y - v.Lifetime[g],
+                                    y-v.Lifetime[g],
                                     r.id,
                                     (
                                         v.vehicle_type.mode.id,
@@ -789,7 +791,7 @@ elseif case in ["C.4", "C.5"]
                 (p.id, v.vehicle_type.mode.id, v.vehicle_type.id, v.technology.id),
                 k.id,
                 g,
-            ] for k in r.paths for v in vehicles for g in 1:G for p in v.products
+            ] for k ∈ r.paths for v ∈ vehicles for g ∈ 1:G for p ∈ v.products
         ) == r.F[y]
     )
     @constraint(
@@ -802,13 +804,13 @@ elseif case in ["C.4", "C.5"]
                 (p.id, v.vehicle_type.mode.id, v.vehicle_type.id, v.technology.id),
                 k.id,
                 g,
-            ] for k in r.paths for p in v.products
+            ] for k ∈ r.paths for p ∈ v.products
         )
     )
-    for r in odpairs
-        for v in vehicles
-            for y in 1:Y
-                for g in 1:G
+    for r ∈ odpairs
+        for v ∈ vehicles
+            for y ∈ 1:Y
+                for g ∈ 1:G
                     if y >= g
                         @constraint(
                             model,
@@ -822,7 +824,7 @@ elseif case in ["C.4", "C.5"]
                                 ),
                                 g,
                             ] ==
-                                h_exist[
+                            h_exist[
                                 y,
                                 r.id,
                                 (
@@ -878,7 +880,7 @@ elseif case in ["C.4", "C.5"]
                                     ),
                                     g,
                                 ] == h[
-                                    y - 1,
+                                    y-1,
                                     r.id,
                                     (
                                         v.vehicle_type.mode.id,
@@ -919,7 +921,7 @@ elseif case in ["C.4", "C.5"]
                                     ),
                                     g,
                                 ] == h_plus[
-                                    y - v.Lifetime[g],
+                                    y-v.Lifetime[g],
                                     r.id,
                                     (
                                         v.vehicle_type.mode.id,
@@ -1007,38 +1009,38 @@ elseif case in ["C.4", "C.5"]
     @constraint(
         model,
         [y in 2:Y, r in odpairs, mtv in m_t_v_pairs],
-        (sum(h[y, r.id, mtv, g] for g in 1:G) - sum(h[y - 1, r.id, mtv, g] for g in 1:G)) <=
-            alpha_h * sum(h[y, r.id, mtv0, g] for mtv0 in m_t_v_pairs for g in 1:G) +
-        beta_h * sum(h[y - 1, r.id, mtv, g] for g in 1:G)
+        (sum(h[y, r.id, mtv, g] for g ∈ 1:G) - sum(h[y-1, r.id, mtv, g] for g ∈ 1:G)) <=
+        alpha_h * sum(h[y, r.id, mtv0, g] for mtv0 ∈ m_t_v_pairs for g ∈ 1:G) +
+        beta_h * sum(h[y-1, r.id, mtv, g] for g ∈ 1:G)
     )
     @constraint(
         model,
         [y in 2:Y, r in odpairs, p_m_v in p_m_t_v_pairs],
         (
-            sum(f[y, r.id, p_m_v, k.id, g] for k in r.paths for g in 1:G) -
-            sum(f[y - 1, r.id, p_m_v, k.id, g] for k in r.paths for g in 1:G)
+            sum(f[y, r.id, p_m_v, k.id, g] for k ∈ r.paths for g ∈ 1:G) -
+            sum(f[y-1, r.id, p_m_v, k.id, g] for k ∈ r.paths for g ∈ 1:G)
         ) <=
-            alpha_f * sum(
-            f[y, r.id, pmv0, k.id, g] for pmv0 in p_m_t_v_pairs for k in r.paths for g in 1:G
-        ) + beta_f * sum(f[y - 1, r.id, p_m_v, k.id, g] for k in r.paths for g in 1:G)
+        alpha_f * sum(
+            f[y, r.id, pmv0, k.id, g] for pmv0 ∈ p_m_t_v_pairs for k ∈ r.paths for g ∈ 1:G
+        ) + beta_f * sum(f[y-1, r.id, p_m_v, k.id, g] for k ∈ r.paths for g ∈ 1:G)
     )
     @constraint(
         model,
         [y in 2:Y, r in odpairs, mtv in m_t_v_pairs],
-        -(sum(h[y, r.id, mtv, g] for g in 1:G) - sum(h[y - 1, r.id, mtv, g] for g in 1:G)) <=
-            alpha_h * sum(h[y, r.id, mtv0, g] for mtv0 in m_t_v_pairs for g in 1:G) +
-        beta_h * sum(h[y - 1, r.id, mtv, g] for g in 1:G)
+        -(sum(h[y, r.id, mtv, g] for g ∈ 1:G) - sum(h[y-1, r.id, mtv, g] for g ∈ 1:G)) <=
+        alpha_h * sum(h[y, r.id, mtv0, g] for mtv0 ∈ m_t_v_pairs for g ∈ 1:G) +
+        beta_h * sum(h[y-1, r.id, mtv, g] for g ∈ 1:G)
     )
     @constraint(
         model,
         [y in 2:Y, r in odpairs, p_m_v in p_m_t_v_pairs],
         -(
-            sum(f[y, r.id, p_m_v, k.id, g] for k in r.paths for g in 1:G) -
-            sum(f[y - 1, r.id, p_m_v, k.id, g] for k in r.paths for g in 1:G)
+            sum(f[y, r.id, p_m_v, k.id, g] for k ∈ r.paths for g ∈ 1:G) -
+            sum(f[y-1, r.id, p_m_v, k.id, g] for k ∈ r.paths for g ∈ 1:G)
         ) <=
-            alpha_f * sum(
-            f[y, r.id, pmv0, k.id, g] for pmv0 in p_m_t_v_pairs for k in r.paths for g in 1:G
-        ) + beta_f * sum(f[y - 1, r.id, p_m_v, k.id, g] for k in r.paths for g in 1:G)
+        alpha_f * sum(
+            f[y, r.id, pmv0, k.id, g] for pmv0 ∈ p_m_t_v_pairs for k ∈ r.paths for g ∈ 1:G
+        ) + beta_f * sum(f[y-1, r.id, p_m_v, k.id, g] for k ∈ r.paths for g ∈ 1:G)
     )
 end
 # @constraint(model, [y in v.Lifetime:Y, r in odpairs, v in vehicles, t in v.technology], h[y, r.id, v.id, t.id, y] == h_plus[y, r.id, v.id, t.id] - h_minus[y-v.Lifetime, r.id, v.id, t.id])    
@@ -1056,12 +1058,11 @@ if case == "A.1"
         Min,
         sum(
             h[r.id, (v.vehicle_type.id, v.technology.id)] * v.capital_cost[1] for
-            r in odpairs for v in vehicles
+            r ∈ odpairs for v ∈ vehicles
         ) + sum(
             f[p.id, k.id, (v.vehicle_type.id, v.technology.id)] *
             k.length *
-            v.technology.fuel.cost_per_kWh[1] for p in product for k in paths for
-            v in vehicles
+            v.technology.fuel.cost_per_kWh[1] for p ∈ product for k ∈ paths for v ∈ vehicles
         )
     )
 elseif case == "A.2"
@@ -1069,13 +1070,14 @@ elseif case == "A.2"
         model,
         Min,
         sum(
-            h[y, r.id, (v.vehicle_type.id, v.technology.id)] * v.capital_cost[y] for y in
-                1:Y for r in odpairs for v in vehicles
+            h[y, r.id, (v.vehicle_type.id, v.technology.id)] * v.capital_cost[y] for y ∈
+                                                                                     1:Y for
+            r ∈ odpairs for v ∈ vehicles
         ) + sum(
             f[y, p.id, k.id, (v.vehicle_type.id, v.technology.id)] *
             k.length *
-            v.technology.fuel.cost_per_kWh[y] for y in 1:Y for p in product for k in paths
-            for v in vehicles
+            v.technology.fuel.cost_per_kWh[y] for y ∈ 1:Y for p ∈ product for k ∈ paths for
+            v ∈ vehicles
         )
     )
 elseif case in ["B"]
@@ -1084,12 +1086,12 @@ elseif case in ["B"]
         Min,
         sum(
             h_plus[y, r.id, (v.vehicle_type.id, v.technology.id), g] * v.capital_cost[g] for
-            y in 1:Y for r in odpairs for v in vehicles for g in 1:G
+            y ∈ 1:Y for r ∈ odpairs for v ∈ vehicles for g ∈ 1:G
         ) + sum(
             f[y, p.id, k.id, (v.vehicle_type.id, v.technology.id), g] *
             k.length *
-            v.technology.fuel.cost_per_kWh[g] for y in 1:Y for p in product for k in paths
-            for v in vehicles for g in 1:G
+            v.technology.fuel.cost_per_kWh[g] for y ∈ 1:Y for p ∈ product for k ∈ paths for
+            v ∈ vehicles for g ∈ 1:G
         )
     )
 elseif case in ["C.1", "C.2"]
@@ -1098,12 +1100,12 @@ elseif case in ["C.1", "C.2"]
         Min,
         sum(
             h_plus[y, r.id, (v.vehicle_type.id, v.technology.id), g] * v.capital_cost[y] for
-            y in 1:Y for r in odpairs for v in vehicles for g in 1:G
+            y ∈ 1:Y for r ∈ odpairs for v ∈ vehicles for g ∈ 1:G
         ) + sum(
             f[y, p.id, k.id, (v.vehicle_type.id, v.technology.id), g] *
             k.length *
-            v.technology.fuel.cost_per_kWh[y] for y in 1:Y for p in product for k in paths
-            for v in vehicles for g in 1:G
+            v.technology.fuel.cost_per_kWh[y] for y ∈ 1:Y for p ∈ product for k ∈ paths for
+            v ∈ vehicles for g ∈ 1:G
         )
     )
 elseif case in ["C.3"]
@@ -1112,9 +1114,11 @@ elseif case in ["C.3"]
         Min,
         sum(
             h_plus[
-                y, r.id, (v.vehicle_type.mode.id, v.vehicle_type.id, v.technology.id), g
-            ] * v.capital_cost[y] for y in 1:Y for r in odpairs for v in vehicles for
-            g in 1:G
+                y,
+                r.id,
+                (v.vehicle_type.mode.id, v.vehicle_type.id, v.technology.id),
+                g,
+            ] * v.capital_cost[y] for y ∈ 1:Y for r ∈ odpairs for v ∈ vehicles for g ∈ 1:G
         ) + sum(
             f[
                 y,
@@ -1124,8 +1128,8 @@ elseif case in ["C.3"]
                 g,
             ] *
             k.length *
-            v.technology.fuel.cost_per_kWh[y] for y in 1:Y for r in odpairs for
-            v in vehicles for p in v.products for k in r.paths for g in 1:G
+            v.technology.fuel.cost_per_kWh[y] for y ∈ 1:Y for r ∈ odpairs for v ∈ vehicles
+            for p ∈ v.products for k ∈ r.paths for g ∈ 1:G
         )
     )
 elseif case in ["C.4", "C.5"]
@@ -1134,9 +1138,11 @@ elseif case in ["C.4", "C.5"]
         Min,
         sum(
             h_plus[
-                y, r.id, (v.vehicle_type.mode.id, v.vehicle_type.id, v.technology.id), g
-            ] * v.capital_cost[y] for y in 1:Y for r in odpairs for v in vehicles for
-            g in 1:G
+                y,
+                r.id,
+                (v.vehicle_type.mode.id, v.vehicle_type.id, v.technology.id),
+                g,
+            ] * v.capital_cost[y] for y ∈ 1:Y for r ∈ odpairs for v ∈ vehicles for g ∈ 1:G
         ) + sum(
             f[
                 y,
@@ -1146,8 +1152,8 @@ elseif case in ["C.4", "C.5"]
                 g,
             ] *
             k.length *
-            v.technology.fuel.cost_per_kWh[y] for y in 1:Y for r in odpairs for
-            v in vehicles for p in v.products for k in r.paths for g in 1:G
+            v.technology.fuel.cost_per_kWh[y] for y ∈ 1:Y for r ∈ odpairs for v ∈ vehicles
+            for p ∈ v.products for k ∈ r.paths for g ∈ 1:G
         )
     )
 end
@@ -1162,8 +1168,8 @@ solution_summary(model)
 if case == "A.1"
     solved_f = value.(f)
     solved_h = value.(h)
-    for r in odpairs
-        for v_t in v_t_pairs
+    for r ∈ odpairs
+        for v_t ∈ v_t_pairs
             println(
                 "h for odpair ",
                 r.id,
@@ -1182,16 +1188,16 @@ if case == "A.1"
                 " technology ",
                 v_t[2],
                 " ",
-                sum(solved_f[r.product.id, k.id, v_t] for k in r.paths),
+                sum(solved_f[r.product.id, k.id, v_t] for k ∈ r.paths),
             )
         end
     end
 elseif case == "A.2"
     solved_f = value.(f)
     solved_h = value.(h)
-    for y in 1:Y
-        for r in odpairs
-            for v_t in v_t_pairs
+    for y ∈ 1:Y
+        for r ∈ odpairs
+            for v_t ∈ v_t_pairs
                 println(
                     "h in year ",
                     y,
@@ -1214,7 +1220,7 @@ elseif case in ["B"]
     solved_h_exist = value.(h_exist)
     solved_f = value.(f)
 
-    for y in 1:Y
+    for y ∈ 1:Y
         println(
             "h in year ",
             y,
@@ -1245,8 +1251,8 @@ elseif case in ["C.1", "C.2"]
     solved_h_exist = value.(h_exist)
     solved_f = value.(f)
 
-    for y in 1:Y
-        for t in technologies
+    for y ∈ 1:Y
+        for t ∈ technologies
             println(
                 "year ",
                 y,
@@ -1255,27 +1261,27 @@ elseif case in ["C.1", "C.2"]
                 " h ",
                 sum(
                     sum(solved_h[y, :, (v.vehicle_type.id, v.technology.id), :]) for
-                    v in vehicles if v.technology.id == t.id
+                    v ∈ vehicles if v.technology.id == t.id
                 ),
                 " h_plus ",
                 sum(
                     sum(solved_h_plus[y, :, (v.vehicle_type.id, v.technology.id), :]) for
-                    v in vehicles if v.technology.id == t.id
+                    v ∈ vehicles if v.technology.id == t.id
                 ),
                 " h_minus ",
                 sum(
                     sum(solved_h_minus[y, :, (v.vehicle_type.id, v.technology.id), :]) for
-                    v in vehicles if v.technology.id == t.id
+                    v ∈ vehicles if v.technology.id == t.id
                 ),
                 " h_exist ",
                 sum(
                     sum(solved_h_exist[y, :, (v.vehicle_type.id, v.technology.id), :]) for
-                    v in vehicles if v.technology.id == t.id
+                    v ∈ vehicles if v.technology.id == t.id
                 ),
                 " f in year ",
                 sum(
                     sum(solved_f[y, :, :, (v.vehicle_type.id, v.technology.id), :]) for
-                    v in vehicles if v.technology.id == t.id
+                    v ∈ vehicles if v.technology.id == t.id
                 ),
             )
         end
@@ -1288,8 +1294,8 @@ elseif case in ["C.3"]
     solved_h_exist = value.(h_exist)
     solved_f = value.(f)
 
-    for y in 1:Y
-        for m in modes
+    for y ∈ 1:Y
+        for m ∈ modes
             # println("year ", y, ": mode  ", m.id, " h ", sum(sum(solved_h[y, :, (v.vehicle_type.mode.id ,v.vehicle_type.id, v.technology.id), :]) for v in vehicles if v.vehicle_type.mode.id == m.id), " h_plus ", sum(sum(solved_h_plus[y, :, (v.vehicle_type.mode.id ,v.vehicle_type.id, v.technology.id), :]) for v in vehicles if v.vehicle_type.mode.id == m.id))
             println(
                 "year ",
@@ -1305,7 +1311,7 @@ elseif case in ["C.3"]
                             (v.vehicle_type.mode.id, v.vehicle_type.id, v.technology.id),
                             :,
                         ],
-                    ) for v in vehicles if v.vehicle_type.mode.id == m.id
+                    ) for v ∈ vehicles if v.vehicle_type.mode.id == m.id
                 ),
                 " h_plus ",
                 sum(
@@ -1316,7 +1322,7 @@ elseif case in ["C.3"]
                             (v.vehicle_type.mode.id, v.vehicle_type.id, v.technology.id),
                             :,
                         ],
-                    ) for v in vehicles if v.vehicle_type.mode.id == m.id
+                    ) for v ∈ vehicles if v.vehicle_type.mode.id == m.id
                 ),
                 " h_minus ",
                 sum(
@@ -1327,7 +1333,7 @@ elseif case in ["C.3"]
                             (v.vehicle_type.mode.id, v.vehicle_type.id, v.technology.id),
                             :,
                         ],
-                    ) for v in vehicles if v.vehicle_type.mode.id == m.id
+                    ) for v ∈ vehicles if v.vehicle_type.mode.id == m.id
                 ),
                 " h_exist ",
                 sum(
@@ -1338,7 +1344,7 @@ elseif case in ["C.3"]
                             (v.vehicle_type.mode.id, v.vehicle_type.id, v.technology.id),
                             :,
                         ],
-                    ) for v in vehicles if v.vehicle_type.mode.id == m.id
+                    ) for v ∈ vehicles if v.vehicle_type.mode.id == m.id
                 ),
                 " f in year ",
                 sum(
@@ -1350,7 +1356,7 @@ elseif case in ["C.3"]
                             (v.vehicle_type.mode.id, v.vehicle_type.id, v.technology.id),
                             :,
                         ],
-                    ) for v in vehicles if v.vehicle_type.mode.id == m.id
+                    ) for v ∈ vehicles if v.vehicle_type.mode.id == m.id
                 ),
             )
         end
@@ -1362,8 +1368,8 @@ elseif case in ["C.4"]
     solved_h_exist = value.(h_exist)
     solved_f = value.(f)
     # checking for each year the transition from one technology to another 
-    for y in 1:Y
-        for t in technologies
+    for y ∈ 1:Y
+        for t ∈ technologies
             println(
                 "year ",
                 y,
@@ -1378,7 +1384,7 @@ elseif case in ["C.4"]
                             (v.vehicle_type.mode.id, v.vehicle_type.id, v.technology.id),
                             :,
                         ],
-                    ) for v in vehicles if v.technology.id == t.id
+                    ) for v ∈ vehicles if v.technology.id == t.id
                 ),
                 " h_plus ",
                 sum(
@@ -1389,7 +1395,7 @@ elseif case in ["C.4"]
                             (v.vehicle_type.mode.id, v.vehicle_type.id, v.technology.id),
                             :,
                         ],
-                    ) for v in vehicles if v.technology.id == t.id
+                    ) for v ∈ vehicles if v.technology.id == t.id
                 ),
                 " h_minus ",
                 sum(
@@ -1400,7 +1406,7 @@ elseif case in ["C.4"]
                             (v.vehicle_type.mode.id, v.vehicle_type.id, v.technology.id),
                             :,
                         ],
-                    ) for v in vehicles if v.technology.id == t.id
+                    ) for v ∈ vehicles if v.technology.id == t.id
                 ),
                 " h_exist ",
                 sum(
@@ -1411,7 +1417,7 @@ elseif case in ["C.4"]
                             (v.vehicle_type.mode.id, v.vehicle_type.id, v.technology.id),
                             :,
                         ],
-                    ) for v in vehicles if v.technology.id == t.id
+                    ) for v ∈ vehicles if v.technology.id == t.id
                 ),
                 " f in year ",
                 sum(
@@ -1428,7 +1434,7 @@ elseif case in ["C.4"]
                             :,
                             :,
                         ],
-                    ) for v in vehicles for p in v.products if v.technology.id == t.id
+                    ) for v ∈ vehicles for p ∈ v.products if v.technology.id == t.id
                 ),
             )
         end
@@ -1440,8 +1446,8 @@ elseif case in ["C.5"]
     solved_h_exist = value.(h_exist)
     solved_f = value.(f)
     # checking for each year the transition from one technology to another 
-    for y in 1:Y
-        for m in modes
+    for y ∈ 1:Y
+        for m ∈ modes
             println(
                 "year ",
                 y,
@@ -1456,7 +1462,7 @@ elseif case in ["C.5"]
                             (v.vehicle_type.mode.id, v.vehicle_type.id, v.technology.id),
                             :,
                         ],
-                    ) for v in vehicles if v.vehicle_type.mode.id == m.id
+                    ) for v ∈ vehicles if v.vehicle_type.mode.id == m.id
                 ),
                 " h_plus ",
                 sum(
@@ -1467,7 +1473,7 @@ elseif case in ["C.5"]
                             (v.vehicle_type.mode.id, v.vehicle_type.id, v.technology.id),
                             :,
                         ],
-                    ) for v in vehicles if v.vehicle_type.mode.id == m.id
+                    ) for v ∈ vehicles if v.vehicle_type.mode.id == m.id
                 ),
                 " h_minus ",
                 sum(
@@ -1478,7 +1484,7 @@ elseif case in ["C.5"]
                             (v.vehicle_type.mode.id, v.vehicle_type.id, v.technology.id),
                             :,
                         ],
-                    ) for v in vehicles if v.vehicle_type.mode.id == m.id
+                    ) for v ∈ vehicles if v.vehicle_type.mode.id == m.id
                 ),
                 " h_exist ",
                 sum(
@@ -1489,7 +1495,7 @@ elseif case in ["C.5"]
                             (v.vehicle_type.mode.id, v.vehicle_type.id, v.technology.id),
                             :,
                         ],
-                    ) for v in vehicles if v.vehicle_type.mode.id == m.id
+                    ) for v ∈ vehicles if v.vehicle_type.mode.id == m.id
                 ),
                 " f in year ",
                 sum(
@@ -1506,8 +1512,7 @@ elseif case in ["C.5"]
                             :,
                             :,
                         ],
-                    ) for v in vehicles for
-                    p in v.products if v.vehicle_type.mode.id == m.id
+                    ) for v ∈ vehicles for p ∈ v.products if v.vehicle_type.mode.id == m.id
                 ),
             )
         end
