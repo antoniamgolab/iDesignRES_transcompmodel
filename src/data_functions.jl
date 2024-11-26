@@ -58,4 +58,3 @@ function read_excel_and_define_struct(file_path::String, sheet_name::String)::Da
 
     return df
 end
-

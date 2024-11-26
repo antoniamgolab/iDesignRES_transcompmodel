@@ -5,7 +5,7 @@ function generate_set_K_r(R, K, K_r)
         for k in K_r[r]
             push!(output_set, (r, k))
         end
-    end 
+    end
     return output_set
 end
 
@@ -19,7 +19,7 @@ function generate_yktg(Y, K, T, G)
                 end
             end
         end
-    end 
+    end
     return output_set
 end
 
@@ -33,7 +33,7 @@ function generate_yrtg(Y, R, T, G)
                 end
             end
         end
-    end 
+    end
     return output_set
 end
 

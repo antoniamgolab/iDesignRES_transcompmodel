@@ -7,5 +7,3 @@ The program is developed in a modular way
 @Dateofcreation: 2024-04-18
 
 """
-
-

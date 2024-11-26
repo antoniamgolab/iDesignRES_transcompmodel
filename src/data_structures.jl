@@ -5,11 +5,6 @@ Creation of data structures used for the parametrization of the TransportSecMode
     @Dateofcreation: 2024-04-18
 """
 
-
-
-
-
-
 """
     add_numbers(x, y)
 
@@ -25,7 +20,6 @@ The sum of `x` and `y`.
 function add_numbers(x, y)
     return x + y
 end
-
 
 # define the model with its parameters as a struct!! 
 
