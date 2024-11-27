@@ -1,13 +1,17 @@
 using YAML, JuMP, Gurobi, Printf
-include("structs.jl")
-include("model_functions.jl")
-include("other_functions.jl")
+
+
+include(joinpath(@__DIR__, "../../src/structures/structs.jl"))
+include(joinpath(@__DIR__, "../../src/structures/model_functions.jl"))
+include(joinpath(@__DIR__, "../../src/structures/other_functions.jl"))
 
 # reading input data
 # Get the path to the YAML file
 
 script_dir = @__DIR__   # Directory of the current script
-yaml_file_path = normpath(joinpath(@__DIR__, "../../examples/Basque country/data/transport_data_years_v47.yaml"))
+yaml_file_path = normpath(
+    joinpath(@__DIR__, "data/transport_data_years_v47.yaml"),
+)
 println("Constructed file path: $yaml_file_path")
 
 # TODO: deleting this
@@ -19,7 +23,7 @@ case = "region_dep_costs"
 # file = "C:/Users/Antonia/Documents/external sources/transport_data_years_v5/transport_data_years_v47.yaml"
 
 file = yaml_file_path
-@info file 
+@info file
 
 # reading input data and initializing the model
 @info "Initialization ..."
@@ -49,6 +53,9 @@ constraint_mode_shift(model, data_structures)
 constraint_fueling_infrastructure(model, data_structures)
 @info "Constraint for fueling infrastructure created successfully"
 
+constraint_mode_infrastructure(model, data_structures)
+@info "Constraint for mode infrastructure created successfully"
+
 constraint_monetary_budget(model, data_structures)
 @info "Policy related constraints created successfully"
 
@@ -66,7 +73,7 @@ println("Solution .... ")
 optimize!(model)
 solution_summary(model)
 
-results_file_path = normpath(joinpath(@__DIR__, "../../examples/Basque country/results/"))
+results_file_path = normpath(joinpath(@__DIR__, "results/"))
 save_results(model, case, results_file_path)
 
 @info "Results saved successfully"

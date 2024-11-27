@@ -6,11 +6,12 @@ A 'Node' represents geographic region.
 # Fields
 - `id::Int`: unique identifier of the node
 - `name::String`: name the region
-
+- `carbon_price::Array{Float64,1}`: carbon price in €/tCO2 for each year
 """
 struct Node
     id::Int
     name::String
+    carbon_price::Array{Float64,1}
 end
 
 """
@@ -24,6 +25,7 @@ An 'Edge' represents a connection between two nodes and is a representation of c
 - `length::Float64`: length of the connection in km
 - `from::Node`: the node from which the edge starts
 - `to::Node`: the node to which the edge ends
+- `carbon_price::Array{Float64,1}`: carbon price in €/tCO2 for each year
 """
 struct Edge
     id::Int
@@ -31,6 +33,7 @@ struct Edge
     length::Float64
     from::Node
     to::Node
+    carbon_price::Array{Float64,1}
 end
 
 """
@@ -44,6 +47,9 @@ A 'Mode' represents a transport mode. Transport modes may differ either by the i
 - `quantify_by_vehs::Bool`: if for this mode vehicles stock is sized or not. If this mode is considered with levelized costs, including the costs for vehicles and related costs.
 - `cost_per_ukm::Array{Float64, 1}`: cost per km in €/km (only relevant when quantify_by_vehs is false) 
 - `emission_factor::Array{Float64,1}`: emission factor of the mode in gCO2/ukm (only relevant when quantify_by_vehs is false)
+- `infrastructure_expansion_costs::Array{Float64,1}`: infrastructure expansion costs in € (only relevant when quantify_by_vehs is false)
+- `infrastructure_om_costs::Array{Float64,1}`: infrastructure operation and maintenance costs in €/year (only relevant when quantify_by_vehs is false)
+- `waiting_time::Array{Float64,1}`: waiting time in h
 """
 struct Mode
     id::Int
@@ -51,6 +57,9 @@ struct Mode
     quantify_by_vehs::Bool
     cost_per_ukm::Array{Float64,1}
     emission_factor::Array{Float64,1} # gCO2/ukm
+    infrastructure_expansion_costs::Array{Float64,1}
+    infrastructure_om_costs::Array{Float64,1}
+    waiting_time::Array{Float64,1} # waiting time in h
 end
 
 """
@@ -98,15 +107,16 @@ A 'Fuel' represents the energy source used for the vehicle propulsion.
 - `emission_factor::Float64`: emission factor of the fuel in gCO2/kWh
 - `cost_per_kWh`: cost per kWh of the fuel in €
 - `cost_per_kW`: cost per kW of the fuel in €
+- `fueling_infrastructure_om_costs::Array{Float64,1}`: fueling infrastructure operation and maintenance costs in €/year
 """
 struct Fuel
     id::Int
     name::String
     emission_factor::Array{Float64,1}  # gCO2/kWh
-    cost_per_kWh::Any   # € per kWh 
-    cost_per_kW::Any
+    cost_per_kWh::Array{Float64,1}   # € per kWh 
+    cost_per_kW::Array{Float64,1}
+    fueling_infrastructure_om_costs::Array{Float64,1}
 end
-
 """
     Technology
 
@@ -152,8 +162,8 @@ struct TechVehicle
     vehicle_type::Vehicletype
     technology::Technology
     capital_cost::Array{Float64,1}  # capital cost in €
-    maintnanace_cost_annual::Any
-    maintnance_cost_distance::Any
+    maintenance_cost_annual::Array{Float64,1}
+    maintenance_cost_distance::Array{Float64,1}
     W::Array{Float64,1}  # load capacity in t
     spec_cons::Array{Float64,1}  # specific consumption in kWh/km  
     Lifetime::Array{Int,1} # Array if multiple generations are considered 
@@ -181,6 +191,43 @@ struct InitialVehicleStock
     year_of_purchase::Int
     stock::Float64
 end
+
+"""
+    InitialFuelingInfr
+
+An 'InitialFuelingInfr' represents the fueling infrastructure that exists at the initial year of the optimization horizon.
+
+# Fields
+- `id::Int`: unique identifier of the initial fueling infrastructure
+- `technology::Technology`: technology of the fueling infrastructure
+- `allocation`: allocation of the fueling infrastructure
+- `installed_kW::Float64`: installed capacity of the fueling infrastructure in kW
+"""
+struct InitialFuelingInfr
+    id::Int
+    technology::Technology
+    allocation
+    installed_kW::Float64
+end 
+
+"""
+    InitialModeInfr
+
+An 'InitialModeInfr' represents the mode infrastructure that exists at the initial year of the optimization horizon.
+
+# Fields
+- `id::Int`: unique identifier of the initial mode infrastructure
+- `mode::Mode`: mode of transport
+- `allocation`: allocation of the mode infrastructure
+- `installed_ukm::Float64`: installed transport capacity of the mode infrastructure in Ukm
+
+"""
+struct InitialModeInfr
+    id::Int
+    mode::Mode
+    allocation
+    installed_ukm::Float64
+end 
 
 """
     FinancialStatus
@@ -255,38 +302,23 @@ struct Odpair
 end
 
 """
-    Generation
+    Speed 
 
-A 'Generation' referes to model year of a vehicle type to include the variation in vehicle performance parameters depending on when a vehicle was produced.
-
-# Fields
-- `id::Int`: unique identifier of the generation
-- `year::Int`: year of the generation
-- `y::Int`: year of the generation relative to the initial year of the optimization horizon
-"""
-struct Generation
-    id::Int
-    year::Int
-    y::Int
-end
-
-"""
-    F_init_mode_share
-
-A 'F_init_mode_share' describes the initial mode share of a transport mode and is an attribute of a travel connection.
+Speed indicates the average travel speed that is given by a certain region and vehicle type.
 
 # Fields
-- `id::Int`: unique identifier of the initial mode share
-- `mode::Mode`: mode of transport
-- `share::Float64`: share of the mode in the initial mode share
-- `f_init::Float64`: initial number of trips in p/year or t/year
+- `id::Int`: unique identifier of the speed
+- `region_type::Regiontype`: region in which the speed is valid
+- `vehicle_type::Vehicletype`: vehicle type for which the speed is valid
+- `travel_speed::Float64`: travel speed in km/h
 """
-struct F_init_mode_share
+
+struct Speed 
     id::Int
-    mode::Mode
-    share::Float64
-    f_init::Float64
-end
+    region_type::Regiontype
+    vehicle_type::Vehicletype
+    travel_speed::Float64
+end 
 
 """
     Market_shares
@@ -298,6 +330,7 @@ A 'Market_shares' describes the market share of a vehicle type with a specific d
 - `type::TechVehicle`: vehicle type and technology
 - `share::Float64`: market share of the vehicle type (in %)
 - `year::Int`: year of the expected market share
+- `region_type::Array{Regiontype,1}`: array of region types that are affected by this TechVehicle share constraint
 """
 
 struct Market_shares
@@ -305,6 +338,7 @@ struct Market_shares
     type::TechVehicle
     share::Float64
     year::Int
+    region_type::Array{Regiontype,1}
 end
 
 """
@@ -317,7 +351,7 @@ A 'Mode_shares' describes the mode share of a transport mode in a specific year.
 - `mode::Mode`: mode of transport
 - `share::Float64`: share of the mode
 - `year::Int`: year of the mode share
-
+- `region_type::Array{Regiontype,1}`: array of region types that are affected by this TechVehicle share constraint
 """
 
 struct Mode_shares
@@ -325,7 +359,7 @@ struct Mode_shares
     mode::Mode
     share::Float64
     year::Int
-    financial_status::Array{FinancialStatus,1}
+    region_type::Array{Regiontype,1}
 end
 
 """
@@ -338,15 +372,14 @@ Maximum mode shares of a transport mode in a specific year.
 - `mode::Mode`: mode of transport
 - `share::Float64`: maximum share of the mode
 - `year::Int`: year of the maximum mode share
-- `financial_status::Array{FinancialStatus, 1}`: financial status that is affected by this mode share constraint
-
+- `region_type::Array{Regiontype,1}`: array of region types that are affected by this TechVehicle share constraint
 """
 struct Mode_share_max_by_year
     id::Int
     mode::Mode
     share::Float64
     year::Int
-    financial_status::Array{FinancialStatus,1}
+    region_type::Array{Regiontype,1}
 end
 
 """
@@ -359,7 +392,7 @@ Minimum mode shares of a transport mode in a specific year.
 - `mode::Mode`: mode of transport
 - `share::Float64`: minimum share of the mode
 - `year::Int`: year of the minimum mode share
-- `financial_status::Array{FinancialStatus, 1}`: financial status that is affected by this mode share constraint
+- `region_type::Array{Regiontype,1}`: array of region types that are affected by this TechVehicle share constraint
 """
 struct Mode_share_min_by_year
     id::Int
@@ -367,6 +400,7 @@ struct Mode_share_min_by_year
     share::Float64
     year::Int
     financial_status::Array{FinancialStatus,1}
+    region_type::Array{Regiontype,1}
 end
 
 """
@@ -379,12 +413,14 @@ Maximum mode shares of a transport mode independent of year, i.e. over total hor
 - `mode::Mode`: mode of transport
 - `share::Float64`: maximum share of the mode
 - `financial_status::Array{FinancialStatus, 1}`: array of financial status that is affected by this mode share constraint
+- `region_type::Array{Regiontype,1}`: array of region types that are affected by this TechVehicle share constraint
 """
 struct Mode_share_max
     id::Int
     mode::Mode
     share::Float64
     financial_status::Array{FinancialStatus,1}
+    region_type::Array{Regiontype,1}
 end
 
 """
@@ -397,12 +433,14 @@ Maximum mode shares of a transport mode independent of year, i.e. over total hor
 - `mode::Mode`: mode of transport
 - `share::Float64`: maximum share of the mode
 - `financial_status::Array{FinancialStatus, 1}`: array of financial status that is affected by this mode share constraint
+- `region_type::Array{Regiontype,1}`: array of region types that are affected by this TechVehicle share constraint
 """
 struct Mode_share_min
     id::Int
     mode::Mode
     share::Float64
     financial_status::Array{FinancialStatus,1}
+    region_type::Array{Regiontype,1}
 end
 
 """
@@ -416,6 +454,7 @@ Maximum technology shares of a vehicle technology in a specific year.
 - `share::Float64`: maximum share of the technology
 - `year::Int`: year of the maximum technology share
 - `financial_status::Array{FinancialStatus, 1}`: financial status that is affected by this technology share constraint
+- `region_type::Array{Regiontype,1}`: array of region types that are affected by this TechVehicle share constraint
 """
 struct Technology_share_max_by_year
     id::Int
@@ -423,6 +462,7 @@ struct Technology_share_max_by_year
     share::Float64
     year::Int
     financial_status::Array{FinancialStatus,1}
+    region_type::Array{Regiontype,1}
 end
 
 """
@@ -436,6 +476,7 @@ Minimum technology shares of a vehicle technology in a specific year.
 - `share::Float64`: minimum share of the technology
 - `year::Int`: year of the minimum technology share
 - `financial_status::Array{FinancialStatus, 1}`: financial status that is affected by this technology share constraint
+- `region_type::Array{Regiontype,1}`: array of region types that are affected by this TechVehicle share constraint
 """
 struct Technology_share_min_by_year
     id::Int
@@ -443,6 +484,7 @@ struct Technology_share_min_by_year
     share::Float64
     year::Int
     financial_status::Array{FinancialStatus,1}
+    region_type::Array{Regiontype,1}
 end
 
 """
@@ -455,12 +497,14 @@ Maximum technology shares of a vehicle technology independent of year, i.e. over
 - `technology::Technology`: vehicle technology
 - `share::Float64`: maximum share of the technology
 - `financial_status::Array{FinancialStatus, 1}`: array of financial status that is affected by this technology share constraint
+- `region_type::Array{Regiontype,1}`: array of region types that are affected by this TechVehicle share constraint
 """
 struct Technology_share_max
     id::Int
     technology::Technology
     share::Float64
     financial_status::Array{FinancialStatus,1}
+    region_type::Array{Regiontype,1}
 end
 
 """
@@ -473,12 +517,14 @@ Minimum technology shares of a vehicle technology independent of year, i.e. over
 - `technology::Technology`: vehicle technology
 - `share::Float64`: minimum share of the technology
 - `financial_status::Array{FinancialStatus, 1}`: array of financial status that is affected by this technology share constraint
+- `region_type::Array{Regiontype,1}`: array of region types that are affected by this TechVehicle share constraint
 """
 struct Technology_share_min
     id::Int
     technology::Technology
     share::Float64
     financial_status::Array{FinancialStatus,1}
+    region_type::Array{Regiontype,1}
 end
 
 """
@@ -492,6 +538,7 @@ Maximum vehicle type shares of a vehicle type in a specific year.
 - `share::Float64`: maximum share of the vehicle type
 - `year::Int`: year of the maximum vehicle type share
 - `financial_status::Array{FinancialStatus, 1}`: financial status that is affected by this vehicle type share constraint
+- `region_type::Array{Regiontype,1}`: array of region types that are affected by this TechVehicle share constraint
 """
 struct VehicleType_share_max_by_year
     id::Int
@@ -499,6 +546,7 @@ struct VehicleType_share_max_by_year
     share::Float64
     year::Int
     financial_status::Array{FinancialStatus,1}
+    region_type::Array{Regiontype,1}
 end
 
 """
@@ -512,6 +560,7 @@ Minimum vehicle type shares of a vehicle type in a specific year.
 - `share::Float64`: minimum share of the vehicle type
 - `year::Int`: year of the minimum vehicle type share
 - `financial_status::Array{FinancialStatus, 1}`: financial status that is affected by this vehicle type share constraint
+- `region_type::Array{Regiontype,1}`: array of region types that are affected by this TechVehicle share constraint
 """
 struct VehicleType_share_min_by_year
     id::Int
@@ -519,6 +568,7 @@ struct VehicleType_share_min_by_year
     share::Float64
     year::Int
     financial_status::Array{FinancialStatus,1}
+    region_type::Array{Regiontype,1}
 end
 
 """
@@ -531,12 +581,14 @@ Maximum vehicle type shares of a vehicle type independent of year, i.e. over tot
 - `vehicle_type::Vehicletype`: vehicle type
 - `share::Float64`: maximum share of the vehicle type
 - `financial_status::Array{FinancialStatus, 1}`: array of financial status that is affected by this vehicle type share constraint
+- `region_type::Array{Regiontype,1}`: array of region types that are affected by this TechVehicle share constraint
 """
 struct VehicleType_share_max
     id::Int
     vehicle_type::Vehicletype
     share::Float64
     financial_status::Array{FinancialStatus,1}
+    region_type::Array{Regiontype,1}
 end
 
 """
@@ -549,12 +601,14 @@ Minimum vehicle type shares of a vehicle type independent of year, i.e. over tot
 - `vehicle_type::Vehicletype`: vehicle type
 - `share::Float64`: minimum share of the vehicle type
 - `financial_status::Array{FinancialStatus, 1}`: array of financial status that is affected by this vehicle type share constraint
+- `region_type::Array{Regiontype,1}`: array of region types that are affected by this TechVehicle share constraint
 """
 struct VehicleType_share_min
     id::Int
     vehicle_type::Vehicletype
     share::Float64
     financial_status::Array{FinancialStatus,1}
+    region_type::Array{Regiontype,1}
 end
 """
     TechVehicle_share_max_by_year
@@ -567,6 +621,7 @@ Maximum vehicle type shares of a TechVehicle in a specific year.
 - `share::Float64`: maximum share of the TechVehicle
 - `year::Int`: year of the maximum TechVehicle share
 - `financial_status::Array{FinancialStatus, 1}`: financial status that is affected by this TechVehicle share constraint
+- `region_type::Array{Regiontype,1}`: array of region types that are affected by this TechVehicle share constraint
 """
 struct TechVehicle_share_max_by_year
     id::Int
@@ -574,6 +629,7 @@ struct TechVehicle_share_max_by_year
     share::Float64
     year::Int
     financial_status::Array{FinancialStatus,1}
+    region_type::Array{Regiontype,1}
 end
 
 """
@@ -587,6 +643,7 @@ Minimum vehicle type shares of a TechVehicle in a specific year.
 - `share::Float64`: minimum share of the TechVehicle
 - `year::Int`: year of the minimum TechVehicle share
 - `financial_status::Array{FinancialStatus, 1}`: financial status that is affected by this TechVehicle share constraint
+- `region_type::Array{Regiontype,1}`: array of region types that are affected by this TechVehicle share constraint
 """
 struct TechVehicle_share_min_by_year
     id::Int
@@ -594,6 +651,7 @@ struct TechVehicle_share_min_by_year
     share::Float64
     year::Int
     financial_status::Array{FinancialStatus,1}
+    region_type::Array{Regiontype,1}
 end
 
 """
@@ -606,12 +664,14 @@ Maximum vehicle type shares of a TechVehicle independent of year, i.e. over tota
 - `techvehicle::TechVehicle`: TechVehicle
 - `share::Float64`: maximum share of the TechVehicle
 - `financial_status::Array{FinancialStatus, 1}`: array of financial status that is affected by this TechVehicle share constraint
+- `region_type::Array{Regiontype,1}`: array of region types that are affected by this TechVehicle share constraint
 """
 struct TechVehicle_share_max
     id::Int
     techvehicle::TechVehicle
     share::Float64
     financial_status::Array{FinancialStatus,1}
+    region_type::Array{Regiontype,1}
 end
 
 """
@@ -624,12 +684,14 @@ Minimum vehicle type shares of a TechVehicle independent of year, i.e. over tota
 - `techvehicle::TechVehicle`: TechVehicle
 - `share::Float64`: minimum share of the TechVehicle
 - `financial_status::Array{FinancialStatus, 1}`: array of financial status that is affected by this TechVehicle share constraint
+- `region_type::Array{Regiontype,1}`: array of region types that are affected by this TechVehicle share constraint
 """
 struct TechVehicle_share_min
     id::Int
     techvehicle::TechVehicle
     share::Float64
     financial_status::Array{FinancialStatus,1}
+    region_type::Array{Regiontype,1}
 end
 
 """
@@ -640,7 +702,7 @@ An 'Emission_constraints_by_mode' describes emissions constrained for a mode.
 # Fields
 - `id::Int`: unique identifier of the emission constraint
 - `mode::Mode`: mode of transport
-- `emission::Float64`: emission constraint of the vehicle type
+- `emission::Float64`: emission constraint of the vehicle type (tCO2/year)
 - `year::Int`: year of the expected emission constraint
 """
 struct Emission_constraints_by_mode
@@ -684,7 +746,27 @@ struct Transportation_speeds
     year::Int
 end
 
-global model_parameters = ["Y", "y_init", "pre_y"]
+"""
+    VehicleSubsidy
+
+A 'VehicleSubsidy' describes the subsidy for a vehicle type in a specific year.
+
+# Fields
+- `id::Int`: unique identifier of the subsidy
+- `name::String`: name of the subsidy
+- `years::Array{Int,1}`: years in which the subsidy is valid
+- `techvehicle::TechVehicle`: vehicle type and technology
+- `subsidy::Float64`: subsidy in €
+"""
+struct VehicleSubsidy
+    id::Int
+    name::String
+    years::Array{Int,1}
+    techvehicle::TechVehicle
+    subsidy::Float64
+end
+
+global model_parameters = ["Y", "y_init", "pre_y", "budget_constraint_penalty_plus", "budget_constraint_penalty_minus"]
 
 global parameters_extended = ["alpha_f", "beta_f", "alpha_h", "beta_h", "gamma"]
 
@@ -703,6 +785,9 @@ global struct_names_base = [
     "FinancialStatus",
     "Regiontype",
     "Odpair",
+    "Speed",
+    "InitialFuelingInfr", 
+    "InitialModeInfr",
 ]
 
 global struct_names_extended = [
@@ -728,7 +813,7 @@ global struct_names_extended = [
     "Emission_constraints_by_mode",
     "Emission_constraints_by_year",
     "Transportation_speeds",
+    "VehicleSubsidy",
 ]
 
-global default_data =
-    Dict("alpha_f" => 0.1, "beta_f" => 0.1, "alpha_h" => 0.1, "beta_h" => 0.1)
+global default_data = Dict("alpha_f" => 0.1, "beta_f" => 0.1, "alpha_h" => 0.1, "beta_h" => 0.1)
