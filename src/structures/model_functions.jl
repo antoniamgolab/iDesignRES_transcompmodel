@@ -1043,14 +1043,14 @@ function objective(model::Model, data_structures::Dict)
                     driving_range =
                         0.8 * v.battery_capacity[g-g_init+1] * (1 / v.spec_cons[g-g_init+1])
                     if driving_range < route_length
-                        charging_time = 0
+                        fueling_time = 0
                     else
-                        charging_time =
+                        fueling_time =
                             v.battery_capacity[g-g_init+1] / v.peak_charging[g-g_init+1]
                     end
                     # value of time
                     vot = r.financial_status.VoT
-                    los = route_length / speed + charging_time + v.waiting_time
+                    los = route_length / speed + fueling_time + v.waiting_time
 
                     intangible_costs = vot * los
                     add_to_expression!(
