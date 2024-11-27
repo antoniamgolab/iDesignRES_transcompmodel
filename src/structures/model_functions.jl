@@ -276,7 +276,6 @@ function create_tv_id_set(techvehicle_list_2::Vector{TechVehicle}, mode_list::Ve
 
     for m ∈ mode_list
         if !m.quantify_by_vehs
-            print(counter_additional_vehs + 1)
             push!(techvehicle_ids_2, counter_additional_vehs_2 + 1)
             global counter_additional_vehs_2 += 1
         end
@@ -648,9 +647,6 @@ function constraint_vehicle_aging(model::JuMP.Model, data_structures::Dict)
         all_indices,
     )
 
-    # println(valid_subset)
-    # case y - g > tv.Lifetime[g-g_init + 1]
-    # @constraint(model, [y, g, r, tv] in valid_subset, model[:h][y, r.id, v.id, g] == model[:h_exist][y, r.id, v.id, g] - model[:h_minus][y, r.id, v.id, g] + model[:h_plus][y, r.id, v.id, g])
     for (y, g, r, tv) ∈ valid_subset
         @constraint(
             model,
@@ -1335,11 +1331,12 @@ Saves the results of the optimization model to YAML files.
 # Arguments
 - model::Model: JuMP model
 - case_name::String: name of the case
-
-# Returns
-- output_file::String: name of the output file
+- file_for_results::String: name of the file to save the results
 """
-function save_results(model::Model, case_name::String)
+function save_results(model::Model, case_name::String, folder_for_results::String)
+
+    check_folder_writable(folder_for_results)
+
     y_init = data_structures["y_init"]
     Y_end = data_structures["Y_end"]
     odpairs = data_structures["odpair_list"]
@@ -1363,10 +1360,6 @@ function save_results(model::Model, case_name::String)
     solved_data["budget_penalty_plus"] = value.(model[:budget_penalty_plus])
     solved_data["budget_penalty_minus"] = value.(model[:budget_penalty_minus])
 
-    output_file = "solved_data.yaml"
-    open("solution.yaml", "w") do file
-        YAML.dump(file, solved_data)
-    end
 
     f_dict = Dict()
     for y ∈ y_init:Y_end, (p, r, k) ∈ p_r_k_pairs, mv ∈ m_tv_pairs, g ∈ g_init:y
@@ -1455,26 +1448,37 @@ function save_results(model::Model, case_name::String)
     budget_penalty_plus_dict_str = stringify_keys(budget_penalty_plus_dict)
     budget_penalty_minus_dict_str = stringify_keys(budget_penalty_minus_dict)
 
-    YAML.write_file(case * "_f_dict.yaml", f_dict_str)
+    YAML.write_file(joinpath(folder_for_results, case * "_f_dict.yaml"), f_dict_str)
     @info "f_dict.yaml written successfully"
-    YAML.write_file(case * "_h_dict.yaml", h_dict_str)
+    
+    YAML.write_file(joinpath(folder_for_results, case * "_h_dict.yaml"), h_dict_str)
     @info "h_dict.yaml written successfully"
-    YAML.write_file(case * "_h_exist_dict.yaml", h_exist_dict_str)
+    
+    YAML.write_file(joinpath(folder_for_results, case * "_h_exist_dict.yaml"), h_exist_dict_str)
     @info case * "_h_exist_dict.yaml written successfully"
-    YAML.write_file(case * "_h_plus_dict.yaml", h_plus_dict_str)
+    
+    YAML.write_file(joinpath(folder_for_results, case * "_h_plus_dict.yaml"), h_plus_dict_str)
     @info case * "_h_plus_dict.yaml written successfully"
-    YAML.write_file(case * "_h_minus_dict.yaml", h_minus_dict_str)
+    
+    YAML.write_file(joinpath(folder_for_results, case * "_h_minus_dict.yaml"), h_minus_dict_str)
     @info "h_minus_dict.yaml written successfully"
-    YAML.write_file(case * "_s_e_dict.yaml", s_e_dict_str)
+    
+    YAML.write_file(joinpath(folder_for_results, case * "_s_e_dict.yaml"), s_e_dict_str)
     @info "s_e_dict.yaml written successfully"
-    YAML.write_file(case * "_s_n_dict.yaml", s_n_dict_str)
+    
+    YAML.write_file(joinpath(folder_for_results, case * "_s_n_dict.yaml"), s_n_dict_str)
     @info "s_n_dict.yaml written successfully"
-    YAML.write_file(case * "_q_fuel_infr_plus_e_dict.yaml", q_fuel_infr_plus_e_dict_str)
+    
+    YAML.write_file(joinpath(folder_for_results, case * "_q_fuel_infr_plus_e_dict.yaml"), q_fuel_infr_plus_e_dict_str)
     @info "q_fuel_infr_plus_e_dict.yaml written successfully"
-    YAML.write_file(case * "_q_fuel_infr_plus_n_dict.yaml", q_fuel_infr_plus_n_dict_str)
+    
+    YAML.write_file(joinpath(folder_for_results, case * "_q_fuel_infr_plus_n_dict.yaml"), q_fuel_infr_plus_n_dict_str)
     @info "q_fuel_infr_plus_n_dict.yaml written successfully"
-    YAML.write_file(case * "_budget_penalty_plus_dict.yaml", budget_penalty_plus_dict_str)
+    
+    YAML.write_file(joinpath(folder_for_results, case * "_budget_penalty_plus_dict.yaml"), budget_penalty_plus_dict_str)
     @info "budget_penalty_plus_dict.yaml written successfully"
-    YAML.write_file(case * "_budget_penalty_minus_dict.yaml", budget_penalty_minus_dict_str)
+    
+    YAML.write_file(joinpath(folder_for_results, case * "_budget_penalty_minus_dict.yaml"), budget_penalty_minus_dict_str)
     @info "budget_penalty_minus_dict.yaml written successfully"
+    
 end

@@ -1,59 +1,25 @@
-module BasqueCS
-
 using YAML, JuMP, Gurobi, Printf
 include("structs.jl")
 include("model_functions.jl")
 include("other_functions.jl")
 
-export constraint_fueling_demand
-
-"""
-	constraint_fueling_demand(model::JuMP.Model, data_structures::Dict)
-
-Constraints for fueling demand at nodes and edges.
-
-# Arguments
-- model::JuMP.Model: JuMP model
-- data_structures::Dict: dictionary with the input data
-"""
-function constraint_fueling_demand(model::JuMP.Model, data_structures::Dict)
-    y_init = data_structures["y_init"]
-    Y_end = data_structures["Y_end"]
-    g_init = data_structures["g_init"]
-    odpairs = data_structures["odpair_list"]
-    techvehicles = data_structures["techvehicle_list"]
-    gamma = data_structures["gamma"]
-    paths = data_structures["path_list"]
-    products = data_structures["product_list"]
-    r_k_pairs = data_structures["r_k_pairs"]
-
-    @constraint(
-        model,
-        [y in y_init:Y_end, p in products, r_k in r_k_pairs, v in techvehicles],
-        sum(
-            model[:s_e][y, (p.id, r_k[1], r_k[2], el), v.id] for
-            el ∈ paths[findfirst(k0 -> k0.id == r_k[2], paths)].sequence if
-            typeof(el) == Int
-        ) + sum(
-            model[:s_n][y, (p.id, r_k[1], r_k[2], el), v.id] for
-            el ∈ paths[findfirst(k0 -> k0.id == r_k[2], paths)].sequence if
-            typeof(el) == String
-        ) >= sum(
-            (
-                (gamma * v.spec_cons[g-g_init+1]) /
-                (v.W[g-g_init+1] * paths[findfirst(p0 -> p0.id == r_k[2], paths)].length)
-            ) * model[:f][y, (p.id, r_k[1], r_k[2]), (tv.vehicle_type.mode.id, tv.id), g]
-            for g ∈ g_init:y for tv ∈ techvehicles if tv.vehicle_type.id == v.id
-        )
-    )
-end
-
 # reading input data
-data = YAML.load_file(
-    "C:/Users/Antonia/Documents/external sources/transport_data_years_v5/transport_data_years_v47.yaml",
-)
+# Get the path to the YAML file
+
+script_dir = @__DIR__   # Directory of the current script
+yaml_file_path = normpath(joinpath(@__DIR__, "../../examples/Basque country/data/transport_data_years_v47.yaml"))
+println("Constructed file path: $yaml_file_path")
+
+# TODO: deleting this
+# data = YAML.load_file(
+#     "C:/Users/Antonia/Documents/external sources/transport_data_years_v5/transport_data_years_v47.yaml",
+# )
 case = "region_dep_costs"
-file = "C:/Users/Antonia/Documents/external sources/transport_data_years_v5/transport_data_years_v47.yaml"
+
+# file = "C:/Users/Antonia/Documents/external sources/transport_data_years_v5/transport_data_years_v47.yaml"
+
+file = yaml_file_path
+@info file 
 
 # reading input data and initializing the model
 @info "Initialization ..."
@@ -83,7 +49,7 @@ constraint_mode_shift(model, data_structures)
 constraint_fueling_infrastructure(model, data_structures)
 @info "Constraint for fueling infrastructure created successfully"
 
-constraint_monetary_budget(model::Model, data_structures::Dict)
+constraint_monetary_budget(model, data_structures)
 @info "Policy related constraints created successfully"
 
 @info "Constraints created successfully"
@@ -100,9 +66,7 @@ println("Solution .... ")
 optimize!(model)
 solution_summary(model)
 
-save_results(model, case)
+results_file_path = normpath(joinpath(@__DIR__, "../../examples/Basque country/results/"))
+save_results(model, case, results_file_path)
 
 @info "Results saved successfully"
-export constraint_vehicle_sizing
-
-end
