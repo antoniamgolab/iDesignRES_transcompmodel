@@ -852,7 +852,7 @@ If share are given for specific modes, this function will create constraints for
 - model::JuMP.Model: JuMP model
 - data_structures::Dict: dictionary with the input data
 """
-function constraint_max_mode_share(model:JuMP.Model, data_structures::Dict)
+function constraint_max_mode_share(model::JuMP.Model, data_structures::Dict)
     y_init = data_structures["y_init"]
     max_mode_share_list = data_structures["max_mode_share_list"]
     m_tv_pairs = data_structures["m_tv_pairs"]
@@ -872,7 +872,7 @@ If share are given for specific modes, this function will create constraints for
 - model::JuMP.Model: JuMP model
 - data_structures::Dict: dictionary with the input data
 """
-function constraint_min_mode_share(model:JuMP.Model, data_structures::Dict)
+function constraint_min_mode_share(model::JuMP.Model, data_structures::Dict)
     y_init = data_structures["y_init"]
     min_mode_share_list = data_structures["min_mode_share_list"]
     m_tv_pairs = data_structures["m_tv_pairs"]
@@ -892,7 +892,7 @@ If share are given for specific vehicle types, this function will create constra
 - model::JuMP.Model: JuMP model
 - data_structures::Dict: dictionary with the input data
 """
-function constraint_market_share(model:JuMP.Model, data_structures::Dict)
+function constraint_market_share(model::JuMP.Model, data_structures::Dict)
     y_init = data_structures["y_init"]
     market_share_list = data_structures["market_share_list"]
     p_r_k_pairs = data_structures["p_r_k_pairs"]

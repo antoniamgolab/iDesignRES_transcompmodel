@@ -1,14 +1,16 @@
 using YAML, JuMP, Gurobi, Printf
-include("structs.jl")
-include("model_functions.jl")
-include("other_functions.jl")
+
+
+include(joinpath(@__DIR__, "../../src/structures/structs.jl"))
+include(joinpath(@__DIR__, "../../src/structures/model_functions.jl"))
+include(joinpath(@__DIR__, "../../src/structures/other_functions.jl"))
 
 # reading input data
 # Get the path to the YAML file
 
 script_dir = @__DIR__   # Directory of the current script
 yaml_file_path = normpath(
-    joinpath(@__DIR__, "../../examples/Basque country/data/transport_data_years_v47.yaml"),
+    joinpath(@__DIR__, "data/transport_data_years_v47.yaml"),
 )
 println("Constructed file path: $yaml_file_path")
 
@@ -71,7 +73,7 @@ println("Solution .... ")
 optimize!(model)
 solution_summary(model)
 
-results_file_path = normpath(joinpath(@__DIR__, "../../examples/Basque country/results/"))
+results_file_path = normpath(joinpath(@__DIR__, "results/"))
 save_results(model, case, results_file_path)
 
 @info "Results saved successfully"
