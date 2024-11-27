@@ -1070,9 +1070,8 @@ elseif case == "A.2"
         model,
         Min,
         sum(
-            h[y, r.id, (v.vehicle_type.id, v.technology.id)] * v.capital_cost[y] for y ∈
-                                                                                     1:Y for
-            r ∈ odpairs for v ∈ vehicles
+            h[y, r.id, (v.vehicle_type.id, v.technology.id)] * v.capital_cost[y] for y ∈ 1:Y
+            for r ∈ odpairs for v ∈ vehicles
         ) + sum(
             f[y, p.id, k.id, (v.vehicle_type.id, v.technology.id)] *
             k.length *

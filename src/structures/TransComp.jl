@@ -4,7 +4,6 @@ include("structs.jl")
 include("model_functions.jl")
 include("other_functions.jl")
 
-
 """
 	constraint_fueling_demand(model::JuMP.Model, data_structures::Dict)
 
@@ -46,6 +45,5 @@ function constraint_fueling_demand(model::JuMP.Model, data_structures::Dict)
     )
 end
 export constraint_fueling_demand
-
 
 end
