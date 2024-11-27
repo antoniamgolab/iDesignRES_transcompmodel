@@ -34,7 +34,7 @@ Parses the input data into the corresponding parameters in struct format from st
 - data_structures::Dict: dictionary with the parsed data
 """
 function parse_data(data_dict::Dict)
-    node_list = [Node(node["id"], node["name"]) for node ∈ data_dict["Node"]]
+    node_list = [Node(node["id"], node["name"], node["carbon_price"]) for node ∈ data_dict["Node"]]
     edge_list = [
         Edge(
             edge["id"],
@@ -42,6 +42,7 @@ function parse_data(data_dict::Dict)
             edge["length"],
             node_list[findfirst(n -> n.name == edge["from"], node_list)],
             node_list[findfirst(n -> n.name == edge["to"], node_list)],
+            edge["carbon_price"], 
         ) for edge ∈ data_dict["Edge"]
     ]
     financial_status_list = [
@@ -64,6 +65,8 @@ function parse_data(data_dict::Dict)
             mode["quantify_by_vehs"],
             mode["costs_per_ukm"],
             mode["emission_factor"],
+            mode["infrastructure_expansion_costs"],
+            mode["infrastructure_om_costs"],
         ) for mode ∈ data_dict["Mode"]
     ]
 
@@ -147,6 +150,25 @@ function parse_data(data_dict::Dict)
             initvehiclestock["stock"],
         ) for initvehiclestock ∈ data_dict["InitialVehicleStock"]
     ]
+    initalfuelinginfr_list = [
+        InitialFuelingInfr(
+            initalfuelinginfr["id"],
+            technology_list[findfirst(
+                t -> t.id == initalfuelinginfr["technology"],
+                technology_list,
+            )],
+            initalfuelinginfr["allocation"],
+            initalfuelinginfr["installed_kW"],
+        ) for initalfuelinginfr ∈ data_dict["InitialFuelingInfr"]
+    ]
+    initialmodeinfr_list = [
+        InitialModeInfr(
+            initialmodeinfr["id"],
+            mode_list[findfirst(m -> m.id == initialmodeinfr["mode"], mode_list)],
+            initialmodeinfr["allocation"],
+            initialmodeinfr["installed_kW"],
+        ) for initialmodeinfr ∈ data_dict["InitialModeInfr"]
+    ]
     odpair_list = [
         Odpair(
             odpair["id"],
@@ -172,7 +194,14 @@ function parse_data(data_dict::Dict)
         ) for odpair ∈ data_dict["Odpair"]
     ]
 
-    odpair_list = odpair_list[1:20]
+    speed_list = [
+        Speed(
+            speed["id"],
+            regiontype_list[findfirst(rt -> rt.name == speed["region_type"], regiontype_list)],
+            speed["speed"],
+            speed["emission_factor"],
+        ) for speed ∈ data_dict["Speed"]
+    ]
 
     if haskey(data_dict, "Market_shares")
         market_share_list = [
@@ -183,10 +212,83 @@ function parse_data(data_dict::Dict)
                 market_share["financial_status"],
             ) for market_share ∈ data_dict["Market_shares"]
         ]
+        @info "Market shares are defined"
     else
         market_share_list = []
     end
 
+    if haskey(data_dict, "Emission_constraints_by_mode")
+        emission_constraint_by_mode_list = [
+            EmissionConstraintByYear(
+                emission_constraint["id"],
+                mode_list[findfirst(m -> m.id == emission_constraint["mode"], mode_list)],
+                emission_constraint["year"],
+                emission_constraint["emission_constraint"],
+            ) for emission_constraint ∈ data_dict["Emission_constraints_by_year"]
+        ]
+        @info "Emissions are defined by year"
+
+    else
+        emission_constraint_by_mode_list = []
+    end
+
+    if haskey(data_dict, "Mode_shares")
+        mode_shares_list = [
+            ModeShare(
+                mode_share["id"],
+                mode_list[findfirst(m -> m.id == mode_share["mode"], mode_list)],
+                mode_share["share"],
+                mode_share["year"],
+                [regiontype_list[findfirst(
+                    rt -> rt.id == rt_id,
+                    regiontype_list,
+                )] for rt_id ∈ mode_share["regiontype_list"]],
+            ) for mode_share ∈ data_dict["Mode_shares"]
+        ]
+        @info "Mode shares are defined by year"
+
+    else
+        default_data = Dict()
+    end
+
+
+    if haskey(data_dict, "Mode_share_max_by_year")
+        max_mode_shares_list = [
+            ModeShare(
+                mode_share["id"],
+                mode_list[findfirst(m -> m.id == mode_share["mode"], mode_list)],
+                mode_share["share"],
+                mode_share["year"],
+                [regiontype_list[findfirst(
+                    rt -> rt.id == rt_id,
+                    regiontype_list,
+                )] for rt_id ∈ mode_share["regiontype_list"]],
+            ) for mode_share ∈ data_dict["Mode_shares"]
+        ]
+        @info "Max Mode shares are defined by year"
+
+    else
+        max_mode_shares_list = []
+    end
+
+    if haskey(data_dict, "Mode_share_min_by_year")
+        min_mode_shares_list = [
+            ModeShare(
+                mode_share["id"],
+                mode_list[findfirst(m -> m.id == mode_share["mode"], mode_list)],
+                mode_share["share"],
+                mode_share["year"],
+                [regiontype_list[findfirst(
+                    rt -> rt.id == rt_id,
+                    regiontype_list,
+                )] for rt_id ∈ mode_share["regiontype_list"]],
+            ) for mode_share ∈ data_dict["Mode_shares"]
+        ]
+        @info "Min Mode shares are defined by year"
+
+    else
+        min_mode_shares_list = []
+    end
     # TODO: extend here the list of possible data_dict structures
 
     data_structures = Dict(
@@ -194,6 +296,8 @@ function parse_data(data_dict::Dict)
         "y_init" => data_dict["Model"]["y_init"],
         "prey_y" => data_dict["Model"]["pre_y"],
         "gamma" => data_dict["Model"]["gamma"],
+        "budget_constraint_penalty_plus" => data_dict["Model"]["budget_constraint_penalty_plus"],
+        "budget_constraint_penalty_minus" => data_dict["Model"]["budget_constraint_penalty_minus"],
         "node_list" => node_list,
         "edge_list" => edge_list,
         "financial_status_list" => financial_status_list,
@@ -207,7 +311,14 @@ function parse_data(data_dict::Dict)
         "techvehicle_list" => techvehicle_list,
         "initvehiclestock_list" => initvehiclestock_list,
         "odpair_list" => odpair_list,
+        "speed_list" => speed_list,
         "market_share_list" => market_share_list,
+        "emission_constraints_by_mode_list" => emission_constraint_by_year_list,
+        "mode_shares_list" => mode_shares_list,
+        "max_mode_shares_list" => max_mode_shares_list,
+        "min_mode_shares_list" => min_mode_shares_list,
+        "initalfuelinginfr_list" => initalfuelinginfr_list,
+        "initialmodeinfr_list" => initialmodeinfr_list,
     )
 
     for key ∈ keys(default_data)
@@ -413,6 +524,37 @@ function depreciation_factor(y, g)
 end
 
 """
+    create_emission_price_along_path(k::Path, data_structures::Dict)
+
+Calculating the carbon price along a given route based on the regions that the path lies in.
+(currently simple calculation by averaging over all geometric items among the path).
+
+# Arguments
+- k::Path: path
+- data_structures::Dict: dictionary with the input data 
+"""
+function create_emission_price_along_path(k::Path, data_structures::Dict)
+
+    n = length(k.sequence)
+    edge_list = data_structures["edge_list"]
+    node_list = data_structures["node_list"]
+    total_carbon_price = 0.0
+    for el ∈ k.sequence
+        if typeof(el) == Int
+            current_carbon_price = edge_list[findfirst(e -> e.id == el, edge_list)].carbon_price
+            global total_carbon_price += current_carbon_price        
+        else
+            current_carbon_price = node_list[findfirst(e -> e.id == el, node_list)].carbon_price
+            global total_carbon_price += current_carbon_price
+
+        end
+    end
+    average_carbon_price = total_carbon_price / n
+    
+    return average_carbon_price
+end
+
+"""
 	save_results(model::Model, case_name::String)
 
 Saves the results of the optimization model to YAML files.
@@ -423,7 +565,6 @@ Saves the results of the optimization model to YAML files.
 - file_for_results::String: name of the file to save the results
 """
 function save_results(model::Model, case_name::String, folder_for_results::String)
-
     check_folder_writable(folder_for_results)
 
     y_init = data_structures["y_init"]
@@ -448,7 +589,6 @@ function save_results(model::Model, case_name::String, folder_for_results::Strin
     solved_data["f"] = value.(model[:f])
     solved_data["budget_penalty_plus"] = value.(model[:budget_penalty_plus])
     solved_data["budget_penalty_minus"] = value.(model[:budget_penalty_minus])
-
 
     f_dict = Dict()
     for y ∈ y_init:Y_end, (p, r, k) ∈ p_r_k_pairs, mv ∈ m_tv_pairs, g ∈ g_init:y
@@ -539,37 +679,55 @@ function save_results(model::Model, case_name::String, folder_for_results::Strin
 
     YAML.write_file(joinpath(folder_for_results, case * "_f_dict.yaml"), f_dict_str)
     @info "f_dict.yaml written successfully"
-    
+
     YAML.write_file(joinpath(folder_for_results, case * "_h_dict.yaml"), h_dict_str)
     @info "h_dict.yaml written successfully"
-    
-    YAML.write_file(joinpath(folder_for_results, case * "_h_exist_dict.yaml"), h_exist_dict_str)
+
+    YAML.write_file(
+        joinpath(folder_for_results, case * "_h_exist_dict.yaml"),
+        h_exist_dict_str,
+    )
     @info case * "_h_exist_dict.yaml written successfully"
-    
-    YAML.write_file(joinpath(folder_for_results, case * "_h_plus_dict.yaml"), h_plus_dict_str)
+
+    YAML.write_file(
+        joinpath(folder_for_results, case * "_h_plus_dict.yaml"),
+        h_plus_dict_str,
+    )
     @info case * "_h_plus_dict.yaml written successfully"
-    
-    YAML.write_file(joinpath(folder_for_results, case * "_h_minus_dict.yaml"), h_minus_dict_str)
+
+    YAML.write_file(
+        joinpath(folder_for_results, case * "_h_minus_dict.yaml"),
+        h_minus_dict_str,
+    )
     @info "h_minus_dict.yaml written successfully"
-    
+
     YAML.write_file(joinpath(folder_for_results, case * "_s_e_dict.yaml"), s_e_dict_str)
     @info "s_e_dict.yaml written successfully"
-    
+
     YAML.write_file(joinpath(folder_for_results, case * "_s_n_dict.yaml"), s_n_dict_str)
     @info "s_n_dict.yaml written successfully"
-    
-    YAML.write_file(joinpath(folder_for_results, case * "_q_fuel_infr_plus_e_dict.yaml"), q_fuel_infr_plus_e_dict_str)
+
+    YAML.write_file(
+        joinpath(folder_for_results, case * "_q_fuel_infr_plus_e_dict.yaml"),
+        q_fuel_infr_plus_e_dict_str,
+    )
     @info "q_fuel_infr_plus_e_dict.yaml written successfully"
-    
-    YAML.write_file(joinpath(folder_for_results, case * "_q_fuel_infr_plus_n_dict.yaml"), q_fuel_infr_plus_n_dict_str)
+
+    YAML.write_file(
+        joinpath(folder_for_results, case * "_q_fuel_infr_plus_n_dict.yaml"),
+        q_fuel_infr_plus_n_dict_str,
+    )
     @info "q_fuel_infr_plus_n_dict.yaml written successfully"
-    
-    YAML.write_file(joinpath(folder_for_results, case * "_budget_penalty_plus_dict.yaml"), budget_penalty_plus_dict_str)
+
+    YAML.write_file(
+        joinpath(folder_for_results, case * "_budget_penalty_plus_dict.yaml"),
+        budget_penalty_plus_dict_str,
+    )
     @info "budget_penalty_plus_dict.yaml written successfully"
-    
-    YAML.write_file(joinpath(folder_for_results, case * "_budget_penalty_minus_dict.yaml"), budget_penalty_minus_dict_str)
+
+    YAML.write_file(
+        joinpath(folder_for_results, case * "_budget_penalty_minus_dict.yaml"),
+        budget_penalty_minus_dict_str,
+    )
     @info "budget_penalty_minus_dict.yaml written successfully"
-    
 end
-
-

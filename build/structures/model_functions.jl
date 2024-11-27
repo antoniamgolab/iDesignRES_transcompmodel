@@ -2,7 +2,6 @@ using YAML, JuMP, Gurobi
 include("checks.jl")
 include("structs.jl")
 
-
 """
 	get_input_data(path_to_source_file::String)
 
@@ -510,7 +509,6 @@ Creates constraint for vehicle sizing.
 - data_structures::Dict: dictionary with the input data
 """
 function constraint_vehicle_sizing(model::JuMP.Model, data_structures::Dict)
-
     odpairs = data_structures["odpair_list"]
     techvehicles = data_structures["techvehicle_list"]
     vehicletypes = data_structures["vehicletype_list"]
@@ -639,7 +637,8 @@ function constraint_vehicle_aging(model::JuMP.Model, data_structures::Dict)
     modes = data_structures["mode_list"]
     # Define all combinations of indices as a collection of tuples
     all_indices = [
-        (y, g, r, tv) for y ∈ y_init:Y_end, g ∈ g_init:Y_end, r ∈ odpairs, tv ∈ techvehicles
+        (y, g, r, tv) for y ∈ y_init:Y_end, g ∈ g_init:Y_end, r ∈ odpairs,
+        tv ∈ techvehicles
     ]
 
     # Use filter to apply the condition
@@ -942,7 +941,6 @@ function constraint_fueling_infrastructure(model::JuMP.Model, data_structures::D
     )
 end
 
-
 """
 	constraint_vehicle_stock_shift(model::JuMP.Model, data_structures::Dict)
 
@@ -1037,9 +1035,8 @@ function constraint_mode_shift(model::JuMP.Model, data_structures::Dict)
             )
         ) <=
         alpha_f * sum(
-            model[:f][y, (r.product.id, r.id, k.id), mv, g] for k ∈ r.paths for g ∈
-                                                                                g_init:y for
-            mv ∈ m_tv_pairs
+            model[:f][y, (r.product.id, r.id, k.id), mv, g] for k ∈ r.paths for g ∈ g_init:y
+            for mv ∈ m_tv_pairs
         ) +
         beta_f * sum(
             model[:f][y-1, (r.product.id, r.id, k.id), mv, g] for m0 ∈ modes for
@@ -1060,9 +1057,8 @@ function constraint_mode_shift(model::JuMP.Model, data_structures::Dict)
             )
         ) <=
         alpha_f * sum(
-            model[:f][y, (r.product.id, r.id, k.id), mv, g] for k ∈ r.paths for g ∈
-                                                                                g_init:y for
-            mv ∈ m_tv_pairs
+            model[:f][y, (r.product.id, r.id, k.id), mv, g] for k ∈ r.paths for g ∈ g_init:y
+            for mv ∈ m_tv_pairs
         ) +
         beta_f * sum(
             model[:f][y-1, (r.product.id, r.id, k.id), mv, g] for m0 ∈ modes for

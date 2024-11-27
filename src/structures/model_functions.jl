@@ -8,7 +8,6 @@ using YAML, JuMP, Gurobi
 include("checks.jl")
 include("structs.jl")
 
-
 """
 	base_define_variables(model::Model, data_structures::Dict)
 
@@ -43,6 +42,7 @@ function base_define_variables(model::Model, data_structures::Dict)
     technologies = data_structures["technology_list"]
     edge_list = data_structures["edge_list"]
     node_list = data_structures["node_list"]
+    mode_list = data_structures["mode_list"]
 
     @variable(
         model,
@@ -114,6 +114,22 @@ function base_define_variables(model::Model, data_structures::Dict)
         model,
         budget_penalty_minus[y in y_init:Y_end, r_id in [r.id for r ∈ odpairs]] >= 0
     )
+    @variable(
+        model,
+        q_mode_infr_plus_e[
+            y in y_init:Y_end,
+            m_id in [m.id for m ∈ mode_list],
+            [e.id for e ∈ edge_list],
+        ] >= 0
+    )
+    @variable(
+        model,
+        q_mode_infr_plus_n[
+            y in y_init:Y_end,
+            m_id in [m.id for m ∈ mode_list],
+            [n.id for n ∈ node_list],
+        ] >= 0
+    )
 end
 
 """
@@ -149,7 +165,6 @@ Creates constraint for vehicle sizing.
 - data_structures::Dict: dictionary with the input data
 """
 function constraint_vehicle_sizing(model::JuMP.Model, data_structures::Dict)
-
     odpairs = data_structures["odpair_list"]
     techvehicles = data_structures["techvehicle_list"]
     vehicletypes = data_structures["vehicletype_list"]
@@ -278,7 +293,8 @@ function constraint_vehicle_aging(model::JuMP.Model, data_structures::Dict)
     modes = data_structures["mode_list"]
     # Define all combinations of indices as a collection of tuples
     all_indices = [
-        (y, g, r, tv) for y ∈ y_init:Y_end, g ∈ g_init:Y_end, r ∈ odpairs, tv ∈ techvehicles
+        (y, g, r, tv) for y ∈ y_init:Y_end, g ∈ g_init:Y_end, r ∈ odpairs,
+        tv ∈ techvehicles
     ]
 
     # Use filter to apply the condition
@@ -546,7 +562,7 @@ function constraint_fueling_infrastructure(model::JuMP.Model, data_structures::D
     p_r_k_n_pairs = data_structures["p_r_k_n_pairs"]
     p_r_k_e_pairs = data_structures["p_r_k_e_pairs"]
     techvehicles = data_structures["techvehicle_list"]
-
+    initialfuelinfr_list = data_structures["initialfuelinfr_list"]
     @constraint(
         model,
         [
@@ -554,6 +570,7 @@ function constraint_fueling_infrastructure(model::JuMP.Model, data_structures::D
             t in technologies,
             e in edge_list,
         ],
+        initialfuelinfr_list[findfirst(i -> i.technology.id == t.id && i.allocation == e.id, initialfuelinfr_list)].installed_kW + 
         sum(
             model[:q_fuel_infr_plus_e][y0, t.id, e.id] for y0 ∈ data_structures["y_init"]:y
         ) >= sum(
@@ -569,6 +586,7 @@ function constraint_fueling_infrastructure(model::JuMP.Model, data_structures::D
             t in technologies,
             n in node_list,
         ],
+        initialfuelinfr_list[findfirst(i -> i.technology.id == t.id && i.allocation == n.name, initialfuelinfr_list)].installed_kW + 
         sum(
             model[:q_fuel_infr_plus_n][y0, t.id, n.id] for y0 ∈ data_structures["y_init"]:y
         ) >= sum(
@@ -576,6 +594,56 @@ function constraint_fueling_infrastructure(model::JuMP.Model, data_structures::D
             tv ∈ techvehicles if p_r_k_n[4] == n.name && tv.technology.id == t.id
         )
     )
+end
+
+"""
+   constraint_mode_infrastructure(model::JuMP.Model, data_structures::Dict)
+
+Constraints for sizing of mode infrastructure at nodes and edges.
+
+# Arguments
+- model::JuMP.Model: JuMP model
+- data_structures::Dict: dictionary with the input data
+"""
+function constraint_mode_infrastructure(model::JuMP.Model, data_structures::Dict)
+    
+    path_list = data_structures["path_list"]
+    initialmodeinfr_list = data_structures["initialmodeinfr_list"]
+    @constraint(
+        model, 
+        [
+            y in data_structures["y_init"]:data_structures["Y_end"],
+            m in data_structures["mode_list"],
+            e in data_structures["edge_list"],
+        ],
+        initialmodeinfr_list[findfirst(i -> i.mode.id == m.id && i.allocation == e.id, initialmodeinfr_list)].installed_ukm +
+        sum(
+            model[:q_mode_infr_plus_e][y0, m.id, e.id] for y0 ∈ data_structures["y_init"]:y
+        ) >= data_structures["gamma"] * sum(
+            model[:f][y, p_r_k, m_tv, g] for p_r_k ∈ data_structures["p_r_k_pairs"] for
+            m_tv ∈ data_structures["m_tv_pairs"] for g ∈ data_structures["g_init"]:y 
+            if e.id in path_list[findfirst(p -> p.id == p_r_k[2], path_list)].sequence
+        )
+        
+    )
+    @constraint(
+        model, 
+        [
+            y in data_structures["y_init"]:data_structures["Y_end"],
+            m in data_structures["mode_list"],
+            n in data_structures["node_list"],
+        ],
+        initialmodeinfr_list[findfirst(i -> i.mode.id == m.id && i.allocation == n.name, initialmodeinfr_list)].installed_ukm +
+        sum(
+            model[:q_mode_infr_plus_n][y0, m.id, n.id] for y0 ∈ data_structures["y_init"]:y
+        ) >= data_structures["gamma"] * sum(
+            model[:f][y, p_r_k, m_tv, g] for p_r_k ∈ data_structures["p_r_k_pairs"] for
+            m_tv ∈ data_structures["m_tv_pairs"] for g ∈ data_structures["g_init"]:y 
+            if n.name in path_list[findfirst(p -> p.id == p_r_k[2], path_list)].sequence
+        )
+        
+    )
+
 end
 
 """
@@ -713,9 +781,8 @@ function constraint_mode_shift(model::JuMP.Model, data_structures::Dict)
             )
         ) <=
         alpha_f * sum(
-            model[:f][y, (r.product.id, r.id, k.id), mv, g] for k ∈ r.paths for g ∈
-                                                                                g_init:y for
-            mv ∈ m_tv_pairs
+            model[:f][y, (r.product.id, r.id, k.id), mv, g] for k ∈ r.paths for g ∈ g_init:y
+            for mv ∈ m_tv_pairs
         ) +
         beta_f * sum(
             model[:f][y-1, (r.product.id, r.id, k.id), mv, g] for m0 ∈ modes for
@@ -736,15 +803,124 @@ function constraint_mode_shift(model::JuMP.Model, data_structures::Dict)
             )
         ) <=
         alpha_f * sum(
-            model[:f][y, (r.product.id, r.id, k.id), mv, g] for k ∈ r.paths for g ∈
-                                                                                g_init:y for
-            mv ∈ m_tv_pairs
+            model[:f][y, (r.product.id, r.id, k.id), mv, g] for k ∈ r.paths for g ∈ g_init:y
+            for mv ∈ m_tv_pairs
         ) +
         beta_f * sum(
             model[:f][y-1, (r.product.id, r.id, k.id), mv, g] for m0 ∈ modes for
             mv ∈ m_tv_pairs for k ∈ r.paths for g ∈ g_init:(y-1)
         )
     )
+end
+
+"""
+    constraint_mode_share(model::JuMP.Model, data_structures::Dict)
+
+If share are given for specific modes, this function will create constraints for the share of the modes. When this constraint is active, it can be a source of infeasibility for the model as it may be not possible to reach certain mode shares due to restrictions in the shift of modes (see parametrization of parameters alpha_f and beta_f). Especially also when constraints for minimum/maximum mode shares are active.
+
+# Arguments
+- model::JuMP.Model: JuMP model
+- data_structures::Dict: dictionary with the input data
+"""
+function constraint_mode_share(model::JuMP.Model, data_structures::Dict)
+    y_init = data_structures["y_init"]
+    mode_share_list = data_structures["mode_share_list"]
+    m_tv_pairs = data_structures["m_tv_pairs"]
+    p_r_k_pairs = data_structures["p_r_k_pairs"]
+    g_init = data_structures["g_init"]
+    odpairs = data_structures["odpair_list"]
+
+    @constraint(model, [el in mode_share_list], sum(model[:f][el.year, (r.product.id, r.id, k.id), mv, g] for p_r_k in p_r_k_pairs for mv in m_tv_pairs for k ∈ r.paths for g in g_init:el.year if mv[1] == el.mode.id && r.region.id in [rt.id for rt in el.region_type]) == el.share * sum(r.F[el.year - y_init + 1] for r in odpairs if r.region.id in [rt.id for rt in el.region_type]))
+end
+
+"""
+    constraint_max_mode_share(model::JuMP.Model, data_structures::Dict)
+
+If share are given for specific modes, this function will create constraints for the share of the modes. When this constraint is active, it can be a source of infeasibility for the model as it may be not possible to reach certain mode shares due to restrictions in the shift of modes (see parametrization of parameters alpha_f and beta_f). Or when multiple constraints for the mode share are active.
+
+# Arguments
+- model::JuMP.Model: JuMP model
+- data_structures::Dict: dictionary with the input data
+"""
+function constraint_max_mode_share(model:JuMP.Model, data_structures::Dict)
+    y_init = data_structures["y_init"]
+    max_mode_share_list = data_structures["max_mode_share_list"]
+    m_tv_pairs = data_structures["m_tv_pairs"]
+    p_r_k_pairs = data_structures["p_r_k_pairs"]
+    g_init = data_structures["g_init"]
+    odpairs = data_structures["odpair_list"]
+
+    @constraint(model, [el in max_mode_share_list], sum(model[:f][el.year, (r.product.id, r.id, k.id), mv, g] for p_r_k in p_r_k_pairs for mv in m_tv_pairs for k ∈ r.paths for g in g_init:el.year if mv[1] == el.mode.id && r.region.id in [rt.id for rt in el.region_type]) <= el.share * sum(r.F[el.year - y_init + 1] for r in odpairs if r.region.id in [rt.id for rt in el.region_type]))
+end
+
+"""
+    constraint_min_mode_share(model::JuMP.Model, data_structures::Dict)
+
+If share are given for specific modes, this function will create constraints for the share of the modes. When this constraint is active, it can be a source of infeasibility for the model as it may be not possible to reach certain mode shares due to restrictions in the shift of modes (see parametrization of parameters alpha_f and beta_f). Or when multiple constraints for the mode share are active.
+
+# Arguments
+- model::JuMP.Model: JuMP model
+- data_structures::Dict: dictionary with the input data
+"""
+function constraint_min_mode_share(model:JuMP.Model, data_structures::Dict)
+    y_init = data_structures["y_init"]
+    min_mode_share_list = data_structures["min_mode_share_list"]
+    m_tv_pairs = data_structures["m_tv_pairs"]
+    p_r_k_pairs = data_structures["p_r_k_pairs"]
+    g_init = data_structures["g_init"]
+    odpairs = data_structures["odpair_list"]
+
+    @constraint(model, [el in min_mode_share_list], sum(model[:f][el.year, (r.product.id, r.id, k.id), mv, g] for p_r_k in p_r_k_pairs for mv in m_tv_pairs for k ∈ r.paths for g in g_init:el.year if mv[1] == el.mode.id && r.region.id in [rt.id for rt in el.region_type]) >= el.share * sum(r.F[el.year - y_init + 1] for r in odpairs if r.region.id in [rt.id for rt in el.region_type]))
+end 
+
+"""
+    constraint_market_share(model::JuMP.Model, data_structures::Dict)
+
+If share are given for specific vehicle types, this function will create constraints for the newly bought vehicle share of vehicles the modes.
+
+# Arguments
+- model::JuMP.Model: JuMP model
+- data_structures::Dict: dictionary with the input data
+"""
+function constraint_market_share(model:JuMP.Model, data_structures::Dict)
+    y_init = data_structures["y_init"]
+    market_share_list = data_structures["market_share_list"]
+    p_r_k_pairs = data_structures["p_r_k_pairs"]
+    g_init = data_structures["g_init"]
+    odpairs = data_structures["odpair_list"]
+
+    @constraint(model, [el in market_share_list], sum(model[:h_plus][el.year, r.id, el.type.id, g] for r in odpairs for g in g_init:el.year) == el.share * sum(model[:h_plus][el.year, r.id, tv.id, g] for r in odpairs for tv in data_structures["techvehicle_list"] for g in g_init:el.year if tv.vehicle_type.mode.id == el.type.vehicle_type.mode.id))
+    
+end
+
+"""
+    constraint_emissions_by_mode(model::JuMP.Model, data_structures::Dict)
+
+Emissions given per mode for a specific year. Attention: This constraint may be a source for infeasibility if mode or technology shift cannot be achieved due to restrictions in the shift of modes (see parametrization of parameters alpha_f and beta_f), or due to the lifetimes of technologies as well as the lack of available low emission or zero emission technologies.
+
+# Arguments
+- model::JuMP.Model: JuMP model
+- data_structures::Dict: dictionary with the input data
+"""
+function constraint_emissions_by_mode(model::JuMP.Model, data_structures::Dict)
+    y_init = data_structures["y_init"]
+    emission_constraints_by_mode_list = data_structures["emission_constraints_by_mode_list"]
+    mode_list = data_structures["mode_list"]
+    for el in emission_constraints_by_mode_list
+        m0 = mode_list[findfirst(m -> m.id == el.mode.id, mode_list)]
+        if m0.quantify_by_vehs 
+            @constraint(model, [el in emission_constraints_by_mode_list], sum(model[:s_e][el.year, (r.product.id, r.id, k.id, edge), tv.id] * (1/1000) * tv.technology.fuel.emission_factor for r in data_structures["odpair_list"] for k in r.paths for tv in data_structures["techvehicle_list"] for edge in k.sequence if tv.vehicle_type.mode.id == el.mode.id && type(edge) == Int) + sum(model[:s_n][el.year, (r.product.id, r.id, k.id, node), tv.id] * (1/1000) * tv.technology.fuel.emission_factor for r in data_structures["odpair_list"] for k in r.paths for tv in data_structures["techvehicle_list"] for node in k.sequence if tv.vehicle_type.mode.id == el.mode.id && type(edge) == String) <= el.emission)
+        else
+            @constraint(model, [el in emission_constraints_by_mode_list], 
+            sum(
+                model[:f][y, (r.product.id, r.id, k.id), mv, g] *
+                sum(k.length for k ∈ r.paths) *
+                m.emission_factor * 10 ^(-3) * create_emission_price_along_path(k, data_structures) for r ∈ odpairs for k ∈ r.paths
+                for g ∈ g_init:y
+            ) <= el.emission)
+            
+        end
+    end
 end
 
 """
@@ -773,7 +949,9 @@ function objective(model::Model, data_structures::Dict)
     p_r_k_n_pairs = data_structures["p_r_k_n_pairs"]
     regiontypes = data_structures["regiontype_list"]
     modes = data_structures["mode_list"]
-
+    speed_list = data_structures["speed_list"]
+    initialfuelinfr_list = data_structures["initialfuelinfr_list"]
+    initialmodeinfr_list = data_structures["initialmodeinfr_list"]
     capital_cost_map = Dict(
         (v.id, g) => v.capital_cost[g-g_init+1] for v ∈ techvehicles for g ∈ g_init:Y_end
     )
@@ -788,34 +966,38 @@ function objective(model::Model, data_structures::Dict)
         for r ∈ odpairs
             add_to_expression!(
                 total_cost_expr,
-                model[:budget_penalty_plus][y, r.id] * 1000000000,
+                model[:budget_penalty_plus][y, r.id] * data_structures["budget_penalty_plus"],
             )
-            add_to_expression!(total_cost_expr, model[:budget_penalty_minus][y, r.id])
+            add_to_expression!(total_cost_expr, model[:budget_penalty_minus][y, r.id] * data_structures["budget_penalty_minus"])
         end
         for v ∈ techvehicles
             for r ∈ odpairs
 
                 # path length
+                speed = speed_list[findfirst(s -> (s.region_type.id == r.region_type.id) && (s.vehicle_type.id == v.vehicle_type.id), speed_list)].speed
                 route_length = sum(k.length for k ∈ r.paths)
-                if r.region_type.name == "urban"
-                    speed = 30
-                else
-                    speed = 60
-                end
-
+                
                 for k ∈ r.paths
                     for el ∈ k.sequence
                         if typeof(el) == Int
                             add_to_expression!(
                                 total_cost_expr,
-                                model[:s_e][y, (r.product.id, r.id, k.id, el), v.id] *
-                                fuel_cost,
+                                model[:s_e][y, (r.product.id, r.id, k.id, el), v.id] * 
+                                fuel_cost + 
+                                10 ^(-3) *
+                                model[:s_e][y, (r.product.id, r.id, k.id, el), v.id] * 
+                                t.fuel.emission_factor[y-y_init+1] * 
+                                edge_list[findfirst(edge -> edge.id == el, edge_list)]["carbon_price"][y-y_init+1],
                             )
                         elseif typeof(el) == String
                             add_to_expression!(
                                 total_cost_expr,
                                 model[:s_n][y, (r.product.id, r.id, k.id, el), v.id] *
-                                fuel_cost,
+                                fuel_cost + 
+                                10 ^(-3) *
+                                model[:s_e][y, (r.product.id, r.id, k.id, el), v.id] * 
+                                t.fuel.emission_factor[y-y_init+1] * 
+                                node_list[findfirst(node -> node.id == el, node_list)]["carbon_price"][y-y_init+1],
                             )
                         end
                     end
@@ -885,6 +1067,36 @@ function objective(model::Model, data_structures::Dict)
             end
         end
         for m ∈ modes
+            for e ∈ edge_list
+                add_to_expression!(
+                    total_cost_expr,
+                    model[:q_mode_infr_plus_e][y, m.id, e.id] *
+                    m.infrastructure_expansion_costs[y-y_init+1],
+                )
+                for y0 ∈ y_init:y
+                    add_to_expression!(
+                        total_cost_expr,
+                        (initialmodeinfr_list[findfirst(i -> i.mode.id == m.id && i.allocation == e.id, initialmodeinfr_list)].installed_ukm +
+                        model[:q_mode_infr_plus_e][y0, m.id, e.id]) *
+                        m.infrastructure_om_costs[y-y_init+1],
+                    )
+                end
+            end
+            for n ∈ node_list
+                add_to_expression!(
+                    total_cost_expr,
+                    model[:q_mode_infr_plus_n][y, m.id, n.id] *
+                    m.infrastructure_expansion_costs[y-y_init+1],
+                )
+                for y0 ∈ y_init:y
+                    add_to_expression!(
+                        total_cost_expr,
+                        (initialmodeinfr_list[findfirst(i -> i.mode.id == m.id && i.allocation == n.name, initialmodeinfr_list)].installed_ukm +
+                        model[:q_mode_infr_plus_n][y0, m.id, n.id] *
+                        m.infrastructure_om_costs[y-y_init+1],
+                    )
+                end
+            end
             if !m.quantify_by_vehs
                 for mv ∈ m_tv_pairs
                     if mv[1] == m.id
@@ -893,7 +1105,7 @@ function objective(model::Model, data_structures::Dict)
                             sum(
                                 model[:f][y, (r.product.id, r.id, k.id), mv, g] *
                                 sum(k.length for k ∈ r.paths) *
-                                m.cost_per_ukm[y-y_init+1] for r ∈ odpairs for k ∈ r.paths
+                                (m.cost_per_ukm[y-y_init+1] + m.emission_factor * 10 ^(-3) * create_emission_price_along_path(k, data_structures)) for r ∈ odpairs for k ∈ r.paths
                                 for g ∈ g_init:y
                             ),
                         )
@@ -929,6 +1141,14 @@ function objective(model::Model, data_structures::Dict)
                     model[:q_fuel_infr_plus_e][y, t.id, e.id] *
                     t.fuel.cost_per_kW[y-y_init+1],
                 )
+                for y0 ∈ y_init:y
+                    add_to_expression!(
+                        total_cost_expr,
+                        (initialfuelinfr_list[findfirst(i -> i.technology.id == t.id && i.allocation == e.id, initialfuelinfr_list)].installed_kW +
+                        model[:q_fuel_infr_plus_e][y0, t.id, e.id]) *
+                        t.fuel.fueling_infrastructure_om_costs[y-y_init+1],
+                    )
+                end
             end
             for n ∈ node_list
                 add_to_expression!(
@@ -936,6 +1156,14 @@ function objective(model::Model, data_structures::Dict)
                     model[:q_fuel_infr_plus_n][y, t.id, n.id] *
                     t.fuel.cost_per_kW[y-y_init+1],
                 )
+                for y0 ∈ y_init:y
+                    add_to_expression!(
+                        total_cost_expr,
+                        (initialfuelinfr_list[findfirst(i -> i.technology.id == t.id && i.allocation == n.name, initialfuelinfr_list)].installed_kW +
+                        model[:q_fuel_infr_plus_n][y0, t.id, n.id]) *
+                        t.fuel.fueling_infrastructure_om_costs[y-y_init+1],
+                    )
+                end
             end
         end
     end
