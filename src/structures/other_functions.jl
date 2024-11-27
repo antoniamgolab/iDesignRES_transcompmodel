@@ -67,6 +67,7 @@ function parse_data(data_dict::Dict)
             mode["emission_factor"],
             mode["infrastructure_expansion_costs"],
             mode["infrastructure_om_costs"],
+            mode["waiting_time"]
         ) for mode ∈ data_dict["Mode"]
     ]
 
