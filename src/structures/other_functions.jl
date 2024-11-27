@@ -290,6 +290,21 @@ function parse_data(data_dict::Dict)
     else
         min_mode_shares_list = []
     end
+
+    if haskey(data_dict, "VehicleSubsidy")
+        vehicle_subsidy_list = [
+            VehicleSubsidy(
+                vehicle_subsidy["id"],
+                vehicle_subsidy["name"],
+                vehicle_subsidy["years"],
+                techvehicle_list[findfirst(tv -> tv.id == vehicle_subsidy["techvehicle"], techvehicle_list)],
+                vehicle_subsidy["subsidy"],
+                
+            ) for vehicle_subsidy ∈ data_dict["VehicleSubsidy"]
+        ]
+    else
+        vehicle_subsidy_list = []
+    end
     # TODO: extend here the list of possible data_dict structures
 
     data_structures = Dict(
@@ -320,6 +335,7 @@ function parse_data(data_dict::Dict)
         "min_mode_shares_list" => min_mode_shares_list,
         "initalfuelinginfr_list" => initalfuelinginfr_list,
         "initialmodeinfr_list" => initialmodeinfr_list,
+        "vehicle_subsidy_list" => vehicle_subsidy_list,
     )
 
     for key ∈ keys(default_data)

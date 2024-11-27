@@ -746,6 +746,26 @@ struct Transportation_speeds
     year::Int
 end
 
+"""
+    VehicleSubsidy
+
+A 'VehicleSubsidy' describes the subsidy for a vehicle type in a specific year.
+
+# Fields
+- `id::Int`: unique identifier of the subsidy
+- `name::String`: name of the subsidy
+- `years::Array{Int,1}`: years in which the subsidy is valid
+- `techvehicle::TechVehicle`: vehicle type and technology
+- `subsidy::Float64`: subsidy in €
+"""
+struct VehicleSubsidy
+    id::Int
+    name::String
+    years::Array{Int,1}
+    techvehicle::TechVehicle
+    subsidy::Float64
+end
+
 global model_parameters = ["Y", "y_init", "pre_y", "budget_constraint_penalty_plus", "budget_constraint_penalty_minus"]
 
 global parameters_extended = ["alpha_f", "beta_f", "alpha_h", "beta_h", "gamma"]
@@ -767,6 +787,7 @@ global struct_names_base = [
     "Odpair",
     "Speed",
     "InitialFuelingInfr", 
+    "InitialModeInfr",
 ]
 
 global struct_names_extended = [
@@ -792,7 +813,7 @@ global struct_names_extended = [
     "Emission_constraints_by_mode",
     "Emission_constraints_by_year",
     "Transportation_speeds",
+    "VehicleSubsidy",
 ]
-
 
 global default_data = Dict("alpha_f" => 0.1, "beta_f" => 0.1, "alpha_h" => 0.1, "beta_h" => 0.1)

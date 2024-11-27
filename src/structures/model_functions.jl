@@ -507,12 +507,18 @@ function constraint_monetary_budget(model::JuMP.Model, data_structures::Dict)
     odpairs = data_structures["odpair_list"]
     techvehicles = data_structures["techvehicle_list"]
     g_init = data_structures["g_init"]
+    vehicle_subsidy_list = data_structures["vehicle_subsidy_list"]
     @constraint(
         model,
         [r in odpairs],
         sum([
-            (model[:h_plus][y, r.id, v.id, g] * v.capital_cost[g-g_init+1]) for
-            y ∈ data_structures["y_init"]:data_structures["Y_end"] for v ∈ techvehicles for
+            (model[:h_plus][y, r.id, v.id, g] * v.capital_cost[g-g_init+1]) - sum([
+                el.subsidy for el ∈ vehicle_subsidy_list[findall(
+                    vs -> y in vs.years && vs.techvehicle.id == v.id,
+                    vehicle_subsidy_list,
+                )]
+            ])
+            for y ∈ data_structures["y_init"]:data_structures["Y_end"] for v ∈ techvehicles for
             g ∈ data_structures["g_init"]:y
         ]) - sum([
             (
@@ -521,7 +527,8 @@ function constraint_monetary_budget(model::JuMP.Model, data_structures::Dict)
                 depreciation_factor(y, g)
             ) for y ∈ data_structures["y_init"]:data_structures["Y_end"] for
             v ∈ techvehicles for g ∈ data_structures["g_init"]:y
-        ]) <=
+        ]) 
+        <=
         r.financial_status.monetary_budget_purchase_ub *
         (data_structures["Y_end"] - data_structures["y_init"] + 1) + sum(
             model[:budget_penalty_plus][y, r.id] for
@@ -532,12 +539,16 @@ function constraint_monetary_budget(model::JuMP.Model, data_structures::Dict)
         model,
         [r in odpairs],
         sum([
-            (model[:h_plus][y, r.id, v.id, g] * v.capital_cost[g-g_init+1]) for
-            y ∈ data_structures["y_init"]:data_structures["Y_end"] for v ∈ techvehicles for
+            (model[:h_plus][y, r.id, v.id, g] * v.capital_cost[g-g_init+1]) - sum([
+                el.subsidy for el ∈ vehicle_subsidy_list[findall(
+                    vs -> y in vs.years && vs.techvehicle.id == v.id,
+                    vehicle_subsidy_list,
+                )]
+            ])
+            for y ∈ data_structures["y_init"]:data_structures["Y_end"] for v ∈ techvehicles for
             g ∈ g_init:y
         ]) >=
         r.financial_status.monetary_budget_purchase_lb *
-        3 *
         (data_structures["Y_end"] - data_structures["y_init"] + 1) - sum(
             model[:budget_penalty_minus][y, r.id] for
             y ∈ data_structures["y_init"]:data_structures["Y_end"]
@@ -954,6 +965,7 @@ function objective(model::Model, data_structures::Dict)
     capital_cost_map = Dict(
         (v.id, g) => v.capital_cost[g-g_init+1] for v ∈ techvehicles for g ∈ g_init:Y_end
     )
+    vehicle_subsidy_list = data_structures["vehicle_subsidy_list"]
 
     # Initialize the total cost expression
     #total_cost_expr = @expression(model, 0)
@@ -1007,7 +1019,12 @@ function objective(model::Model, data_structures::Dict)
 
                     add_to_expression!(
                         total_cost_expr,
-                        model[:h_plus][y, r.id, v.id, g] * capital_cost,
+                        model[:h_plus][y, r.id, v.id, g] * capital_cost - sum([
+                            el.subsidy for el ∈ vehicle_subsidy_list[findall(
+                                vs -> y in vs.years && vs.techvehicle.id == v.id,
+                                vehicle_subsidy_list,
+                            )]
+                        ]),
                     )
 
                     if y - g <= v.Lifetime[g-g_init+1]
