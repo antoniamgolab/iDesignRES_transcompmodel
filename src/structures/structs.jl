@@ -49,6 +49,7 @@ A 'Mode' represents a transport mode. Transport modes may differ either by the i
 - `emission_factor::Array{Float64,1}`: emission factor of the mode in gCO2/ukm (only relevant when quantify_by_vehs is false)
 - `infrastructure_expansion_costs::Array{Float64,1}`: infrastructure expansion costs in € (only relevant when quantify_by_vehs is false)
 - `infrastructure_om_costs::Array{Float64,1}`: infrastructure operation and maintenance costs in €/year (only relevant when quantify_by_vehs is false)
+- `waiting_time::Array{Float64,1}`: waiting time in h
 """
 struct Mode
     id::Int
@@ -58,6 +59,7 @@ struct Mode
     emission_factor::Array{Float64,1} # gCO2/ukm
     infrastructure_expansion_costs::Array{Float64,1}
     infrastructure_om_costs::Array{Float64,1}
+    waiting_time::Array{Float64,1} # waiting time in h
 end
 
 """
@@ -114,6 +116,7 @@ struct Fuel
     cost_per_kWh::Array{Float64,1}   # € per kWh 
     cost_per_kW::Array{Float64,1}
     fueling_infrastructure_om_costs::Array{Float64,1}
+end
 """
     Technology
 
@@ -791,5 +794,5 @@ global struct_names_extended = [
     "Transportation_speeds",
 ]
 
-global default_data =
-    Dict("alpha_f" => 0.1, "beta_f" => 0.1, "alpha_h" => 0.1, "beta_h" => 0.1)
+
+global default_data = Dict("alpha_f" => 0.1, "beta_f" => 0.1, "alpha_h" => 0.1, "beta_h" => 0.1)

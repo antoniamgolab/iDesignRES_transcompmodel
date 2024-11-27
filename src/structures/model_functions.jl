@@ -6,7 +6,6 @@
 
 using YAML, JuMP, Gurobi
 include("checks.jl")
-include("structs.jl")
 
 """
 	base_define_variables(model::Model, data_structures::Dict)
@@ -1112,12 +1111,8 @@ function objective(model::Model, data_structures::Dict)
                         # adding intangible_costs 
                         for r ∈ odpairs
                             vot = r.financial_status.VoT
-                            speed = 30
-                            if r.region_type.name == "urban"
-                                waiting_time = 20 / 60
-                            else
-                                waiting_time = 40 / 60
-                            end
+                            speed = speed_list[findfirst(s -> (s.region_type.id == r.region_type.id) && (s.vehicle_type.id == v.vehicle_type.id), speed_list)].speed
+
                             waiting_time = 15
                             los = sum(k.length for k ∈ r.paths) / 30 + waiting_time
                             intangible_costs = vot * los
