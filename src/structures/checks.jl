@@ -48,3 +48,27 @@ Check if the required keys are present in the model data.
 function check_model_parametrization(data_dict::Dict, required_keys::Vector{String})
     return check_required_keys(data_dict["Model"], required_keys)
 end
+
+"""
+    check_folder_writable(folder_path::String)
+
+Check if the folder exists and can be written in.
+
+# Arguments
+- `folder_path::String`: The path to the folder.
+"""
+function check_folder_writable(folder_path::String)
+    if !isdir(folder_path)
+        error("The folder does not exist.")
+    end
+
+    test_file = joinpath(folder_path, "test_write_permission.tmp")
+    try
+        open(test_file, "w") do f
+            write(f, "test")
+        end
+        rm(test_file)
+    catch e
+        error("The folder is not writable: $e")
+    end
+end

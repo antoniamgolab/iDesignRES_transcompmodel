@@ -1,0 +1,3 @@
+{
+    "julia-format.flag": "style=BlueStyle(), indent=4, for_in_replacement=\"∈\",remove_extra_new_line=true"
+}
