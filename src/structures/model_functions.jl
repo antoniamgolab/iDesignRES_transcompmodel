@@ -1092,7 +1092,7 @@ function objective(model::Model, data_structures::Dict)
                     add_to_expression!(
                         total_cost_expr,
                         (initialmodeinfr_list[findfirst(i -> i.mode.id == m.id && i.allocation == n.name, initialmodeinfr_list)].installed_ukm +
-                        model[:q_mode_infr_plus_n][y0, m.id, n.id] *
+                        model[:q_mode_infr_plus_n][y0, m.id, n.id]) *
                         m.infrastructure_om_costs[y-y_init+1],
                     )
                 end
