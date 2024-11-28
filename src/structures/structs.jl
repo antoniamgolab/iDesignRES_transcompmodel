@@ -37,6 +37,30 @@ struct Edge
 end
 
 """
+    GeographicElement
+
+A 'Graph_item' represents a graph item that is either a node or an edge.
+
+# Fields
+- `id::Int`: unique identifier of the graph item
+- `type::String`: type of the graph item (either 'node' or 'edge')
+- `name::String`: name of the graph item
+- `carbon_price::Array{Float64,1}`: carbon price in €/tCO2 for each year
+- `from::Node`: the node from which the edge starts
+- `to::Node`: the node to which the edge ends
+- `length::Float64`: length of the connection in km
+"""
+struct GeographicElement
+    id::Int
+    type::String
+    name::String
+    carbon_price::Array{Float64,1}
+    from::Node
+    to::Node
+    length::Float64
+end
+
+"""
     Mode
 
 A 'Mode' represents a transport mode. Transport modes may differ either by the infrastructure used (for example, road vs. rail) or by the used vehicle type (for example, private passenger car vs. bus) that directly influences the travel time but excludes a differentiation based on technology.
@@ -93,7 +117,7 @@ struct Path
     id::Int
     name::String
     length::Float64
-    sequence::Any
+    sequence::Array{GeographicElement,1}
 end
 
 """

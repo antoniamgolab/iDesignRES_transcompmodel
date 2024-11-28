@@ -45,6 +45,16 @@ function parse_data(data_dict::Dict)
             edge["carbon_price"], 
         ) for edge ∈ data_dict["Edge"]
     ]
+    geographic_element_list = [
+        GeographicElement(
+            geographic_element["id"],
+            geographic_element["name"],
+            geographic_element["length"],
+            geographic_element["from"],
+            geographic_element["to"],
+            geographic_element["carbon_price"],
+        ) for geographic_element ∈ data_dict["GeographicElement"]
+    ]
     financial_status_list = [
         FinancialStatus(
             financial_stat["id"],
@@ -71,14 +81,10 @@ function parse_data(data_dict::Dict)
         ) for mode ∈ data_dict["Mode"]
     ]
 
-    path_list = [
-        Path(path["id"], path["name"], path["length"], [el for el ∈ path["sequence"]])
-        for path ∈ data_dict["Path"]
-    ]
     product_list =
         [Product(product["id"], product["name"]) for product ∈ data_dict["Product"]]
     path_list = [
-        Path(path["id"], path["name"], path["length"], [el for el ∈ path["sequence"]])
+        Path(path["id"], path["name"], path["length"], [geographic_element_list[findfirst(geo -> geo.id == el, geographic_element_list)] for el ∈ path["sequence"]])
         for path ∈ data_dict["Path"]
     ]
     fuel_list = [
@@ -336,6 +342,7 @@ function parse_data(data_dict::Dict)
         "initalfuelinginfr_list" => initalfuelinginfr_list,
         "initialmodeinfr_list" => initialmodeinfr_list,
         "vehicle_subsidy_list" => vehicle_subsidy_list,
+        "geographic_element_list" => geographic_element_list,
     )
 
     for key ∈ keys(default_data)
@@ -457,9 +464,28 @@ Creates a set of pairs of product, odpair, path, and element IDs.
 function create_p_r_k_e_set(odpairs::Vector{Odpair})
     p_r_k_e_pairs = Set(
         (r.product.id, r.id, k.id, el) for r ∈ odpairs for k ∈ r.paths for
-        el ∈ k.sequence if typeof(el) == Int
+        el ∈ k.sequence if el.type == "edge"
     )
     return p_r_k_e_pairs
+end
+
+"""
+	create_p_r_k_g_set(odpairs::Vector{Odpair})
+
+Creates a set of pairs of product, odpair, path, and element IDs.
+
+# Arguments
+- odpairs::Vector{Odpair}: list of odpairs
+
+# Returns
+- p_r_k_g_pairs::Set: set of pairs of product, odpair, path, and element IDs
+"""
+function create_p_r_k_g_set(odpairs::Vector{Odpair})
+    p_r_k_g_pairs = Set(
+        (r.product.id, r.id, k.id, el) for r ∈ odpairs for k ∈ r.paths for
+        el ∈ k.sequence
+    )
+    return p_r_k_g_pairs
 end
 
 """
@@ -476,7 +502,7 @@ Creates a set of pairs of product, odpair, path, and element IDs.
 function create_p_r_k_n_set(odpairs::Vector{Odpair})
     p_r_k_n_pairs = Set(
         (r.product.id, r.id, k.id, el) for r ∈ odpairs for k ∈ r.paths for
-        el ∈ k.sequence if typeof(el) == String
+        el ∈ k.sequence if el.type == "node"
     )
     return p_r_k_n_pairs
 end
@@ -553,18 +579,11 @@ Calculating the carbon price along a given route based on the regions that the p
 function create_emission_price_along_path(k::Path, data_structures::Dict)
 
     n = length(k.sequence)
-    edge_list = data_structures["edge_list"]
-    node_list = data_structures["node_list"]
+    geographic_element_list = data_structures["geographic_element_list"]
     total_carbon_price = 0.0
     for el ∈ k.sequence
-        if typeof(el) == Int
-            current_carbon_price = edge_list[findfirst(e -> e.id == el, edge_list)].carbon_price
-            global total_carbon_price += current_carbon_price        
-        else
-            current_carbon_price = node_list[findfirst(e -> e.id == el, node_list)].carbon_price
-            global total_carbon_price += current_carbon_price
-
-        end
+        current_carbon_price = geographic_element_list[findfirst(e -> e.id == el, node_list)].carbon_price
+        global total_carbon_price += current_carbon_price        
     end
     average_carbon_price = total_carbon_price / n
     
