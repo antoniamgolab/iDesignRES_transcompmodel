@@ -1,3 +1,0 @@
-# Requirements
-
-Install Julia .. 
