@@ -1,3 +1,12 @@
 # iDesignRES_transcompmodel
 
 [![Documenter: dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://antoniamgolab.github.io/iDesignRES_transcompmodel/dev/)
+
+The `transcompmodel` is a model to determine the transition to low-emission transport at more granular geographic level than country-level, encompassing vehicle stock modeling, modal shift and technological substitution.
+
+It is an optimization model which allows to softlink with energy system and transport models by introducing outputs of these as parameters. Further, different kinds of policies can be introduced. 
+
+## Usage
+
+The model runs entirely with Julia. Examples for the application of the model can be found in [`examples`](examples).
+
