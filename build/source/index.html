@@ -1,0 +1,1758 @@
+<!DOCTYPE html>
+
+<html lang="Julia" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>&lt;no title&gt; &#8212; TransComp 0.1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="../_static/basic.css?v=686e5160" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=27fed22d" />
+    <script src="../_static/documentation_options.js?v=563c0e3f"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="docutils container" id="documenter">
+<div class="docs-package-name docutils container">
+<p><a href="#id1"><span class="problematic" id="id2">`TransComp Documentation &lt;&gt;`__</span></a></p>
+</div>
+<p>Search docs (Ctrl + /)</p>
+<ul class="simple">
+<li><p><a href="#id1"><span class="problematic" id="id3">`Home &lt;&gt;`__</span></a></p>
+<ul>
+<li><p><a class="reference external" href="#Getting-Started">Getting Started</a></p></li>
+</ul>
+</li>
+</ul>
+<div class="docs-version-selector field has-addons docutils container">
+<div class="control docutils container">
+<p>Version</p>
+</div>
+<div class="docs-selector control is-expanded docutils container">
+</div>
+</div>
+<div class="docs-main docutils container">
+<div class="docs-navbar docutils container">
+<p>` &lt;#&gt;`__</p>
+<ul class="simple">
+<li><p><a href="#id1"><span class="problematic" id="id4">`Home &lt;&gt;`__</span></a></p></li>
+<li><p><a href="#id1"><span class="problematic" id="id5">`Home &lt;&gt;`__</span></a></p></li>
+</ul>
+<div class="docs-right docutils container">
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel">GitHub</a><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/main/docs/src/index.md"></a>` &lt;#&gt;`__` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__</p>
+</div>
+</div>
+<p class="rubric" id="transcomp-documentation"><a class="reference external" href="#TransComp-Documentation">TransComp
+Documentation</a>` &lt;#TransComp-Documentation&gt;`__</p>
+<p>Welcome to the documentation for the <code class="docutils literal notranslate"><span class="pre">TransComp</span></code> package. This
+package provides tools for transportation modeling and
+optimization.</p>
+<p class="rubric" id="getting-started"><a class="reference external" href="#Getting-Started">Getting
+Started</a>` &lt;#Getting-Started&gt;`__</p>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.Edge</span></code> &lt;#Main.TransComp.Edge&gt;`__
+— Type</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<div class="highlight-julia notranslate"><div class="highlight"><pre><span></span><span class="n">Edge</span>
+</pre></div>
+</div>
+<p>An 'Edge' represents a connection between two nodes and is a
+representation of connecting transport infrastructure.</p>
+<p><strong>Fields</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">id::Int</span></code>: unique identifier of the edge</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">name::String</span></code>: name of the connection</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">length::Float64</span></code>: length of the connection in km</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">from::Node</span></code>: the node from which the edge starts</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">to::Node</span></code>: the node to which the edge ends</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">carbon_price::Array{Float64,1}</span></code>: carbon price in €/tCO2
+for each year</p></li>
+</ul>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/structs.jl#L17-L29">source</a></p>
+</div>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.Emission_constraints_by_mode</span></code> &lt;#Main.TransComp.Emission_constraints_by_mode&gt;`__
+— Type</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<div class="highlight-julia notranslate"><div class="highlight"><pre><span></span><span class="n">Emission_constraints_by_mode</span>
+</pre></div>
+</div>
+<p>An 'Emission<em>constraints</em>by_mode' describes emissions
+constrained for a mode.</p>
+<p><strong>Fields</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">id::Int</span></code>: unique identifier of the emission constraint</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mode::Mode</span></code>: mode of transport</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">emission::Float64</span></code>: emission constraint of the vehicle
+type (tCO2/year)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">year::Int</span></code>: year of the expected emission constraint</p></li>
+</ul>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/structs.jl#L721-L731">source</a></p>
+</div>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.Emission_constraints_by_year</span></code> &lt;#Main.TransComp.Emission_constraints_by_year&gt;`__
+— Type</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<div class="highlight-julia notranslate"><div class="highlight"><pre><span></span><span class="n">Emission_constraints_by_year</span>
+</pre></div>
+</div>
+<p>An 'Emission<em>constraints</em>by_year' describes an emission
+goal for a specific year for the total emissions.</p>
+<p><strong>Fields</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">id::Int</span></code>: unique identifier of the emission constraint</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">emission::Float64</span></code>: emission constraint</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">year::Int</span></code>: year of the expected emission constraint</p></li>
+</ul>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/structs.jl#L739-L748">source</a></p>
+</div>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.FinancialStatus</span></code> &lt;#Main.TransComp.FinancialStatus&gt;`__
+— Type</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<div class="highlight-julia notranslate"><div class="highlight"><pre><span></span><span class="n">FinancialStatus</span>
+</pre></div>
+</div>
+<p>A 'FinancialStatus' describes a demographic group based on
+what there average budget for transportation-related
+expenses is.</p>
+<p><strong>Fields</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">id::Int</span></code>: unique identifier of the financial status</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">name::String</span></code>: name of the financial status</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">VoT</span></code>: value of time in €/h</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">monetary_budget_operational</span></code>: budget for operational
+costs in €/year</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">monetary_budget_operational_lb</span></code>: lower bound of the
+budget for operational costs in €/year</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">monetary_budget_operational_ub</span></code>: upper bound of the
+budget for operational costs in €/year</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">monetary_budget_purchase</span></code>: budget for purchasing costs
+in €/year</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">monetary_budget_purchase_lb</span></code>: lower bound of the budget
+for purchasing costs in €/year</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">monetary_budget_purchase_ub</span></code>: upper bound of the budget
+for purchasing costs in €/year</p></li>
+</ul>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/structs.jl#L256-L271">source</a></p>
+</div>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.Fuel</span></code> &lt;#Main.TransComp.Fuel&gt;`__
+— Type</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<div class="highlight-julia notranslate"><div class="highlight"><pre><span></span><span class="n">Fuel</span>
+</pre></div>
+</div>
+<p>A 'Fuel' represents the energy source used for the vehicle
+propulsion.</p>
+<p><strong>Fields</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">id::Int</span></code>: unique identifier of the fuel</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">name::String</span></code>: name of the fuel</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">emission_factor::Float64</span></code>: emission factor of the fuel
+in gCO2/kWh</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">cost_per_kWh</span></code>: cost per kWh of the fuel in €</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">cost_per_kW</span></code>: cost per kW of the fuel in €</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">fueling_infrastructure_om_costs::Array{Float64,1}</span></code>:
+fueling infrastructure operation and maintenance costs in
+€/year</p></li>
+</ul>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/structs.jl#L123-L135">source</a></p>
+</div>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.GeographicElement</span></code> &lt;#Main.TransComp.GeographicElement&gt;`__
+— Type</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<div class="highlight-julia notranslate"><div class="highlight"><pre><span></span><span class="n">GeographicElement</span>
+</pre></div>
+</div>
+<p>A 'Graph_item' represents a graph item that is either a node
+or an edge.</p>
+<p><strong>Fields</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">id::Int</span></code>: unique identifier of the graph item</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">type::String</span></code>: type of the graph item (either 'node' or
+'edge')</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">name::String</span></code>: name of the graph item</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">carbon_price::Array{Float64,1}</span></code>: carbon price in €/tCO2
+for each year</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">from::Node</span></code>: the node from which the edge starts</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">to::Node</span></code>: the node to which the edge ends</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">length::Float64</span></code>: length of the connection in km</p></li>
+</ul>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/structs.jl#L39-L52">source</a></p>
+</div>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.InitialFuelingInfr</span></code> &lt;#Main.TransComp.InitialFuelingInfr&gt;`__
+— Type</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<div class="highlight-julia notranslate"><div class="highlight"><pre><span></span><span class="n">InitialFuelingInfr</span>
+</pre></div>
+</div>
+<p>An 'InitialFuelingInfr' represents the fueling
+infrastructure that exists at the initial year of the
+optimization horizon.</p>
+<p><strong>Fields</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">id::Int</span></code>: unique identifier of the initial fueling
+infrastructure</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">technology::Technology</span></code>: technology of the fueling
+infrastructure</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">allocation</span></code>: allocation of the fueling infrastructure</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">installed_kW::Float64</span></code>: installed capacity of the
+fueling infrastructure in kW</p></li>
+</ul>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/structs.jl#L219-L229">source</a></p>
+</div>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.InitialModeInfr</span></code> &lt;#Main.TransComp.InitialModeInfr&gt;`__
+— Type</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<div class="highlight-julia notranslate"><div class="highlight"><pre><span></span><span class="n">InitialModeInfr</span>
+</pre></div>
+</div>
+<p>An 'InitialModeInfr' represents the mode infrastructure that
+exists at the initial year of the optimization horizon.</p>
+<p><strong>Fields</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">id::Int</span></code>: unique identifier of the initial mode
+infrastructure</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mode::Mode</span></code>: mode of transport</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">allocation</span></code>: allocation of the mode infrastructure</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">installed_ukm::Float64</span></code>: installed transport capacity
+of the mode infrastructure in Ukm</p></li>
+</ul>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/structs.jl#L237-L248">source</a></p>
+</div>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.InitialVehicleStock</span></code> &lt;#Main.TransComp.InitialVehicleStock&gt;`__
+— Type</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<div class="highlight-julia notranslate"><div class="highlight"><pre><span></span><span class="n">InitialVehicleStock</span>
+</pre></div>
+</div>
+<p>An 'InitialVehicleStock' represents a vehicle fleet that
+exisits at the initial year of the optimization horizon.</p>
+<p><strong>Fields</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">id::Int</span></code>: unique identifier of the initial vehicle
+stock</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">techvehicle::TechVehicle</span></code>: vehicle type and technology
+of the vehicle</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">year_of_purchase::Int</span></code>: year in which the vehicle was
+purchased</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">stock::Float64</span></code>: number of vehicles of this type in the
+initial vehicle stock</p></li>
+</ul>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/structs.jl#L200-L211">source</a></p>
+</div>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.Mode</span></code> &lt;#Main.TransComp.Mode&gt;`__
+— Type</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<div class="highlight-julia notranslate"><div class="highlight"><pre><span></span><span class="n">Mode</span>
+</pre></div>
+</div>
+<p>A 'Mode' represents a transport mode. Transport modes may
+differ either by the infrastructure used (for example, road
+vs. rail) or by the used vehicle type (for example, private
+passenger car vs. bus) that directly influences the travel
+time but excludes a differentiation based on technology.</p>
+<p><strong>Fields</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">id::Int</span></code>: unique identifier of the mode</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">name::String</span></code>: name of the mode</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">quantify_by_vehs::Bool</span></code>: if for this mode vehicles
+stock is sized or not. If this mode is considered with
+levelized costs, including the costs for vehicles and
+related costs.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">cost_per_ukm::Array{Float64,</span> <span class="pre">1}</span></code>: cost per km in €/km
+(only relevant when quantify<em>by</em>vehs is false)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">emission_factor::Array{Float64,1}</span></code>: emission factor of
+the mode in gCO2/ukm (only relevant when
+quantify<em>by</em>vehs is false)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">infrastructure_expansion_costs::Array{Float64,1}</span></code>:
+infrastructure expansion costs in € (only relevant when
+quantify<em>by</em>vehs is false)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">infrastructure_om_costs::Array{Float64,1}</span></code>:
+infrastructure operation and maintenance costs in €/year
+(only relevant when quantify<em>by</em>vehs is false)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">waiting_time::Array{Float64,1}</span></code>: waiting time in h</p></li>
+</ul>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/structs.jl#L63-L77">source</a></p>
+</div>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.Mode_share_max</span></code> &lt;#Main.TransComp.Mode_share_max&gt;`__
+— Type</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<div class="highlight-julia notranslate"><div class="highlight"><pre><span></span><span class="n">Mode_share_max</span>
+</pre></div>
+</div>
+<p>Maximum mode shares of a transport mode independent of year,
+i.e. over total horizon.</p>
+<p><strong>Fields</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">id::Int</span></code>: unique identifier of the mode share</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mode::Mode</span></code>: mode of transport</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">share::Float64</span></code>: maximum share of the mode</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">financial_status::Array{FinancialStatus,</span> <span class="pre">1}</span></code>: array of
+financial status that is affected by this mode share
+constraint</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">region_type::Array{Regiontype,1}</span></code>: array of region
+types that are affected by this TechVehicle share
+constraint</p></li>
+</ul>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/structs.jl#L430-L441">source</a></p>
+</div>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.Mode_share_max_by_year</span></code> &lt;#Main.TransComp.Mode_share_max_by_year&gt;`__
+— Type</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<div class="highlight-julia notranslate"><div class="highlight"><pre><span></span><span class="n">Mode_share_max_by_year</span>
+</pre></div>
+</div>
+<p>Maximum mode shares of a transport mode in a specific year.</p>
+<p><strong>Fields</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">id::Int</span></code>: unique identifier of the mode share</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mode::Mode</span></code>: mode of transport</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">share::Float64</span></code>: maximum share of the mode</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">year::Int</span></code>: year of the maximum mode share</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">region_type::Array{Regiontype,1}</span></code>: array of region
+types that are affected by this TechVehicle share
+constraint</p></li>
+</ul>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/structs.jl#L389-L400">source</a></p>
+</div>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.Mode_share_min</span></code> &lt;#Main.TransComp.Mode_share_min&gt;`__
+— Type</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<div class="highlight-julia notranslate"><div class="highlight"><pre><span></span><span class="n">Mode_share_min</span>
+</pre></div>
+</div>
+<p>Maximum mode shares of a transport mode independent of year,
+i.e. over total horizon.</p>
+<p><strong>Fields</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">id::Int</span></code>: unique identifier of the mode share</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mode::Mode</span></code>: mode of transport</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">share::Float64</span></code>: maximum share of the mode</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">financial_status::Array{FinancialStatus,</span> <span class="pre">1}</span></code>: array of
+financial status that is affected by this mode share
+constraint</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">region_type::Array{Regiontype,1}</span></code>: array of region
+types that are affected by this TechVehicle share
+constraint</p></li>
+</ul>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/structs.jl#L450-L461">source</a></p>
+</div>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.Mode_share_min_by_year</span></code> &lt;#Main.TransComp.Mode_share_min_by_year&gt;`__
+— Type</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<div class="highlight-julia notranslate"><div class="highlight"><pre><span></span><span class="n">Mode_share_min_by_year</span>
+</pre></div>
+</div>
+<p>Minimum mode shares of a transport mode in a specific year.</p>
+<p><strong>Fields</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">id::Int</span></code>: unique identifier of the mode share</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mode::Mode</span></code>: mode of transport</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">share::Float64</span></code>: minimum share of the mode</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">year::Int</span></code>: year of the minimum mode share</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">region_type::Array{Regiontype,1}</span></code>: array of region
+types that are affected by this TechVehicle share
+constraint</p></li>
+</ul>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/structs.jl#L409-L420">source</a></p>
+</div>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.Node</span></code> &lt;#Main.TransComp.Node&gt;`__
+— Type</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<div class="highlight-julia notranslate"><div class="highlight"><pre><span></span><span class="n">Node</span>
+</pre></div>
+</div>
+<p>A 'Node' represents geographic region.</p>
+<p><strong>Fields</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">id::Int</span></code>: unique identifier of the node</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">name::String</span></code>: name the region</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">carbon_price::Array{Float64,1}</span></code>: carbon price in €/tCO2
+for each year</p></li>
+</ul>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/structs.jl#L1-L10">source</a></p>
+</div>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.Odpair</span></code> &lt;#Main.TransComp.Odpair&gt;`__
+— Type</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<div class="highlight-julia notranslate"><div class="highlight"><pre><span></span><span class="n">Odpair</span>
+</pre></div>
+</div>
+<p>An 'Odpair' describes transport demand. It may take place
+between two regions but origin and destination may al so</p>
+<p><strong>Fields</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">id::Int</span></code>: unique identifier of the odpair</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">origin::Node</span></code>: origin of the transport demand</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">destination::Node</span></code>: destination of the transport demand</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">paths::Array{Path,</span> <span class="pre">1}</span></code>: possible paths between origin
+and destination</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">F</span></code>: number of trips in p/year or t/year</p></li>
+</ul>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/structs.jl#L304-L315">source</a></p>
+</div>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.Path</span></code> &lt;#Main.TransComp.Path&gt;`__
+— Type</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<div class="highlight-julia notranslate"><div class="highlight"><pre><span></span><span class="n">Path</span>
+</pre></div>
+</div>
+<p>A 'Path' represents a possible route between two nodes. This
+sequence includes the nodes that are passed through and the
+length of the path.</p>
+<p><strong>Fields</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">id::Int</span></code>: unique identifier of the path</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">name::String</span></code>: name of the path</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">length::Float64</span></code>: length of the path in km</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sequence</span></code>: sequence of nodes and edges that are passed
+through</p></li>
+</ul>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/structs.jl#L104-L115">source</a></p>
+</div>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.Product</span></code> &lt;#Main.TransComp.Product&gt;`__
+— Type</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<div class="highlight-julia notranslate"><div class="highlight"><pre><span></span><span class="n">Product</span>
+</pre></div>
+</div>
+<p>A 'Product' represents either a good or a service that is
+being transported. This may include passengers, or different
+types of products in the freight transport. The
+differentiation of transported products related to the
+different needs for transportation and, therefore, different
+possible sets of transport modes, vehicle types and
+drivetrain technologies are available for transport.</p>
+<p><strong>Fields</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">id::Int</span></code>: unique identifier of the product</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">name::String</span></code>: name of the product</p></li>
+</ul>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/structs.jl#L89-L98">source</a></p>
+</div>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.Regiontype</span></code> &lt;#Main.TransComp.Regiontype&gt;`__
+— Type</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<div class="highlight-julia notranslate"><div class="highlight"><pre><span></span><span class="n">Regiontype</span>
+</pre></div>
+</div>
+<p>A 'Regiontype' describes a region based on its
+characteristics that induces differences in transportation
+needs (for example, urban vs. rural area).</p>
+<p><strong>Fields</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">id::Int</span></code>: unique identifier of the regiontype</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">name::String</span></code>: name of the regiontype</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">speed::Float64</span></code>: average speed in km/h</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">costs_var::Array{Float64,</span> <span class="pre">1}</span></code>: variable costs in
+€/vehicle-km</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">costs_fix::Array{Float64,</span> <span class="pre">1}</span></code>: fixed costs in €/year</p></li>
+</ul>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/structs.jl#L284-L296">source</a></p>
+</div>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.TechVehicle</span></code> &lt;#Main.TransComp.TechVehicle&gt;`__
+— Type</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<div class="highlight-julia notranslate"><div class="highlight"><pre><span></span><span class="n">TechVehicle</span>
+</pre></div>
+</div>
+<p>A 'TechVehicle' represents a vehicle that is used for
+transportation. This includes the vehicle type, the
+technology used in the vehicle, the capital and maintenance
+costs, the load capacity, the specific consumption, the
+lifetime, the annual range, the number of vehicles of this
+type, the battery capacity, and the peak charging power.</p>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/structs.jl#L178-L182">source</a></p>
+</div>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.TechVehicle_share_max</span></code> &lt;#Main.TransComp.TechVehicle_share_max&gt;`__
+— Type</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<div class="highlight-julia notranslate"><div class="highlight"><pre><span></span><span class="n">TechVehicle_share_max</span>
+</pre></div>
+</div>
+<p>Maximum vehicle type shares of a TechVehicle independent of
+year, i.e. over total horizon.</p>
+<p><strong>Fields</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">id::Int</span></code>: unique identifier of the TechVehicle share</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">techvehicle::TechVehicle</span></code>: TechVehicle</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">share::Float64</span></code>: maximum share of the TechVehicle</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">financial_status::Array{FinancialStatus,</span> <span class="pre">1}</span></code>: array of
+financial status that is affected by this TechVehicle
+share constraint</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">region_type::Array{Regiontype,1}</span></code>: array of region
+types that are affected by this TechVehicle share
+constraint</p></li>
+</ul>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/structs.jl#L681-L692">source</a></p>
+</div>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.TechVehicle_share_max_by_year</span></code> &lt;#Main.TransComp.TechVehicle_share_max_by_year&gt;`__
+— Type</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<div class="highlight-julia notranslate"><div class="highlight"><pre><span></span><span class="n">TechVehicle_share_max_by_year</span>
+</pre></div>
+</div>
+<p>Maximum vehicle type shares of a TechVehicle in a specific
+year.</p>
+<p><strong>Fields</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">id::Int</span></code>: unique identifier of the TechVehicle share</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">techvehicle::TechVehicle</span></code>: TechVehicle</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">share::Float64</span></code>: maximum share of the TechVehicle</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">year::Int</span></code>: year of the maximum TechVehicle share</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">financial_status::Array{FinancialStatus,</span> <span class="pre">1}</span></code>: financial
+status that is affected by this TechVehicle share
+constraint</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">region_type::Array{Regiontype,1}</span></code>: array of region
+types that are affected by this TechVehicle share
+constraint</p></li>
+</ul>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/structs.jl#L637-L649">source</a></p>
+</div>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.TechVehicle_share_min</span></code> &lt;#Main.TransComp.TechVehicle_share_min&gt;`__
+— Type</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<div class="highlight-julia notranslate"><div class="highlight"><pre><span></span><span class="n">TechVehicle_share_min</span>
+</pre></div>
+</div>
+<p>Minimum vehicle type shares of a TechVehicle independent of
+year, i.e. over total horizon.</p>
+<p><strong>Fields</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">id::Int</span></code>: unique identifier of the TechVehicle share</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">techvehicle::TechVehicle</span></code>: TechVehicle</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">share::Float64</span></code>: minimum share of the TechVehicle</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">financial_status::Array{FinancialStatus,</span> <span class="pre">1}</span></code>: array of
+financial status that is affected by this TechVehicle
+share constraint</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">region_type::Array{Regiontype,1}</span></code>: array of region
+types that are affected by this TechVehicle share
+constraint</p></li>
+</ul>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/structs.jl#L701-L712">source</a></p>
+</div>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.TechVehicle_share_min_by_year</span></code> &lt;#Main.TransComp.TechVehicle_share_min_by_year&gt;`__
+— Type</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<div class="highlight-julia notranslate"><div class="highlight"><pre><span></span><span class="n">TechVehicle_share_min_by_year</span>
+</pre></div>
+</div>
+<p>Minimum vehicle type shares of a TechVehicle in a specific
+year.</p>
+<p><strong>Fields</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">id::Int</span></code>: unique identifier of the TechVehicle share</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">techvehicle::TechVehicle</span></code>: TechVehicle</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">share::Float64</span></code>: minimum share of the TechVehicle</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">year::Int</span></code>: year of the minimum TechVehicle share</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">financial_status::Array{FinancialStatus,</span> <span class="pre">1}</span></code>: financial
+status that is affected by this TechVehicle share
+constraint</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">region_type::Array{Regiontype,1}</span></code>: array of region
+types that are affected by this TechVehicle share
+constraint</p></li>
+</ul>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/structs.jl#L659-L671">source</a></p>
+</div>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.Technology</span></code> &lt;#Main.TransComp.Technology&gt;`__
+— Type</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<div class="highlight-julia notranslate"><div class="highlight"><pre><span></span><span class="n">Technology</span>
+</pre></div>
+</div>
+<p>A 'Technology' represents the drivetrain technology used in
+the vehicle.</p>
+<p><strong>Fields</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">id::Int</span></code>: unique identifier of the technology</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">name::String</span></code>: name of the technology</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">fuel::Fuel</span></code>: fuel used by the technology</p></li>
+</ul>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/structs.jl#L144-L153">source</a></p>
+</div>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.Technology_share_max</span></code> &lt;#Main.TransComp.Technology_share_max&gt;`__
+— Type</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<div class="highlight-julia notranslate"><div class="highlight"><pre><span></span><span class="n">Technology_share_max</span>
+</pre></div>
+</div>
+<p>Maximum technology shares of a vehicle technology
+independent of year, i.e. over total horizon.</p>
+<p><strong>Fields</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">id::Int</span></code>: unique identifier of the technology share</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">technology::Technology</span></code>: vehicle technology</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">share::Float64</span></code>: maximum share of the technology</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">financial_status::Array{FinancialStatus,</span> <span class="pre">1}</span></code>: array of
+financial status that is affected by this technology share
+constraint</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">region_type::Array{Regiontype,1}</span></code>: array of region
+types that are affected by this TechVehicle share
+constraint</p></li>
+</ul>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/structs.jl#L514-L525">source</a></p>
+</div>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.Technology_share_max_by_year</span></code> &lt;#Main.TransComp.Technology_share_max_by_year&gt;`__
+— Type</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<div class="highlight-julia notranslate"><div class="highlight"><pre><span></span><span class="n">Technology_share_max_by_year</span>
+</pre></div>
+</div>
+<p>Maximum technology shares of a vehicle technology in a
+specific year.</p>
+<p><strong>Fields</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">id::Int</span></code>: unique identifier of the technology share</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">technology::Technology</span></code>: vehicle technology</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">share::Float64</span></code>: maximum share of the technology</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">year::Int</span></code>: year of the maximum technology share</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">financial_status::Array{FinancialStatus,</span> <span class="pre">1}</span></code>: financial
+status that is affected by this technology share
+constraint</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">region_type::Array{Regiontype,1}</span></code>: array of region
+types that are affected by this TechVehicle share
+constraint</p></li>
+</ul>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/structs.jl#L470-L482">source</a></p>
+</div>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.Technology_share_min</span></code> &lt;#Main.TransComp.Technology_share_min&gt;`__
+— Type</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<div class="highlight-julia notranslate"><div class="highlight"><pre><span></span><span class="n">Technology_share_min</span>
+</pre></div>
+</div>
+<p>Minimum technology shares of a vehicle technology
+independent of year, i.e. over total horizon.</p>
+<p><strong>Fields</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">id::Int</span></code>: unique identifier of the technology share</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">technology::Technology</span></code>: vehicle technology</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">share::Float64</span></code>: minimum share of the technology</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">financial_status::Array{FinancialStatus,</span> <span class="pre">1}</span></code>: array of
+financial status that is affected by this technology share
+constraint</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">region_type::Array{Regiontype,1}</span></code>: array of region
+types that are affected by this TechVehicle share
+constraint</p></li>
+</ul>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/structs.jl#L534-L545">source</a></p>
+</div>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.Technology_share_min_by_year</span></code> &lt;#Main.TransComp.Technology_share_min_by_year&gt;`__
+— Type</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<div class="highlight-julia notranslate"><div class="highlight"><pre><span></span><span class="n">Technology_share_min_by_year</span>
+</pre></div>
+</div>
+<p>Minimum technology shares of a vehicle technology in a
+specific year.</p>
+<p><strong>Fields</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">id::Int</span></code>: unique identifier of the technology share</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">technology::Technology</span></code>: vehicle technology</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">share::Float64</span></code>: minimum share of the technology</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">year::Int</span></code>: year of the minimum technology share</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">financial_status::Array{FinancialStatus,</span> <span class="pre">1}</span></code>: financial
+status that is affected by this technology share
+constraint</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">region_type::Array{Regiontype,1}</span></code>: array of region
+types that are affected by this TechVehicle share
+constraint</p></li>
+</ul>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/structs.jl#L492-L504">source</a></p>
+</div>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.Transportation_speeds</span></code> &lt;#Main.TransComp.Transportation_speeds&gt;`__
+— Type</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<div class="highlight-julia notranslate"><div class="highlight"><pre><span></span><span class="n">Transportation_speeds</span>
+</pre></div>
+</div>
+<p>A 'Speed' describes the speed of a vehicle type in a
+specific year.</p>
+<p><strong>Fields</strong></p>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/structs.jl#L755-L763">source</a></p>
+</div>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.VehicleSubsidy</span></code> &lt;#Main.TransComp.VehicleSubsidy&gt;`__
+— Type</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<div class="highlight-julia notranslate"><div class="highlight"><pre><span></span><span class="n">VehicleSubsidy</span>
+</pre></div>
+</div>
+<p>A 'VehicleSubsidy' describes the subsidy for a vehicle type
+in a specific year.</p>
+<p><strong>Fields</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">id::Int</span></code>: unique identifier of the subsidy</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">name::String</span></code>: name of the subsidy</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">years::Array{Int,1}</span></code>: years in which the subsidy is
+valid</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">techvehicle::TechVehicle</span></code>: vehicle type and technology</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">subsidy::Float64</span></code>: subsidy in €</p></li>
+</ul>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/structs.jl#L773-L784">source</a></p>
+</div>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.VehicleType_share_max</span></code> &lt;#Main.TransComp.VehicleType_share_max&gt;`__
+— Type</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<div class="highlight-julia notranslate"><div class="highlight"><pre><span></span><span class="n">VehicleType_share_max</span>
+</pre></div>
+</div>
+<p>Maximum vehicle type shares of a vehicle type independent of
+year, i.e. over total horizon.</p>
+<p><strong>Fields</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">id::Int</span></code>: unique identifier of the vehicle type share</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">vehicle_type::Vehicletype</span></code>: vehicle type</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">share::Float64</span></code>: maximum share of the vehicle type</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">financial_status::Array{FinancialStatus,</span> <span class="pre">1}</span></code>: array of
+financial status that is affected by this vehicle type
+share constraint</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">region_type::Array{Regiontype,1}</span></code>: array of region
+types that are affected by this TechVehicle share
+constraint</p></li>
+</ul>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/structs.jl#L598-L609">source</a></p>
+</div>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.VehicleType_share_max_by_year</span></code> &lt;#Main.TransComp.VehicleType_share_max_by_year&gt;`__
+— Type</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<div class="highlight-julia notranslate"><div class="highlight"><pre><span></span><span class="n">VehicleType_share_max_by_year</span>
+</pre></div>
+</div>
+<p>Maximum vehicle type shares of a vehicle type in a specific
+year.</p>
+<p><strong>Fields</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">id::Int</span></code>: unique identifier of the vehicle type share</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">vehicle_type::Vehicletype</span></code>: vehicle type</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">share::Float64</span></code>: maximum share of the vehicle type</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">year::Int</span></code>: year of the maximum vehicle type share</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">financial_status::Array{FinancialStatus,</span> <span class="pre">1}</span></code>: financial
+status that is affected by this vehicle type share
+constraint</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">region_type::Array{Regiontype,1}</span></code>: array of region
+types that are affected by this TechVehicle share
+constraint</p></li>
+</ul>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/structs.jl#L554-L566">source</a></p>
+</div>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.VehicleType_share_min</span></code> &lt;#Main.TransComp.VehicleType_share_min&gt;`__
+— Type</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<div class="highlight-julia notranslate"><div class="highlight"><pre><span></span><span class="n">VehicleType_share_min</span>
+</pre></div>
+</div>
+<p>Minimum vehicle type shares of a vehicle type independent of
+year, i.e. over total horizon.</p>
+<p><strong>Fields</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">id::Int</span></code>: unique identifier of the vehicle type share</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">vehicle_type::Vehicletype</span></code>: vehicle type</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">share::Float64</span></code>: minimum share of the vehicle type</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">financial_status::Array{FinancialStatus,</span> <span class="pre">1}</span></code>: array of
+financial status that is affected by this vehicle type
+share constraint</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">region_type::Array{Regiontype,1}</span></code>: array of region
+types that are affected by this TechVehicle share
+constraint</p></li>
+</ul>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/structs.jl#L618-L629">source</a></p>
+</div>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.VehicleType_share_min_by_year</span></code> &lt;#Main.TransComp.VehicleType_share_min_by_year&gt;`__
+— Type</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<div class="highlight-julia notranslate"><div class="highlight"><pre><span></span><span class="n">VehicleType_share_min_by_year</span>
+</pre></div>
+</div>
+<p>Minimum vehicle type shares of a vehicle type in a specific
+year.</p>
+<p><strong>Fields</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">id::Int</span></code>: unique identifier of the vehicle type share</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">vehicle_type::Vehicletype</span></code>: vehicle type</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">share::Float64</span></code>: minimum share of the vehicle type</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">year::Int</span></code>: year of the minimum vehicle type share</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">financial_status::Array{FinancialStatus,</span> <span class="pre">1}</span></code>: financial
+status that is affected by this vehicle type share
+constraint</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">region_type::Array{Regiontype,1}</span></code>: array of region
+types that are affected by this TechVehicle share
+constraint</p></li>
+</ul>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/structs.jl#L576-L588">source</a></p>
+</div>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.Vehicletype</span></code> &lt;#Main.TransComp.Vehicletype&gt;`__
+— Type</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<div class="highlight-julia notranslate"><div class="highlight"><pre><span></span><span class="n">Vehicletype</span>
+</pre></div>
+</div>
+<p>A 'Vehicletype' represents a type of vehicle that is used
+for transportation. This may be for example, small passenger
+cars, buses, or light-duty trucks.</p>
+<p><strong>Fields</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">id::Int</span></code>: unique identifier of the vehicle type</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">name::String</span></code>: name of the vehicle type</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mode::Mode</span></code>: mode of transport that the vehicle type is
+used for</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">product::Product</span></code>: product that the vehicle type is
+used for</p></li>
+</ul>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/structs.jl#L160-L170">source</a></p>
+</div>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.base_define_variables</span></code> &lt;#Main.TransComp.base_define_variables-Tuple%7BJuMP.Model,%20Dict%7D&gt;`__
+— Method</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<div class="highlight-julia notranslate"><div class="highlight"><pre><span></span><span class="n">base_define_variables</span><span class="p">(</span><span class="n">model</span><span class="o">::</span><span class="kt">Model</span><span class="p">,</span><span class="w"> </span><span class="n">data_structures</span><span class="o">::</span><span class="kt">Dict</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Defines the variables for the model.</p>
+<p><strong>Arguments</strong></p>
+<ul class="simple">
+<li><p>model::Model: JuMP model</p></li>
+<li><p>data_structures::Dict: dictionary with the input data</p></li>
+</ul>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/model_functions.jl#L10-L18">source</a></p>
+</div>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.check_folder_writable</span></code> &lt;#Main.TransComp.check_folder_writable-Tuple%7BString%7D&gt;`__
+— Method</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<div class="highlight-julia notranslate"><div class="highlight"><pre><span></span><span class="n">check_folder_writable</span><span class="p">(</span><span class="n">folder_path</span><span class="o">::</span><span class="kt">String</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Check if the folder exists and can be written in.</p>
+<p><strong>Arguments</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">folder_path::String</span></code>: The path to the folder.</p></li>
+</ul>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/checks.jl#L52-L59">source</a></p>
+</div>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.check_input_file</span></code> &lt;#Main.TransComp.check_input_file-Tuple%7BString%7D&gt;`__
+— Method</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<div class="highlight-julia notranslate"><div class="highlight"><pre><span></span><span class="n">check_input_file</span><span class="p">(</span><span class="n">path_to_source_file</span><span class="o">::</span><span class="kt">String</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Check if the input file exists and is a YAML file.</p>
+<p><strong>Arguments</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">path_to_source_file::String</span></code>: The path to the input
+file.</p></li>
+</ul>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/checks.jl#L5-L12">source</a></p>
+</div>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.check_model_parametrization</span></code> &lt;#Main.TransComp.check_model_parametrization-Tuple%7BDict,%20Vector%7BString%7D%7D&gt;`__
+— Method</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<div class="highlight-julia notranslate"><div class="highlight"><pre><span></span><span class="n">check_model_parametrization</span><span class="p">(</span><span class="n">data_dict</span><span class="o">::</span><span class="kt">Dict</span><span class="p">,</span><span class="w"> </span><span class="n">required_keys</span><span class="o">::</span><span class="kt">Vector</span><span class="p">{</span><span class="kt">String</span><span class="p">})</span>
+</pre></div>
+</div>
+<p>Check if the required keys are present in the model data.</p>
+<p><strong>Arguments</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">data_dict::Dict</span></code>: The input data.</p></li>
+</ul>
+<p><strong>Returns</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Bool</span></code>: True if the required keys are present, false
+otherwise.</p></li>
+</ul>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/checks.jl#L37-L47">source</a></p>
+</div>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.check_required_keys</span></code> &lt;#Main.TransComp.check_required_keys-Tuple%7BDict,%20Vector%7BString%7D%7D&gt;`__
+— Method</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<div class="highlight-julia notranslate"><div class="highlight"><pre><span></span><span class="n">check_required_keys</span><span class="p">(</span><span class="n">data_dict</span><span class="o">::</span><span class="kt">Dict</span><span class="p">,</span><span class="w"> </span><span class="n">required_keys</span><span class="o">::</span><span class="kt">Vector</span><span class="p">{</span><span class="kt">String</span><span class="p">})</span>
+</pre></div>
+</div>
+<p>Check if the required keys are present in the input data.</p>
+<p><strong>Arguments</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">data_dict::Dict</span></code>: The input data.</p></li>
+</ul>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/checks.jl#L23-L30">source</a></p>
+</div>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.constraint_demand_coverage</span></code> &lt;#Main.TransComp.constraint_demand_coverage-Tuple%7BJuMP.Model,%20Any%7D&gt;`__
+— Method</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<div class="highlight-julia notranslate"><div class="highlight"><pre><span></span><span class="n">constraint_demand_coverage</span><span class="p">(</span><span class="n">model</span><span class="o">::</span><span class="kt">JuMP</span><span class="o">.</span><span class="n">Model</span><span class="p">,</span><span class="w"> </span><span class="n">data_structures</span><span class="o">::</span><span class="kt">Dict</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Creates constraint for demand coverage.</p>
+<p><strong>Arguments</strong></p>
+<ul class="simple">
+<li><p>model::JuMP.Model: JuMP model</p></li>
+<li><p>data_structures::Dict: dictionary with the input data</p></li>
+</ul>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/model_functions.jl#L138-L146">source</a></p>
+</div>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.constraint_emissions_by_mode</span></code> &lt;#Main.TransComp.constraint_emissions_by_mode-Tuple%7BJuMP.Model,%20Dict%7D&gt;`__
+— Method</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<div class="highlight-julia notranslate"><div class="highlight"><pre><span></span><span class="n">constraint_emissions_by_mode</span><span class="p">(</span><span class="n">model</span><span class="o">::</span><span class="kt">JuMP</span><span class="o">.</span><span class="n">Model</span><span class="p">,</span><span class="w"> </span><span class="n">data_structures</span><span class="o">::</span><span class="kt">Dict</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Emissions given per mode for a specific year. Attention:
+This constraint may be a source for infeasibility if mode or
+technology shift cannot be achieved due to restrictions in
+the shift of modes (see parametrization of parameters
+alpha<em>f and beta</em>f), or due to the lifetimes of
+technologies as well as the lack of available low emission
+or zero emission technologies.</p>
+<p><strong>Arguments</strong></p>
+<ul class="simple">
+<li><p>model::JuMP.Model: JuMP model</p></li>
+<li><p>data_structures::Dict: dictionary with the input data</p></li>
+</ul>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/model_functions.jl#L875-L883">source</a></p>
+</div>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.constraint_fueling_demand</span></code> &lt;#Main.TransComp.constraint_fueling_demand-Tuple%7BJuMP.Model,%20Dict%7D&gt;`__
+— Method</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<div class="highlight-julia notranslate"><div class="highlight"><pre><span></span><span class="n">constraint_fueling_demand</span><span class="p">(</span><span class="n">model</span><span class="o">::</span><span class="kt">JuMP</span><span class="o">.</span><span class="n">Model</span><span class="p">,</span><span class="w"> </span><span class="n">data_structures</span><span class="o">::</span><span class="kt">Dict</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Constraints for fueling demand at nodes and edges.</p>
+<p><strong>Arguments</strong></p>
+<ul class="simple">
+<li><p>model::JuMP.Model: JuMP model</p></li>
+<li><p>data_structures::Dict: dictionary with the input data</p></li>
+</ul>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/model_functions.jl#L633-L641">source</a></p>
+</div>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.constraint_fueling_infrastructure</span></code> &lt;#Main.TransComp.constraint_fueling_infrastructure-Tuple%7BJuMP.Model,%20Dict%7D&gt;`__
+— Method</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<div class="highlight-julia notranslate"><div class="highlight"><pre><span></span><span class="n">constraint_vehicle_purchase</span><span class="p">(</span><span class="n">model</span><span class="o">::</span><span class="kt">JuMP</span><span class="o">.</span><span class="n">Model</span><span class="p">,</span><span class="w"> </span><span class="n">data_structures</span><span class="o">::</span><span class="kt">Dict</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Constraints for the sizing of fueling infrastructure at
+nodes and edges.</p>
+<p><strong>Arguments</strong></p>
+<ul class="simple">
+<li><p>model::JuMP.Model: JuMP model</p></li>
+<li><p>data_structures::Dict: dictionary with the input data</p></li>
+</ul>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/model_functions.jl#L563-L571">source</a></p>
+</div>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.constraint_market_share</span></code> &lt;#Main.TransComp.constraint_market_share-Tuple%7BJuMP.Model,%20Dict%7D&gt;`__
+— Method</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<div class="highlight-julia notranslate"><div class="highlight"><pre><span></span><span class="n">constraint_market_share</span><span class="p">(</span><span class="n">model</span><span class="o">::</span><span class="kt">JuMP</span><span class="o">.</span><span class="n">Model</span><span class="p">,</span><span class="w"> </span><span class="n">data_structures</span><span class="o">::</span><span class="kt">Dict</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If share are given for specific vehicle types, this function
+will create constraints for the newly bought vehicle share
+of vehicles the modes.</p>
+<p><strong>Arguments</strong></p>
+<ul class="simple">
+<li><p>model::JuMP.Model: JuMP model</p></li>
+<li><p>data_structures::Dict: dictionary with the input data</p></li>
+</ul>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/model_functions.jl#L855-L863">source</a></p>
+</div>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.constraint_max_mode_share</span></code> &lt;#Main.TransComp.constraint_max_mode_share-Tuple%7BJuMP.Model,%20Dict%7D&gt;`__
+— Method</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<div class="highlight-julia notranslate"><div class="highlight"><pre><span></span><span class="n">constraint_max_mode_share</span><span class="p">(</span><span class="n">model</span><span class="o">::</span><span class="kt">JuMP</span><span class="o">.</span><span class="n">Model</span><span class="p">,</span><span class="w"> </span><span class="n">data_structures</span><span class="o">::</span><span class="kt">Dict</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If share are given for specific modes, this function will
+create constraints for the share of the modes. When this
+constraint is active, it can be a source of infeasibility
+for the model as it may be not possible to reach certain
+mode shares due to restrictions in the shift of modes (see
+parametrization of parameters alpha<em>f and beta</em>f). Or
+when multiple constraints for the mode share are active.</p>
+<p><strong>Arguments</strong></p>
+<ul class="simple">
+<li><p>model::JuMP.Model: JuMP model</p></li>
+<li><p>data_structures::Dict: dictionary with the input data</p></li>
+</ul>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/model_functions.jl#L815-L823">source</a></p>
+</div>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.constraint_min_mode_share</span></code> &lt;#Main.TransComp.constraint_min_mode_share-Tuple%7BJuMP.Model,%20Dict%7D&gt;`__
+— Method</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<div class="highlight-julia notranslate"><div class="highlight"><pre><span></span><span class="n">constraint_min_mode_share</span><span class="p">(</span><span class="n">model</span><span class="o">::</span><span class="kt">JuMP</span><span class="o">.</span><span class="n">Model</span><span class="p">,</span><span class="w"> </span><span class="n">data_structures</span><span class="o">::</span><span class="kt">Dict</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If share are given for specific modes, this function will
+create constraints for the share of the modes. When this
+constraint is active, it can be a source of infeasibility
+for the model as it may be not possible to reach certain
+mode shares due to restrictions in the shift of modes (see
+parametrization of parameters alpha<em>f and beta</em>f). Or
+when multiple constraints for the mode share are active.</p>
+<p><strong>Arguments</strong></p>
+<ul class="simple">
+<li><p>model::JuMP.Model: JuMP model</p></li>
+<li><p>data_structures::Dict: dictionary with the input data</p></li>
+</ul>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/model_functions.jl#L835-L843">source</a></p>
+</div>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.constraint_mode_infrastructure</span></code> &lt;#Main.TransComp.constraint_mode_infrastructure-Tuple%7BJuMP.Model,%20Dict%7D&gt;`__
+— Method</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<p>constraint<em>mode</em>infrastructure(model::JuMP.Model,
+data_structures::Dict)</p>
+<p>Constraints for sizing of mode infrastructure at nodes and
+edges.</p>
+<p><strong>Arguments</strong></p>
+<ul class="simple">
+<li><p>model::JuMP.Model: JuMP model</p></li>
+<li><p>data_structures::Dict: dictionary with the input data</p></li>
+</ul>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/model_functions.jl#L599-L607">source</a></p>
+</div>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.constraint_mode_share</span></code> &lt;#Main.TransComp.constraint_mode_share-Tuple%7BJuMP.Model,%20Dict%7D&gt;`__
+— Method</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<div class="highlight-julia notranslate"><div class="highlight"><pre><span></span><span class="n">constraint_mode_share</span><span class="p">(</span><span class="n">model</span><span class="o">::</span><span class="kt">JuMP</span><span class="o">.</span><span class="n">Model</span><span class="p">,</span><span class="w"> </span><span class="n">data_structures</span><span class="o">::</span><span class="kt">Dict</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If share are given for specific modes, this function will
+create constraints for the share of the modes. When this
+constraint is active, it can be a source of infeasibility
+for the model as it may be not possible to reach certain
+mode shares due to restrictions in the shift of modes (see
+parametrization of parameters alpha<em>f and beta</em>f).
+Especially also when constraints for minimum/maximum mode
+shares are active.</p>
+<p><strong>Arguments</strong></p>
+<ul class="simple">
+<li><p>model::JuMP.Model: JuMP model</p></li>
+<li><p>data_structures::Dict: dictionary with the input data</p></li>
+</ul>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/model_functions.jl#L795-L803">source</a></p>
+</div>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.constraint_mode_shift</span></code> &lt;#Main.TransComp.constraint_mode_shift-Tuple%7BJuMP.Model,%20Dict%7D&gt;`__
+— Method</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<div class="highlight-julia notranslate"><div class="highlight"><pre><span></span><span class="n">constraint_mode_shift</span><span class="p">(</span><span class="n">model</span><span class="o">::</span><span class="kt">JuMP</span><span class="o">.</span><span class="n">Model</span><span class="p">,</span><span class="w"> </span><span class="n">data_structures</span><span class="o">::</span><span class="kt">Dict</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Constraints for the rate of the mode shfit.</p>
+<p><strong>Arguments</strong></p>
+<ul class="simple">
+<li><p>model::JuMP.Model: JuMP model</p></li>
+<li><p>data_structures::Dict: dictionary with the input data</p></li>
+</ul>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/model_functions.jl#L730-L738">source</a></p>
+</div>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.constraint_monetary_budget</span></code> &lt;#Main.TransComp.constraint_monetary_budget-Tuple%7BJuMP.Model,%20Dict%7D&gt;`__
+— Method</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<div class="highlight-julia notranslate"><div class="highlight"><pre><span></span><span class="n">constraint_vehicle_purchase</span><span class="p">(</span><span class="n">model</span><span class="o">::</span><span class="kt">JuMP</span><span class="o">.</span><span class="n">Model</span><span class="p">,</span><span class="w"> </span><span class="n">data_structures</span><span class="o">::</span><span class="kt">Dict</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Creates constraints for monetary budget for vehicle purchase
+by route.</p>
+<p><strong>Arguments</strong></p>
+<ul class="simple">
+<li><p>model::JuMP.Model: JuMP model</p></li>
+<li><p>data_structures::Dict: dictionary with the input data</p></li>
+</ul>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/model_functions.jl#L501-L509">source</a></p>
+</div>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.constraint_vehicle_aging</span></code> &lt;#Main.TransComp.constraint_vehicle_aging-Tuple%7BJuMP.Model,%20Dict%7D&gt;`__
+— Method</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<div class="highlight-julia notranslate"><div class="highlight"><pre><span></span><span class="n">constraint_vehicle_aging</span><span class="p">(</span><span class="n">model</span><span class="o">::</span><span class="kt">JuMP</span><span class="o">.</span><span class="n">Model</span><span class="p">,</span><span class="w"> </span><span class="n">data_structures</span><span class="o">::</span><span class="kt">Dict</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Creates constraints for vehicle aging.</p>
+<p><strong>Arguments</strong></p>
+<ul class="simple">
+<li><p>model::JuMP.Model: JuMP model</p></li>
+<li><p>data_structures::Dict: dictionary with the input data</p></li>
+</ul>
+<p><strong>Returns</strong></p>
+<ul class="simple">
+<li><p>model::JuMP.Model: JuMP model with the constraints added</p></li>
+</ul>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/model_functions.jl#L277-L288">source</a></p>
+</div>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.constraint_vehicle_sizing</span></code> &lt;#Main.TransComp.constraint_vehicle_sizing-Tuple%7BJuMP.Model,%20Dict%7D&gt;`__
+— Method</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<div class="highlight-julia notranslate"><div class="highlight"><pre><span></span><span class="n">constraint_vehicle_sizing</span><span class="p">(</span><span class="n">model</span><span class="o">::</span><span class="kt">JuMP</span><span class="o">.</span><span class="n">Model</span><span class="p">,</span><span class="w"> </span><span class="n">data_structures</span><span class="o">::</span><span class="kt">Dict</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Creates constraint for vehicle sizing.</p>
+<p><strong>Arguments</strong></p>
+<ul class="simple">
+<li><p>model::JuMP.Model: JuMP model</p></li>
+<li><p>data_structures::Dict: dictionary with the input data</p></li>
+</ul>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/model_functions.jl#L161-L169">source</a></p>
+</div>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.constraint_vehicle_stock_shift</span></code> &lt;#Main.TransComp.constraint_vehicle_stock_shift-Tuple%7BJuMP.Model,%20Dict%7D&gt;`__
+— Method</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<div class="highlight-julia notranslate"><div class="highlight"><pre><span></span><span class="n">constraint_vehicle_stock_shift</span><span class="p">(</span><span class="n">model</span><span class="o">::</span><span class="kt">JuMP</span><span class="o">.</span><span class="n">Model</span><span class="p">,</span><span class="w"> </span><span class="n">data_structures</span><span class="o">::</span><span class="kt">Dict</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Constraints for vehicle stock turnover.</p>
+<p><strong>Arguments</strong></p>
+<ul class="simple">
+<li><p>model::JuMP.Model: JuMP model</p></li>
+<li><p>data_structures::Dict: dictionary with the input data</p></li>
+</ul>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/model_functions.jl#L669-L677">source</a></p>
+</div>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.create_emission_price_along_path</span></code> &lt;#Main.TransComp.create_emission_price_along_path-Tuple%7BPath,%20Dict%7D&gt;`__
+— Method</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<div class="highlight-julia notranslate"><div class="highlight"><pre><span></span><span class="n">create_emission_price_along_path</span><span class="p">(</span><span class="n">k</span><span class="o">::</span><span class="kt">Path</span><span class="p">,</span><span class="w"> </span><span class="n">data_structures</span><span class="o">::</span><span class="kt">Dict</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Calculating the carbon price along a given route based on
+the regions that the path lies in. (currently simple
+calculation by averaging over all geometric items among the
+path).</p>
+<p><strong>Arguments</strong></p>
+<ul class="simple">
+<li><p>k::Path: path</p></li>
+<li><p>data_structures::Dict: dictionary with the input data</p></li>
+</ul>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/support_functions.jl#L569-L578">source</a></p>
+</div>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.create_m_tv_pairs</span></code> &lt;#Main.TransComp.create_m_tv_pairs-Tuple%7BVector%7BTechVehicle%7D,%20Vector%7BMode%7D%7D&gt;`__
+— Method</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<div class="highlight-julia notranslate"><div class="highlight"><pre><span></span><span class="n">create_m_tv_pairs</span><span class="p">(</span><span class="n">techvehicle_list</span><span class="o">::</span><span class="kt">Vector</span><span class="p">{</span><span class="kt">TechVehicle</span><span class="p">},</span><span class="w"> </span><span class="n">mode_list</span><span class="o">::</span><span class="kt">Vector</span><span class="p">{</span><span class="kt">Mode</span><span class="p">})</span>
+</pre></div>
+</div>
+<p>Creates a set of pairs of mode and techvehicle IDs.</p>
+<p><strong>Arguments</strong></p>
+<ul class="simple">
+<li><p>techvehicle_list::Vector{TechVehicle}: list of
+techvehicles</p></li>
+<li><p>mode_list::Vector{Mode}: list of modes</p></li>
+</ul>
+<p><strong>Returns</strong></p>
+<ul class="simple">
+<li><p>m<em>tv</em>pairs::Set: set of pairs of mode and techvehicle
+IDs</p></li>
+</ul>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/support_functions.jl#L363-L375">source</a></p>
+</div>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.create_model</span></code> &lt;#Main.TransComp.create_model-Tuple%7BAny,%20String%7D&gt;`__
+— Method</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<div class="highlight-julia notranslate"><div class="highlight"><pre><span></span><span class="n">create_model</span><span class="p">(</span><span class="n">model</span><span class="o">::</span><span class="kt">JuMP</span><span class="o">.</span><span class="n">Model</span><span class="p">,</span><span class="w"> </span><span class="n">data_structures</span><span class="o">::</span><span class="kt">Dict</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Definition of JuMP.model and adding of variables.</p>
+<p><strong>Arguments</strong></p>
+<ul class="simple">
+<li><p>model::JuMP.Model: JuMP model</p></li>
+<li><p>data_structures::Dict: dictionary with the input data and
+parsing of the input parameters</p></li>
+</ul>
+<p><strong>Returns</strong></p>
+<ul class="simple">
+<li><p>model::JuMP.Model: JuMP model with the variables added</p></li>
+<li><p>data_structures::Dict: dictionary with the input data</p></li>
+</ul>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/support_functions.jl#L526-L538">source</a></p>
+</div>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.create_p_r_k_e_set</span></code> &lt;#Main.TransComp.create_p_r_k_e_set-Tuple%7BVector%7BOdpair%7D%7D&gt;`__
+— Method</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<div class="highlight-julia notranslate"><div class="highlight"><pre><span></span><span class="n">create_p_r_k_e_set</span><span class="p">(</span><span class="n">odpairs</span><span class="o">::</span><span class="kt">Vector</span><span class="p">{</span><span class="kt">Odpair</span><span class="p">})</span>
+</pre></div>
+</div>
+<p>Creates a set of pairs of product, odpair, path, and element
+IDs.</p>
+<p><strong>Arguments</strong></p>
+<ul class="simple">
+<li><p>odpairs::Vector{Odpair}: list of odpairs</p></li>
+</ul>
+<p><strong>Returns</strong></p>
+<ul class="simple">
+<li><p>p<em>r</em>k<em>e</em>pairs::Set: set of pairs of product,
+odpair, path, and element IDs</p></li>
+</ul>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/support_functions.jl#L453-L463">source</a></p>
+</div>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.create_p_r_k_g_set</span></code> &lt;#Main.TransComp.create_p_r_k_g_set-Tuple%7BVector%7BOdpair%7D%7D&gt;`__
+— Method</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<div class="highlight-julia notranslate"><div class="highlight"><pre><span></span><span class="n">create_p_r_k_g_set</span><span class="p">(</span><span class="n">odpairs</span><span class="o">::</span><span class="kt">Vector</span><span class="p">{</span><span class="kt">Odpair</span><span class="p">})</span>
+</pre></div>
+</div>
+<p>Creates a set of pairs of product, odpair, path, and element
+IDs.</p>
+<p><strong>Arguments</strong></p>
+<ul class="simple">
+<li><p>odpairs::Vector{Odpair}: list of odpairs</p></li>
+</ul>
+<p><strong>Returns</strong></p>
+<ul class="simple">
+<li><p>p<em>r</em>k<em>g</em>pairs::Set: set of pairs of product,
+odpair, path, and element IDs</p></li>
+</ul>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/support_functions.jl#L472-L482">source</a></p>
+</div>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.create_p_r_k_n_set</span></code> &lt;#Main.TransComp.create_p_r_k_n_set-Tuple%7BVector%7BOdpair%7D%7D&gt;`__
+— Method</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<div class="highlight-julia notranslate"><div class="highlight"><pre><span></span><span class="n">create_p_r_k_n_set</span><span class="p">(</span><span class="n">odpairs</span><span class="o">::</span><span class="kt">Vector</span><span class="p">{</span><span class="kt">Odpair</span><span class="p">})</span>
+</pre></div>
+</div>
+<p>Creates a set of pairs of product, odpair, path, and element
+IDs.</p>
+<p><strong>Arguments</strong></p>
+<ul class="simple">
+<li><p>odpairs::Vector{Odpair}: list of odpairs</p></li>
+</ul>
+<p><strong>Returns</strong></p>
+<ul class="simple">
+<li><p>p<em>r</em>k<em>n</em>pairs::Set: set of pairs of product,
+odpair, path, and element IDs</p></li>
+</ul>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/support_functions.jl#L491-L501">source</a></p>
+</div>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.create_p_r_k_set</span></code> &lt;#Main.TransComp.create_p_r_k_set-Tuple%7BVector%7BOdpair%7D%7D&gt;`__
+— Method</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<div class="highlight-julia notranslate"><div class="highlight"><pre><span></span><span class="n">create_p_r_k_set</span><span class="p">(</span><span class="n">odpairs</span><span class="o">::</span><span class="kt">Vector</span><span class="p">{</span><span class="kt">Odpair</span><span class="p">})</span>
+</pre></div>
+</div>
+<p>Creates a set of pairs of product, odpair, and path IDs.</p>
+<p><strong>Arguments</strong></p>
+<ul class="simple">
+<li><p>odpairs::Vector{Odpair}: list of odpairs</p></li>
+</ul>
+<p><strong>Returns</strong></p>
+<ul class="simple">
+<li><p>p<em>r</em>k_pairs::Set: set of pairs of product, odpair, and
+path IDs</p></li>
+</ul>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/support_functions.jl#L437-L447">source</a></p>
+</div>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.create_r_k_set</span></code> &lt;#Main.TransComp.create_r_k_set-Tuple%7BVector%7BOdpair%7D%7D&gt;`__
+— Method</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<div class="highlight-julia notranslate"><div class="highlight"><pre><span></span><span class="n">create_r_k_set</span><span class="p">(</span><span class="n">odpairs</span><span class="o">::</span><span class="kt">Vector</span><span class="p">{</span><span class="kt">Odpair</span><span class="p">})</span>
+</pre></div>
+</div>
+<p>Creates a set of pairs of odpair and path IDs.</p>
+<p><strong>Arguments</strong></p>
+<ul class="simple">
+<li><p>odpairs::Vector{Odpair}: list of odpairs</p></li>
+</ul>
+<p><strong>Returns</strong></p>
+<ul class="simple">
+<li><p>r<em>k</em>pairs::Set: set of pairs of odpair and path IDs</p></li>
+</ul>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/support_functions.jl#L510-L520">source</a></p>
+</div>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.create_tv_id_set</span></code> &lt;#Main.TransComp.create_tv_id_set-Tuple%7BVector%7BTechVehicle%7D,%20Vector%7BMode%7D%7D&gt;`__
+— Method</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<div class="highlight-julia notranslate"><div class="highlight"><pre><span></span><span class="n">create_tv_id_set</span><span class="p">(</span><span class="n">techvehicle_list</span><span class="o">::</span><span class="kt">Vector</span><span class="p">{</span><span class="kt">TechVehicle</span><span class="p">},</span><span class="w"> </span><span class="n">mode_list</span><span class="o">::</span><span class="kt">Vector</span><span class="p">{</span><span class="kt">Mode</span><span class="p">})</span>
+</pre></div>
+</div>
+<p>Creates a list of techvehicle IDs.</p>
+<p><strong>Arguments</strong></p>
+<ul class="simple">
+<li><p>techvehicle_list::Vector{TechVehicle}: list of
+techvehicles</p></li>
+<li><p>mode_list::Vector{Mode}: list of modes</p></li>
+</ul>
+<p><strong>Returns</strong></p>
+<ul class="simple">
+<li><p>techvehicle<em>ids</em>2::Set: set of techvehicle IDs</p></li>
+</ul>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/support_functions.jl#L395-L406">source</a></p>
+</div>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.create_v_t_set</span></code> &lt;#Main.TransComp.create_v_t_set-Tuple%7BVector%7BTechVehicle%7D%7D&gt;`__
+— Method</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<div class="highlight-julia notranslate"><div class="highlight"><pre><span></span><span class="n">create_v_t_set</span><span class="p">(</span><span class="n">techvehicle_list</span><span class="o">::</span><span class="kt">Vector</span><span class="p">{</span><span class="kt">TechVehicle</span><span class="p">})</span>
+</pre></div>
+</div>
+<p>Creates a set of pairs of techvehicle IDs.</p>
+<p><strong>Arguments</strong></p>
+<ul class="simple">
+<li><p>techvehicle_list::Vector{TechVehicle}: list of
+techvehicles</p></li>
+</ul>
+<p><strong>Returns</strong></p>
+<ul class="simple">
+<li><p>t<em>v</em>pairs::Set: set of pairs of techvehicle IDs</p></li>
+</ul>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/support_functions.jl#L421-L431">source</a></p>
+</div>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.depreciation_factor</span></code> &lt;#Main.TransComp.depreciation_factor-Tuple%7BAny,%20Any%7D&gt;`__
+— Method</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<div class="highlight-julia notranslate"><div class="highlight"><pre><span></span><span class="n">depreciation_factor</span><span class="p">(</span><span class="n">y</span><span class="p">,</span><span class="w"> </span><span class="n">g</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Calculate the depreciation factor for a vehicle based on its
+age.</p>
+<p><strong>Arguments</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">y::Int</span></code>: The year of the vehicle.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">g::Int</span></code>: The year the vehicle was purchased.</p></li>
+</ul>
+<p><strong>Returns</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Float64</span></code>: The depreciation factor.</p></li>
+</ul>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/support_functions.jl#L546-L557">source</a></p>
+</div>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.get_input_data</span></code> &lt;#Main.TransComp.get_input_data-Tuple%7BString%7D&gt;`__
+— Method</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<div class="highlight-julia notranslate"><div class="highlight"><pre><span></span><span class="n">get_input_data</span><span class="p">(</span><span class="n">path_to_source_file</span><span class="o">::</span><span class="kt">String</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This function reads the input data and checks requirements
+for the content of the file.</p>
+<p><strong>Arguments</strong></p>
+<ul class="simple">
+<li><p>path<em>to</em>source_file::String: path to the source file</p></li>
+</ul>
+<p><strong>Returns</strong></p>
+<ul class="simple">
+<li><p>data_dict::Dict: dictionary with the input data</p></li>
+</ul>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/support_functions.jl#L6-L16">source</a></p>
+</div>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.objective</span></code> &lt;#Main.TransComp.objective-Tuple%7BJuMP.Model,%20Dict%7D&gt;`__
+— Method</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<div class="highlight-julia notranslate"><div class="highlight"><pre><span></span><span class="n">objective</span><span class="p">(</span><span class="n">model</span><span class="o">::</span><span class="kt">Model</span><span class="p">,</span><span class="w"> </span><span class="n">data_structures</span><span class="o">::</span><span class="kt">Dict</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Definition of the objective function for the optimization
+model.</p>
+<p><strong>Arguments</strong></p>
+<ul class="simple">
+<li><p>model::Model: JuMP model</p></li>
+<li><p>data_structures::Dict: dictionary with the input data</p></li>
+</ul>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/model_functions.jl#L905-L913">source</a></p>
+</div>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.parse_data</span></code> &lt;#Main.TransComp.parse_data-Tuple%7BDict%7D&gt;`__
+— Method</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<div class="highlight-julia notranslate"><div class="highlight"><pre><span></span><span class="n">parse_data</span><span class="p">(</span><span class="n">data_dict</span><span class="o">::</span><span class="kt">Dict</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Parses the input data into the corresponding parameters in
+struct format from structs.jl.</p>
+<p><strong>Arguments</strong></p>
+<ul class="simple">
+<li><p>data_dict::Dict: dictionary with the input data</p></li>
+</ul>
+<p><strong>Returns</strong></p>
+<ul class="simple">
+<li><p>data_structures::Dict: dictionary with the parsed data</p></li>
+</ul>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/support_functions.jl#L25-L35">source</a></p>
+</div>
+<div class="docutils container">
+<p>` &lt;<a class="reference external" href="javascript:;">javascript:;</a>&gt;`__<code class="docutils literal notranslate"><span class="pre">`Main.TransComp.save_results</span></code> &lt;#Main.TransComp.save_results-Tuple%7BJuMP.Model,%20String,%20String%7D&gt;`__
+— Method</p>
+</div>
+<div class="section docutils container">
+<div class="docutils container">
+<div class="highlight-julia notranslate"><div class="highlight"><pre><span></span><span class="n">save_results</span><span class="p">(</span><span class="n">model</span><span class="o">::</span><span class="kt">Model</span><span class="p">,</span><span class="w"> </span><span class="n">case_name</span><span class="o">::</span><span class="kt">String</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Saves the results of the optimization model to YAML files.</p>
+<p><strong>Arguments</strong></p>
+<ul class="simple">
+<li><p>model::Model: JuMP model</p></li>
+<li><p>case_name::String: name of the case</p></li>
+<li><p>file<em>for</em>results::String: name of the file to save the
+results</p></li>
+</ul>
+</div>
+<p><a class="reference external" href="https://github.com/antoniamgolab/iDesignRES_transcompmodel/blob/55ee1be4a1d32211e479d805003347cf3abce2bc/src/support_functions.jl#L593-L602">source</a></p>
+</div>
+<p>Powered by
+<a class="reference external" href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and
+the <a class="reference external" href="https://julialang.org/">Julia Programming Language</a>.</p>
+</div>
+<div class="modal docutils container" id="documenter-settings">
+<div class="modal-card docutils container">
+<div class="modal-card-head docutils container">
+<p>Settings</p>
+</div>
+<div class="section modal-card-body docutils container">
+<p>Theme</p>
+<div class="select docutils container">
+<p>Automatic
+(OS)documenter-lightdocumenter-darkcatppuccin-lattecatppuccin-frappecatppuccin-macchiatocatppuccin-mocha</p>
+</div>
+<p>This document was generated with
+<a class="reference external" href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a>
+version 1.8.0 on Thursday 28 November 2024. Using Julia
+version 1.11.0.</p>
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">TransComp</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2024, antoniamgolab.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.1.3</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="../_sources/source/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
