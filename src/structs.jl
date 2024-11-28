@@ -841,3 +841,5 @@ global struct_names_extended = [
 ]
 
 global default_data = Dict("alpha_f" => 0.1, "beta_f" => 0.1, "alpha_h" => 0.1, "beta_h" => 0.1)
+
+
