@@ -1,12 +1,12 @@
 using YAML, JuMP, Gurobi, Printf
 
 
-include(joinpath(@__DIR__, "../../src/structures/structs.jl"))
-include(joinpath(@__DIR__, "../../src/structures/model_functions.jl"))
-include(joinpath(@__DIR__, "../../src/structures/other_functions.jl"))
+include(joinpath(@__DIR__, "../../src/TransComp.jl"))
 
 # reading input data
 # Get the path to the YAML file
+
+using .TransComp
 
 script_dir = @__DIR__   # Directory of the current script
 yaml_file_path = normpath(

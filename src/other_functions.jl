@@ -767,3 +767,4 @@ function save_results(model::Model, case_name::String, folder_for_results::Strin
     )
     @info "budget_penalty_minus_dict.yaml written successfully"
 end
+
