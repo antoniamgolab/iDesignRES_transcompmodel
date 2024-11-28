@@ -9,7 +9,7 @@ using YAML, JuMP, Gurobi, Printf
 
 include("structs.jl")
 include("model_functions.jl")
-include("other_functions.jl")
+include("support_functions.jl")
 
 
 # export data types
