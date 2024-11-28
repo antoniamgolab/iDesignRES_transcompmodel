@@ -1,6 +1,6 @@
 # iDesignRES_transcompmodel
 
-[![Documenter: dev](https://antoniamgolab.github.io/iDesignRES_transcompmodel/docs/index.html)
+[![Documenter: dev](https://antoniamgolab.github.io/iDesignRES_transcompmodel/docs/index.html)]
 
 The `transcompmodel` is a model to determine the transition to low-emission transport at more granular geographic level than country-level, encompassing vehicle stock modeling, modal shift and technological substitution. It is based on a large-scale charging infrastructure planning tool for long-distance transport and has been adapted to be flexible in the scope of included modes and technologies. 
 
