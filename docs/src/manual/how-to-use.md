@@ -3,7 +3,7 @@
 In the following, we describe the purposeful usage of the model.
 
 ## Preliminary knowledge for usage
-Given the complex nature of transport systems that is highly variable in different spatial environments and geography, the user should have some experience with the formulation and application of optimization models. In preparation to the application, we urge to familiarize yourself with the content of the `Model design` chapter. A mathematical formulation of the model can be found in the repository in `math/mathematical_formulation.pdf`.
+Given the complex nature of transport systems that is highly variable in different spatial environments and geography, the user should have some experience with the formulation and application of optimization models. In preparation to the application, we urge to familiarize yourself with the content of the `Model design` chapter. A mathematical formulation of the model can be found in the repository in `mathematical_formulation-equations/math_formulation.pdf`.
 
 ## Design of a case study
 In designing and quantifying a case study for the transport component model, the following questions need to be addressed:
