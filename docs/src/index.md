@@ -10,13 +10,8 @@ The *Transcomp* model is aimed at modeling developments in subsectors of the tra
 # Overview
 
 ```@contents
-
 Pages = [
     "manual/quickstart.md"
     ]
 Depth=1
-```
-
-```@autodocs
-Modules = [TransComp]
 ```

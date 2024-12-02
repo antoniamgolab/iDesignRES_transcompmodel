@@ -6,13 +6,8 @@ This module contains the main functions and structures for the TransComp package
 
 module TransComp
 using YAML, JuMP, Gurobi, Printf
-
-include("structs.jl")
-include("model_functions.jl")
-include("support_functions.jl")
-
-
 # export data types
+
 export Node
 export Edge
 export GeographicElement
@@ -86,5 +81,8 @@ export create_model
 export depreciation_factor
 export create_emission_price_along_path
 export save_results
+include("structs.jl")
+include("model_functions.jl")
+include("support_functions.jl")
 
 end

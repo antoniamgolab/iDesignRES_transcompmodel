@@ -34,7 +34,8 @@ Parses the input data into the corresponding parameters in struct format from st
 - data_structures::Dict: dictionary with the parsed data
 """
 function parse_data(data_dict::Dict)
-    node_list = [Node(node["id"], node["name"], node["carbon_price"]) for node ∈ data_dict["Node"]]
+    node_list =
+        [Node(node["id"], node["name"], node["carbon_price"]) for node ∈ data_dict["Node"]]
     edge_list = [
         Edge(
             edge["id"],
@@ -42,7 +43,7 @@ function parse_data(data_dict::Dict)
             edge["length"],
             node_list[findfirst(n -> n.name == edge["from"], node_list)],
             node_list[findfirst(n -> n.name == edge["to"], node_list)],
-            edge["carbon_price"], 
+            edge["carbon_price"],
         ) for edge ∈ data_dict["Edge"]
     ]
     geographic_element_list = [
@@ -77,15 +78,24 @@ function parse_data(data_dict::Dict)
             mode["emission_factor"],
             mode["infrastructure_expansion_costs"],
             mode["infrastructure_om_costs"],
-            mode["waiting_time"]
+            mode["waiting_time"],
         ) for mode ∈ data_dict["Mode"]
     ]
 
     product_list =
         [Product(product["id"], product["name"]) for product ∈ data_dict["Product"]]
     path_list = [
-        Path(path["id"], path["name"], path["length"], [geographic_element_list[findfirst(geo -> geo.id == el, geographic_element_list)] for el ∈ path["sequence"]])
-        for path ∈ data_dict["Path"]
+        Path(
+            path["id"],
+            path["name"],
+            path["length"],
+            [
+                geographic_element_list[findfirst(
+                    geo -> geo.id == el,
+                    geographic_element_list,
+                )] for el ∈ path["sequence"]
+            ],
+        ) for path ∈ data_dict["Path"]
     ]
     fuel_list = [
         Fuel(
@@ -204,7 +214,10 @@ function parse_data(data_dict::Dict)
     speed_list = [
         Speed(
             speed["id"],
-            regiontype_list[findfirst(rt -> rt.name == speed["region_type"], regiontype_list)],
+            regiontype_list[findfirst(
+                rt -> rt.name == speed["region_type"],
+                regiontype_list,
+            )],
             speed["speed"],
             speed["emission_factor"],
         ) for speed ∈ data_dict["Speed"]
@@ -246,10 +259,10 @@ function parse_data(data_dict::Dict)
                 mode_list[findfirst(m -> m.id == mode_share["mode"], mode_list)],
                 mode_share["share"],
                 mode_share["year"],
-                [regiontype_list[findfirst(
-                    rt -> rt.id == rt_id,
-                    regiontype_list,
-                )] for rt_id ∈ mode_share["regiontype_list"]],
+                [
+                    regiontype_list[findfirst(rt -> rt.id == rt_id, regiontype_list)]
+                    for rt_id ∈ mode_share["regiontype_list"]
+                ],
             ) for mode_share ∈ data_dict["Mode_shares"]
         ]
         @info "Mode shares are defined by year"
@@ -258,7 +271,6 @@ function parse_data(data_dict::Dict)
         default_data = Dict()
     end
 
-
     if haskey(data_dict, "Mode_share_max_by_year")
         max_mode_shares_list = [
             ModeShare(
@@ -266,10 +278,10 @@ function parse_data(data_dict::Dict)
                 mode_list[findfirst(m -> m.id == mode_share["mode"], mode_list)],
                 mode_share["share"],
                 mode_share["year"],
-                [regiontype_list[findfirst(
-                    rt -> rt.id == rt_id,
-                    regiontype_list,
-                )] for rt_id ∈ mode_share["regiontype_list"]],
+                [
+                    regiontype_list[findfirst(rt -> rt.id == rt_id, regiontype_list)]
+                    for rt_id ∈ mode_share["regiontype_list"]
+                ],
             ) for mode_share ∈ data_dict["Mode_shares"]
         ]
         @info "Max Mode shares are defined by year"
@@ -285,10 +297,10 @@ function parse_data(data_dict::Dict)
                 mode_list[findfirst(m -> m.id == mode_share["mode"], mode_list)],
                 mode_share["share"],
                 mode_share["year"],
-                [regiontype_list[findfirst(
-                    rt -> rt.id == rt_id,
-                    regiontype_list,
-                )] for rt_id ∈ mode_share["regiontype_list"]],
+                [
+                    regiontype_list[findfirst(rt -> rt.id == rt_id, regiontype_list)]
+                    for rt_id ∈ mode_share["regiontype_list"]
+                ],
             ) for mode_share ∈ data_dict["Mode_shares"]
         ]
         @info "Min Mode shares are defined by year"
@@ -303,9 +315,11 @@ function parse_data(data_dict::Dict)
                 vehicle_subsidy["id"],
                 vehicle_subsidy["name"],
                 vehicle_subsidy["years"],
-                techvehicle_list[findfirst(tv -> tv.id == vehicle_subsidy["techvehicle"], techvehicle_list)],
+                techvehicle_list[findfirst(
+                    tv -> tv.id == vehicle_subsidy["techvehicle"],
+                    techvehicle_list,
+                )],
                 vehicle_subsidy["subsidy"],
-                
             ) for vehicle_subsidy ∈ data_dict["VehicleSubsidy"]
         ]
     else
@@ -318,8 +332,10 @@ function parse_data(data_dict::Dict)
         "y_init" => data_dict["Model"]["y_init"],
         "prey_y" => data_dict["Model"]["pre_y"],
         "gamma" => data_dict["Model"]["gamma"],
-        "budget_constraint_penalty_plus" => data_dict["Model"]["budget_constraint_penalty_plus"],
-        "budget_constraint_penalty_minus" => data_dict["Model"]["budget_constraint_penalty_minus"],
+        "budget_constraint_penalty_plus" =>
+            data_dict["Model"]["budget_constraint_penalty_plus"],
+        "budget_constraint_penalty_minus" =>
+            data_dict["Model"]["budget_constraint_penalty_minus"],
         "node_list" => node_list,
         "edge_list" => edge_list,
         "financial_status_list" => financial_status_list,
@@ -577,16 +593,16 @@ Calculating the carbon price along a given route based on the regions that the p
 - data_structures::Dict: dictionary with the input data 
 """
 function create_emission_price_along_path(k::Path, data_structures::Dict)
-
     n = length(k.sequence)
     geographic_element_list = data_structures["geographic_element_list"]
     total_carbon_price = 0.0
     for el ∈ k.sequence
-        current_carbon_price = geographic_element_list[findfirst(e -> e.id == el, node_list)].carbon_price
-        global total_carbon_price += current_carbon_price        
+        current_carbon_price =
+            geographic_element_list[findfirst(e -> e.id == el, node_list)].carbon_price
+        global total_carbon_price += current_carbon_price
     end
     average_carbon_price = total_carbon_price / n
-    
+
     return average_carbon_price
 end
 
@@ -767,4 +783,3 @@ function save_results(model::Model, case_name::String, folder_for_results::Strin
     )
     @info "budget_penalty_minus_dict.yaml written successfully"
 end
-

@@ -230,9 +230,9 @@ An 'InitialFuelingInfr' represents the fueling infrastructure that exists at the
 struct InitialFuelingInfr
     id::Int
     technology::Technology
-    allocation
+    allocation::Any
     installed_kW::Float64
-end 
+end
 
 """
     InitialModeInfr
@@ -249,9 +249,9 @@ An 'InitialModeInfr' represents the mode infrastructure that exists at the initi
 struct InitialModeInfr
     id::Int
     mode::Mode
-    allocation
+    allocation::Any
     installed_ukm::Float64
-end 
+end
 
 """
     FinancialStatus
@@ -337,12 +337,12 @@ Speed indicates the average travel speed that is given by a certain region and v
 - `travel_speed::Float64`: travel speed in km/h
 """
 
-struct Speed 
+struct Speed
     id::Int
     region_type::Regiontype
     vehicle_type::Vehicletype
     travel_speed::Float64
-end 
+end
 
 """
     Market_shares
@@ -790,7 +790,13 @@ struct VehicleSubsidy
     subsidy::Float64
 end
 
-global model_parameters = ["Y", "y_init", "pre_y", "budget_constraint_penalty_plus", "budget_constraint_penalty_minus"]
+global model_parameters = [
+    "Y",
+    "y_init",
+    "pre_y",
+    "budget_constraint_penalty_plus",
+    "budget_constraint_penalty_minus",
+]
 
 global parameters_extended = ["alpha_f", "beta_f", "alpha_h", "beta_h", "gamma"]
 
@@ -810,7 +816,7 @@ global struct_names_base = [
     "Regiontype",
     "Odpair",
     "Speed",
-    "InitialFuelingInfr", 
+    "InitialFuelingInfr",
     "InitialModeInfr",
 ]
 
@@ -840,6 +846,5 @@ global struct_names_extended = [
     "VehicleSubsidy",
 ]
 
-global default_data = Dict("alpha_f" => 0.1, "beta_f" => 0.1, "alpha_h" => 0.1, "beta_h" => 0.1)
-
-
+global default_data =
+    Dict("alpha_f" => 0.1, "beta_f" => 0.1, "alpha_h" => 0.1, "beta_h" => 0.1)

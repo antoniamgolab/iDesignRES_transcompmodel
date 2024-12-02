@@ -1,6 +1,5 @@
 using YAML, JuMP, Gurobi, Printf
 
-
 include(joinpath(@__DIR__, "../../src/TransComp.jl"))
 
 # reading input data
@@ -9,9 +8,7 @@ include(joinpath(@__DIR__, "../../src/TransComp.jl"))
 using .TransComp
 
 script_dir = @__DIR__   # Directory of the current script
-yaml_file_path = normpath(
-    joinpath(@__DIR__, "data/transport_data_years_v47.yaml"),
-)
+yaml_file_path = normpath(joinpath(@__DIR__, "data/transport_data_years_v47.yaml"))
 println("Constructed file path: $yaml_file_path")
 
 # TODO: deleting this
