@@ -8,14 +8,14 @@ include(joinpath(@__DIR__, "../../src/TransComp.jl"))
 using .TransComp
 
 script_dir = @__DIR__   # Directory of the current script
-yaml_file_path = normpath(joinpath(@__DIR__, "data/transport_data_years_v47.yaml"))
+yaml_file_path = normpath(joinpath(@__DIR__, "data/transport_data_years_v51.yaml"))
 println("Constructed file path: $yaml_file_path")
 
 # TODO: deleting this
 # data = YAML.load_file(
 #     "C:/Users/Antonia/Documents/external sources/transport_data_years_v5/transport_data_years_v47.yaml",
 # )
-case = "region_dep_costs"
+case = "cheap_public_transport"
 
 # file = "C:/Users/Antonia/Documents/external sources/transport_data_years_v5/transport_data_years_v47.yaml"
 
@@ -53,7 +53,7 @@ constraint_fueling_infrastructure(model, data_structures)
 constraint_mode_infrastructure(model, data_structures)
 @info "Constraint for mode infrastructure created successfully"
 
-constraint_monetary_budget(model, data_structures)
+# constraint_monetary_budget(model, data_structures)
 @info "Policy related constraints created successfully"
 
 @info "Constraints created successfully"
@@ -66,11 +66,12 @@ set_optimizer_attribute(model, "ScaleFlag", 2)
 set_optimizer_attribute(model, "NumericFocus", 1)
 set_optimizer_attribute(model, "PreSparsify", 2)
 set_optimizer_attribute(model, "Crossover", 0)
+
 println("Solution .... ")
 optimize!(model)
 solution_summary(model)
 
 results_file_path = normpath(joinpath(@__DIR__, "results/"))
-save_results(model, case, results_file_path)
+save_results(model, case, results_file_path, data_structures)
 
 @info "Results saved successfully"
