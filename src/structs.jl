@@ -55,8 +55,8 @@ struct GeographicElement
     type::String
     name::String
     carbon_price::Array{Float64,1}
-    from::Node
-    to::Node
+    from::Any
+    to::Any
     length::Float64
 end
 
@@ -141,6 +141,7 @@ struct Fuel
     cost_per_kW::Array{Float64,1}
     fueling_infrastructure_om_costs::Array{Float64,1}
 end
+
 """
     Technology
 
@@ -185,16 +186,16 @@ struct TechVehicle
     name::String
     vehicle_type::Vehicletype
     technology::Technology
-    capital_cost::Array{Float64,1}  # capital cost in €
-    maintenance_cost_annual::Array{Float64,1}
-    maintenance_cost_distance::Array{Float64,1}
-    W::Array{Float64,1}  # load capacity in t
-    spec_cons::Array{Float64,1}  # specific consumption in kWh/km  
-    Lifetime::Array{Int,1} # Array if multiple generations are considered 
-    AnnualRange::Array{Float64,1} # annual range in km
-    products::Array{Product,1} # number of vehicles of this type
-    battery_capacity::Array{Float64,1} # battery capacity in kWh
-    peak_charging::Array{Float64,1} # peak charging power in kW
+    capital_cost::Array{Float64}  # capital cost in €
+    maintenance_cost_annual::Array{Array{Float64, 1}, 1}
+    maintenance_cost_distance::Array{Array{Float64, 1}, 1}
+    W::Array{Float64}  # load capacity in t
+    spec_cons::Array{Float64}  # specific consumption in kWh/km  
+    Lifetime::Array{Int} # Array if multiple generations are considered 
+    AnnualRange::Array{Float64} # annual range in km
+    products::Array{Product} # number of vehicles of this type
+    battery_capacity::Array{Float64} # battery capacity in kWh
+    peak_charging::Array{Float64} # peak charging power in kW
 end
 
 """
@@ -229,7 +230,7 @@ An 'InitialFuelingInfr' represents the fueling infrastructure that exists at the
 """
 struct InitialFuelingInfr
     id::Int
-    technology::Technology
+    fuel::Fuel
     allocation::Any
     installed_kW::Float64
 end
@@ -254,6 +255,51 @@ struct InitialModeInfr
 end
 
 """
+
+    InitDetourTimes
+
+An 'InitDetourTimes' represents the detour times that exist at the initial year of the optimization horizon. It is the average detour time to reach a fueling station.
+
+# Fields
+- `id::Int`: unique identifier of the initial detour times
+- `fuel::Fuel`: fuel type of the fueling station
+- `location::GeographicElement`: location of the fueling station
+- `detour_time::Float64`: detour time in h
+"""
+struct InitDetourTime
+    id::Int
+    fuel::Fuel
+    location::GeographicElement    
+    detour_time::Float64
+end
+
+"""
+
+    DetourTimeReductions
+
+A 'DetourTimeReductions' represents the detour time reductions that can be achieved by the expansion of the fueling infrastructure.
+
+# Fields
+- `id::Int`: unique identifier of the detour time reductions
+- `fuel::Fuel`: fuel type of the fueling station
+- `location::GeographicElement`: location of the fueling station
+- `reduction_id::Int`: unique identifier of the detour time reduction
+- `detour_time_reduction::Float64`: detour time reduction in h
+
+"""
+
+struct DetourTimeReduction
+    id::Int
+    fuel::Fuel
+    location::GeographicElement
+    reduction_id::Int    
+    detour_time_reduction::Float64
+    fueling_cap_lb::Float64
+    fueling_cap_ub::Float64
+end
+
+"""
+
     FinancialStatus
 
 A 'FinancialStatus' describes a demographic group based on what there average budget for transportation-related expenses is.
@@ -315,8 +361,8 @@ An 'Odpair' describes transport demand. It may take place between two regions bu
 """
 struct Odpair
     id::Int
-    origin::Node
-    destination::Node
+    origin::GeographicElement
+    destination::GeographicElement
     paths::Array{Path,1} # this needs to be adaoted later as for each odpair different paths exist depending also on the mode
     F::Any
     product::Product
@@ -802,8 +848,6 @@ global parameters_extended = ["alpha_f", "beta_f", "alpha_h", "beta_h", "gamma"]
 
 global struct_names_base = [
     "Model",
-    "Node",
-    "Edge",
     "Mode",
     "Product",
     "Path",
@@ -844,6 +888,8 @@ global struct_names_extended = [
     "Emission_constraints_by_year",
     "Transportation_speeds",
     "VehicleSubsidy",
+    "InitDetourTime",
+    "DetourReductionFactor",
 ]
 
 global default_data =
