@@ -269,7 +269,7 @@ An 'InitDetourTimes' represents the detour times that exist at the initial year 
 struct InitDetourTime
     id::Int
     fuel::Fuel
-    location::GeographicElement    
+    location::GeographicElement
     detour_time::Float64
 end
 
@@ -325,6 +325,7 @@ struct FinancialStatus
     monetary_budget_purchase::Any
     monetary_budget_purchase_lb::Any
     monetary_budget_purchase_ub::Any
+    monetary_budget_purchase_time_horizon::Int
 end
 
 """

@@ -109,6 +109,7 @@ function parse_data(data_dict::Dict)
             financial_stat["monetary_budget_purchase"],
             financial_stat["monetary_budget_purchase_lb"],
             financial_stat["monetary_budget_purchase_ub"],
+            financial_stat["monetary_budget_purchase_time_horizon"]
         ) for financial_stat ∈ data_dict["FinancialStatus"]
     ]
     mode_list = [
@@ -256,7 +257,7 @@ function parse_data(data_dict::Dict)
     ]
 
     odpair_list = odpair_list[1:20]
-
+    @info "The number of OD pairs is $(length(odpair_list))."
     speed_list = [
         Speed(
             speed["id"],
@@ -381,7 +382,7 @@ function parse_data(data_dict::Dict)
                 init_detour_time["id"],
                 fuel_list[findfirst(f -> f.name == init_detour_time["fuel"], fuel_list)],
                 geographic_element_list[findfirst(
-                    ge -> ge.id == init_detour_time["location"],
+                    ge -> ge.name == init_detour_time["location"],
                     geographic_element_list,
                 )],
                 init_detour_time["detour_time"],
@@ -392,18 +393,19 @@ function parse_data(data_dict::Dict)
     end
 
     if haskey(data_dict, "DetourTimeReduction")
+        @info "has detour reduction specified"
         detour_time_reduction_list = [
-            DetourReductionFactor(
+            DetourTimeReduction(
                 detour_time_reduction["id"],
                 fuel_list[findfirst(f -> f.name == detour_time_reduction["fuel"], fuel_list)],
                 geographic_element_list[findfirst(
-                    ge -> ge.id == detour_time_reduction["location"],
+                    ge -> ge.name == detour_time_reduction["location"],
                     geographic_element_list,
                 )],
                 detour_time_reduction["reduction_id"],
                 detour_time_reduction["detour_time_reduction"],
-                detour_time_reduction["lb"],
-                detour_time_reduction["ub"],
+                detour_time_reduction["fueling_cap_lb"],
+                detour_time_reduction["fueling_cap_ub"],
             ) for detour_time_reduction ∈ data_dict["DetourTimeReduction"]
         ]
     else
@@ -458,6 +460,26 @@ function parse_data(data_dict::Dict)
     data_structures["Y_end"] = data_dict["Model"]["y_init"] + data_dict["Model"]["Y"] - 1
 
     return data_structures
+end
+"""
+    generate_exact_length_subsets(start_year::Int, end_year::Int, delta_y::Int)
+
+Generates a list of subsets of years with a fixed length.
+
+# Arguments
+- `start_year::Int`: The first year.
+- `end_year::Int`: The last year.
+- `delta_y::Int`: The length of the subsets.
+"""
+function generate_exact_length_subsets(start_year::Int, end_year::Int, delta_y::Int)
+    all_years = start_year:end_year
+    subsets = []
+
+    for i in 1:(length(all_years) - delta_y + 1)
+        push!(subsets, collect(all_years[i:(i + delta_y - 1)]))
+    end
+
+    return subsets
 end
 
 """
@@ -648,6 +670,14 @@ function create_geo_i_pairs(geographic_element_list::Vector{GeographicElement}, 
     geo_i_pairs = Set((geo.id, i.reduction_id) for geo ∈ geographic_element_list for i ∈ detour_time_reduction_list[findall(item -> item.location == geo.id, detour_time_reduction_list)])
     return geo_i_pairs
 end
+
+function create_geo_i_f_pairs(geographic_element_list::Vector{GeographicElement}, detour_time_reduction_list::Vector{DetourTimeReduction})
+    geo_i_f_pairs = Set()
+    for item in detour_time_reduction_list
+        push!(geo_i_f_pairs, (item.location.id, item.reduction_id, item.fuel.id))
+    end
+    return geo_i_f_pairs
+end
 """
     depreciation_factor(y, g)
 
@@ -722,6 +752,7 @@ function save_results(model::Model, case::String, folder_for_results::String, da
     geographic_element_list = data_structures["geographic_element_list"]
     tech_vehicle_ids = data_structures["techvehicle_ids"]
     g_init = data_structures["g_init"]
+    geo_i_f = data_structures["geo_i_f_pairs"]
 
     # Writing the solved decision variables to YAML
     solved_data = Dict()
@@ -816,14 +847,57 @@ function save_results(model::Model, case::String, folder_for_results::String, da
     budget_penalty_plus_dict_str = stringify_keys(budget_penalty_plus_dict)
     budget_penalty_minus_dict_str = stringify_keys(budget_penalty_minus_dict)
 
-    if haskey(data_structures, "DetourTimeReductions")
+    if haskey(data_structures, "detour_time_reduction_list")
         # Dictionary for 'detour_times' variable
         detour_time_dict = Dict()
-        for y ∈ y_init:Y_end, geo ∈ geographic_element_list, f ∈ fuel_list
-            detour_time_dict[(y, geo.id, f.id)] = value(model[:detour_time][y, geo.id, f.id])
+        for y ∈ y_init:Y_end, p_r_k in p_r_k_g_pairs, f ∈ fuel_list
+            detour_time_dict[(y, p_r_k, f.id)] = value(model[:detour_time][y, p_r_k, f.id])
         end
-        detour_time_dict = data_structures["detour_time_dict"]
+    
         detour_time_dict_str = stringify_keys(detour_time_dict)
+        x_a_dict = Dict()
+        for y ∈ y_init:Y_end, g ∈ geo_i_f
+            x_a_dict[(y, g)] = value(model[:x_a][y, g])
+        end
+        x_a_dict_str = stringify_keys(x_a_dict)
+
+        x_b_dict = Dict()
+        for y ∈ y_init:Y_end, g ∈ geo_i_f
+            x_b_dict[(y, g)] = value(model[:x_b][y, g])
+        end
+        x_b_dict_str = stringify_keys(x_b_dict)
+        x_c_dict = Dict()
+        for y ∈ y_init:Y_end, g ∈ geo_i_f
+            x_c_dict[(y, g)] = value(model[:x_c][y, g])
+        end
+        x_c_dict_str = stringify_keys(x_c_dict)
+        n_fueling_dict = Dict()
+        for y ∈ y_init:Y_end, (p, r, k, g) ∈ p_r_k_g_pairs, f in fuel_list
+            n_fueling_dict[(y, (p, r, k, g), f.id)] = value(model[:n_fueling][y, (p, r, k, g), f.id])
+        end
+
+        z_str = Dict()
+        for y ∈ y_init:Y_end, (p, r, k, g) ∈ p_r_k_g_pairs, geo ∈ geo_i_f
+            z_str[(y, geo, (p, r, k, g))] = value(model[:z][y, geo, (p, r, k, g)])
+        end
+        z_str = stringify_keys(z_str)
+
+        # x_a_dict = Dict()
+        # for y ∈ y_init:Y_end, g ∈ geographic_element_list
+        #     x_a_dict[(y, g.id)] = value(model[:x_a][y, g.id])
+        # end
+        # x_a_dict_str = stringify_keys(x_a_dict)
+
+        # x_b_dict = Dict()
+        # for y ∈ y_init:Y_end, g ∈ geographic_element_list
+        #     x_b_dict[(y, g.id)] = value(model[:x_b][y, g.id])
+        # end
+        # x_b_dict_str = stringify_keys(x_b_dict)
+        # x_c_dict = Dict()
+        # for y ∈ y_init:Y_end, g ∈ geographic_element_list
+        #     x_c_dict[(y, g.id)] = value(model[:x_c][y, g.id])
+        # end
+        # x_c_dict_str = stringify_keys(x_c_dict)
     end
     
 
@@ -875,11 +949,35 @@ function save_results(model::Model, case::String, folder_for_results::String, da
     )
     YAML.write_file(joinpath(folder_for_results, case * "_s.yaml"), s_dict_str)
     @info "s.yaml written successfully"
-    if haskey(data_structures, "DetourTimeReductions")
+    if haskey(data_structures, "detour_time_reduction_list")
         YAML.write_file(
             joinpath(folder_for_results, case * "_detour_time_dict.yaml"),
             detour_time_dict_str,
         )
         @info "detour_time_dict.yaml written successfully"
+
+        @info "x_dict.yaml written successfully"
+        YAML.write_file(
+            joinpath(folder_for_results, case * "_x_a_dict.yaml"),
+            x_a_dict_str,
+        )
+        @info "x_a_dict.yaml written successfully"
+        YAML.write_file(
+            joinpath(folder_for_results, case * "_x_b_dict.yaml"),
+            x_b_dict_str,
+        )
+        @info "x_b_dict.yaml written successfully"
+        YAML.write_file(
+            joinpath(folder_for_results, case * "_x_c_dict.yaml"),
+            x_c_dict_str,
+        )
+        YAML.write_file(
+            joinpath(folder_for_results, case * "_n_fueling_dict.yaml"),
+            n_fueling_dict,
+        )
+        YAML.write_file(
+            joinpath(folder_for_results, case * "_z_dict.yaml"),
+            z_str,
+        )
     end
 end
