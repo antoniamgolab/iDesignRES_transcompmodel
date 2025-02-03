@@ -8,7 +8,7 @@ include(joinpath(@__DIR__, "../../src/TransComp.jl"))
 using .TransComp
 
 script_dir = @__DIR__   # Directory of the current script
-yaml_file_path = normpath(joinpath(@__DIR__, "data/transport_data_years_v61.yaml"))
+yaml_file_path = normpath(joinpath(@__DIR__, "data/transport_data_years_v63.yaml"))
 println("Constructed file path: $yaml_file_path")
 
 using Dates
@@ -26,21 +26,6 @@ file = yaml_file_path
 data_structures = get_input_data(file)
 model, data_structures = create_model(data_structures, case)
 @info "Model created successfully"
-if haskey(data_structures, "detour_time_reduction_list")
-    @info "Detour time reduction is added"
-else
-    @info "Detour time reduction is not added"
-end
-# -------- constraints (alternative) --------
-if haskey(data_structures, "detour_time_reduction_list")
-    constraint_detour_time(model, data_structures)
-    constraint_lin_z_nalpha(model, data_structures)
-    constraint_detour_time_capacity_reduction(model, data_structures)
-    constraint_def_n_fueling(model, data_structures)
-    (model, data_structures)
-    # constraint_all_x(model, data_structures)
-    @info "Detour time reduction constraint is added"
-end
 
 # -------- constraints --------
 constraint_monetary_budget(model, data_structures)
@@ -71,6 +56,21 @@ constraint_mode_infrastructure(model, data_structures)
 @info "Constraint for mode infrastructure created successfully"
 
 @info "Constraints created successfully"
+if haskey(data_structures, "detour_time_reduction_list")
+    @info "Detour time reduction is added"
+else
+    @info "Detour time reduction is not added"
+end
+
+# -------- constraints (alternative) --------
+if haskey(data_structures, "detour_time_reduction_list")
+    constraint_detour_time(model, data_structures)
+    constraint_lin_z_nalpha(model, data_structures)
+    constraint_detour_time_capacity_reduction(model, data_structures)
+    constraint_def_n_fueling(model, data_structures)
+    (model, data_structures)
+    @info "Detour time reduction constraint is added"
+end
 
 # -------- objective --------
 objective(model, data_structures)
