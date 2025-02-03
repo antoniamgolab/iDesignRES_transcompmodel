@@ -1118,27 +1118,6 @@ function constraint_detour_time_capacity_reduction(model::JuMP.Model, data_struc
     end
 end
 
-function constraint_all_x(model::JuMP.Model, data_structures::Dict)
-    y_init = data_structures["y_init"]
-    Y_end = data_structures["Y_end"]
-    geographic_element_list = data_structures["geographic_element_list"]
-    detour_time_reduction_list = data_structures["detour_time_reduction_list"]
-    geo_i_f = data_structures["geo_i_f_pairs"]
-    fuel_list = data_structures["fuel_list"]
-    for g in geographic_element_list
-        for f in fuel_list
-            if findfirst(elem -> elem.fuel.id == f.id, detour_time_reduction_list) == nothing
-                continue
-            else
-                selection = detour_time_reduction_list[findall(elem -> elem.fuel.id == f.id && elem.location.id == g.id, detour_time_reduction_list)]
-                @constraint(model, [y in y_init:Y_end], sum(model[:x_c][y, (g.id, s.reduction.id, f.id)] for s in selection) <=1)
-            end
-        end
-    end
-
-
-end
-
 """
 	objective(model::Model, data_structures::Dict)
 
@@ -1270,7 +1249,7 @@ function objective(model::Model, data_structures::Dict)
                     else
                         fueling_time =
                             v.battery_capacity[g-g_init+1] / v.peak_charging[g-g_init+1]
-                            # println("fueling time: ", fueling_time, route_length, driving_range)
+
                     end
                     # value of time
 
