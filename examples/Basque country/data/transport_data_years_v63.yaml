@@ -136912,6 +136912,7 @@ Model:
     2030: 230.0
   pre_y: 25
   y_init: 2020
+  discount_rate: 0.05
 Node:
 - ES211
 - ES213
