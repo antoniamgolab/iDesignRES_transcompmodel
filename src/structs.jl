@@ -180,6 +180,23 @@ end
     TechVehicle
 
 A 'TechVehicle' represents a vehicle that is used for transportation. This includes the vehicle type, the technology used in the vehicle, the capital and maintenance costs, the load capacity, the specific consumption, the lifetime, the annual range, the number of vehicles of this type, the battery capacity, and the peak charging power.
+
+# Fields
+- `id::Int`: unique identifier of the vehicle
+- `name::String`: name of the vehicle
+- `vehicle_type::Vehicletype`: type of the vehicle
+- `technology::Technology`: technology used in the vehicle
+- `capital_cost::Array{Float64}`: capital cost in €
+- `maintenance_cost_annual::Array{Array{Float64,1},1}`: annual maintenance cost in €/year
+- `maintenance_cost_distance::Array{Array{Float64,1},1}`: maintenance cost per km in €/km   
+- `W::Array{Float64}`: load capacity in t
+- `spec_cons::Array{Float64}`: specific consumption in kWh/km
+- `Lifetime::Array{Int}`: lifetime of the vehicle in years
+- `AnnualRange::Array{Float64}`: annual range in km
+- `products::Array{Product}`: number of vehicles of this type
+- `tank_capacity::Array{Float64}`: battery capacity in kWh
+- `peak_fueling::Array{Float64}`: peak charging power in kW
+- `fueling_time´::Array{Float64}`: refueling time in h (total tank) - array with values by generation
 """
 struct TechVehicle
     id::Int
@@ -187,17 +204,37 @@ struct TechVehicle
     vehicle_type::Vehicletype
     technology::Technology
     capital_cost::Array{Float64}  # capital cost in €
-    maintenance_cost_annual::Array{Array{Float64, 1}, 1}
-    maintenance_cost_distance::Array{Array{Float64, 1}, 1}
+    maintenance_cost_annual::Array{Array{Float64,1},1}
+    maintenance_cost_distance::Array{Array{Float64,1},1}
     W::Array{Float64}  # load capacity in t
     spec_cons::Array{Float64}  # specific consumption in kWh/km  
     Lifetime::Array{Int} # Array if multiple generations are considered 
     AnnualRange::Array{Float64} # annual range in km
     products::Array{Product} # number of vehicles of this type
-    battery_capacity::Array{Float64} # battery capacity in kWh
-    peak_charging::Array{Float64} # peak charging power in kW
+    tank_capacity::Array{Float64} # battery capacity in kWh
+    peak_fueling::Array{Float64} # peak charging power in kW
+    fueling_time::Array{Float64} # fueling time in h
 end
 
+"""
+    SupplyType
+
+A 'SupplyType' represents the type of supply infrastructure that is used for fueling vehicles.
+
+# Fields
+- `id::Int`: unique identifier of the supply type
+- `name::String`: name of the supply type
+- `fuel::Fuel`: fuel type of the supply infrastructure
+- `install_costs::Array{Float64}`: installation costs in €
+- `om_costs::Array{Float64}`: operation and maintenance costs in €/year
+"""
+struct SupplyType
+    id::Int
+    name::String
+    fuel::Fuel
+    install_costs::Array{Float64}
+    om_costs::Array{Float64}
+end
 """
     InitialVehicleStock
 
@@ -255,6 +292,26 @@ struct InitialModeInfr
 end
 
 """
+    
+    InitialSupplyInfr
+
+An 'InitialSupplyInfr' represents the supply infrastructure that exists at the initial year of the optimization horizon.
+
+# Fields
+- `id::Int`: unique identifier of the initial supply infrastructure
+- `fuel::Fuel`: fuel type of the supply infrastructure
+- `allocation`: allocation of the supply infrastructure
+- `installed_kW::Float64`: installed capacity of the supply infrastructure in kW
+"""
+struct InitialSupplyInfr
+    id::Int
+    name::String
+    fuel::Fuel
+    supply_type::SupplyType
+    allocation::Any
+    installed_kW::Float64
+end
+"""
 
     InitDetourTimes
 
@@ -269,7 +326,7 @@ An 'InitDetourTimes' represents the detour times that exist at the initial year 
 struct InitDetourTime
     id::Int
     fuel::Fuel
-    location::GeographicElement    
+    location::GeographicElement
     detour_time::Float64
 end
 
@@ -292,7 +349,7 @@ struct DetourTimeReduction
     id::Int
     fuel::Fuel
     location::GeographicElement
-    reduction_id::Int    
+    reduction_id::Int
     detour_time_reduction::Float64
     fueling_cap_lb::Float64
     fueling_cap_ub::Float64
@@ -308,23 +365,19 @@ A 'FinancialStatus' describes a demographic group based on what there average bu
 - `id::Int`: unique identifier of the financial status
 - `name::String`: name of the financial status
 - `VoT`: value of time in €/h
-- `monetary_budget_operational`: budget for operational costs in €/year
-- `monetary_budget_operational_lb`: lower bound of the budget for operational costs in €/year
-- `monetary_budget_operational_ub`: upper bound of the budget for operational costs in €/year
 - `monetary_budget_purchase`: budget for purchasing costs in €/year
 - `monetary_budget_purchase_lb`: lower bound of the budget for purchasing costs in €/year
 - `monetary_budget_purchase_ub`: upper bound of the budget for purchasing costs in €/year
+- `monetary_budget_purchase_time_horizon`: time horizon of the budget for purchasing costs in years, indicating the time period over which the budget is valid
 """
 struct FinancialStatus
     id::Int
     name::String
     VoT::Any
-    monetary_budget_operational::Any
-    monetary_budget_operational_lb::Any
-    monetary_budget_operational_ub::Any
     monetary_budget_purchase::Any
     monetary_budget_purchase_lb::Any
     monetary_budget_purchase_ub::Any
+    monetary_budget_purchase_time_horizon::Int
 end
 
 """
@@ -358,6 +411,11 @@ An 'Odpair' describes transport demand. It may take place between two regions bu
 - `destination::Node`: destination of the transport demand
 - `paths::Array{Path, 1}`: possible paths between origin and destination
 - `F`: number of trips in p/year or t/year
+- `product::Product`: product that is transported
+- `vehicle_stock_init::Array{InitialVehicleStock,1}`: initial vehicle stock
+- `financial_status::FinancialStatus`: financial status of the transport demand
+- `region_type::Regiontype`: region type of the transport demand
+- `travel_time_budget::Float64`: travel time budget in h/year
 """
 struct Odpair
     id::Int
@@ -369,6 +427,7 @@ struct Odpair
     vehicle_stock_init::Array{InitialVehicleStock,1}# initial vehicle stock
     financial_status::FinancialStatus
     region_type::Regiontype
+    travel_time_budget::Float64
 end
 
 """

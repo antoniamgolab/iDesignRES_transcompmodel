@@ -8,6 +8,9 @@ module TransComp
 using YAML, JuMP, Gurobi, Printf
 # export data types
 
+include("structs.jl")
+include("model_functions.jl")
+include("support_functions.jl")
 export Node
 export Edge
 export GeographicElement
@@ -64,6 +67,10 @@ export constraint_max_mode_share
 export constraint_min_mode_share
 export constraint_market_share
 export constraint_emissions_by_mode
+export constraint_detour_time_capacity_reduction
+export constraint_lin_z_nalpha
+export constraint_detour_time
+export constraint_def_n_fueling
 export objective
 
 # exporting supporting functions
@@ -81,8 +88,5 @@ export create_model
 export depreciation_factor
 export create_emission_price_along_path
 export save_results
-include("structs.jl")
-include("model_functions.jl")
-include("support_functions.jl")
 
 end

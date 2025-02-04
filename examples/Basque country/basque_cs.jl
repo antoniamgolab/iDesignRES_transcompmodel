@@ -8,27 +8,28 @@ include(joinpath(@__DIR__, "../../src/TransComp.jl"))
 using .TransComp
 
 script_dir = @__DIR__   # Directory of the current script
-yaml_file_path = normpath(joinpath(@__DIR__, "data/transport_data_years_v51.yaml"))
+yaml_file_path = normpath(joinpath(@__DIR__, "data/transport_data_years_v64.yaml"))
 println("Constructed file path: $yaml_file_path")
 
-# TODO: deleting this
-# data = YAML.load_file(
-#     "C:/Users/Antonia/Documents/external sources/transport_data_years_v5/transport_data_years_v47.yaml",
-# )
-case = "cheap_public_transport"
+using Dates
 
-# file = "C:/Users/Antonia/Documents/external sources/transport_data_years_v5/transport_data_years_v47.yaml"
+timestamp = Dates.format(now(), "yyyy-mm-dd_HH-MM-SS")
+case = "testing_$timestamp"
 
 file = yaml_file_path
 @info file
 
 # reading input data and initializing the model
 @info "Initialization ..."
-data_structures = get_input_data(file)
+data_dict = get_input_data(file)
+data_structures = parse_data(data_dict)
 model, data_structures = create_model(data_structures, case)
 @info "Model created successfully"
 
 # -------- constraints --------
+# constraint_monetary_budget(model, data_structures)
+@info "Policy related constraints created successfully"
+
 constraint_demand_coverage(model, data_structures)
 @info "Constraint for demand coverage created successfully"
 
@@ -53,18 +54,31 @@ constraint_fueling_infrastructure(model, data_structures)
 constraint_mode_infrastructure(model, data_structures)
 @info "Constraint for mode infrastructure created successfully"
 
-# constraint_monetary_budget(model, data_structures)
-@info "Policy related constraints created successfully"
-
 @info "Constraints created successfully"
+if haskey(data_structures, "detour_time_reduction_list")
+    @info "Detour time reduction is added"
+else
+    @info "Detour time reduction is not added"
+end
+
+# -------- constraints (alternative) --------
+if data_structures["detour_time_reduction_list"] != []
+    constraint_detour_time(model, data_structures)
+    constraint_lin_z_nalpha(model, data_structures)
+    constraint_detour_time_capacity_reduction(model, data_structures)
+    constraint_def_n_fueling(model, data_structures)
+    (model, data_structures)
+    @info "Detour time reduction constraint is added"
+end
 
 # -------- objective --------
 objective(model, data_structures)
 
 # -------- model solution and saving of results --------
-set_optimizer_attribute(model, "ScaleFlag", 2)
-set_optimizer_attribute(model, "NumericFocus", 1)
-set_optimizer_attribute(model, "PreSparsify", 2)
+# set_optimizer_attribute(model, "ScaleFlag", 2)
+# set_optimizer_attribute(model, "Presolve", 0)
+set_optimizer_attribute(model, "MIPFocus", 2)
+set_optimizer_attribute(model, "MIPGap", 10^(-9))
 set_optimizer_attribute(model, "Crossover", 0)
 
 println("Solution .... ")
@@ -72,6 +86,6 @@ optimize!(model)
 solution_summary(model)
 
 results_file_path = normpath(joinpath(@__DIR__, "results/"))
-save_results(model, case, results_file_path, data_structures)
+save_results(model, case, data_structures, true, results_file_path)
 
 @info "Results saved successfully"
