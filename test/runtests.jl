@@ -4,7 +4,7 @@ include("../src/support_functions.jl")
 include(joinpath(@__DIR__, "../src/TransComp.jl"))
 using .TransComp
 using JuMP
-using Gurobi
+import HiGHS
 using Test
 
 @testset "Basic function | Technology shift" begin

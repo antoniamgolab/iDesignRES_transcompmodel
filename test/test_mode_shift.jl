@@ -1,4 +1,3 @@
-
 function generate_data_case_mode_shift()
     Y = 5
     y_init = 2020
@@ -86,6 +85,8 @@ function generate_data_case_mode_shift()
             [product_list[1]],
             fill(100, Y + 1 + pre_y),
             fill(30, Y + 1 + pre_y),
+            fill(5/60, Y + 1 + pre_y),
+
         ),
         TechVehicle(
             2,
@@ -102,6 +103,8 @@ function generate_data_case_mode_shift()
             [product_list[1]],
             fill(100, Y + 1 + pre_y),
             fill(30, Y + 1 + pre_y),
+            fill(5/60, Y + 1 + pre_y),
+
         ),
     ]
 
@@ -125,6 +128,7 @@ function generate_data_case_mode_shift()
             initvehiclestock_list,
             financial_status_list[1],
             regiontype_list[1],
+            120
         ),
     ]
     speed_list = [
@@ -169,13 +173,15 @@ function generate_data_case_mode_shift()
         "beta_h" => 0.5,
         "beta_f" => 0.2,
         "discount_rate" => 0,
+        "supplytype_list" => [],
+        "initialsupplyinfr_list" => [],
     )
 end
 
 @testset "Tech shift test" begin
     case_name = "test_modeshift"
     data_structures = generate_data_case_mode_shift()
-    model, data_structures = create_model(data_structures, case_name)
+    model, data_structures = create_model(data_structures, case_name, HiGHS.Optimizer)
     constraint_demand_coverage(model, data_structures)
 
     objective(model, data_structures)
@@ -183,9 +189,6 @@ end
     # -------- model solution and saving of results --------
     # set_optimizer_attribute(model, "ScaleFlag", 2)
     # set_optimizer_attribute(model, "Presolve", 0)
-    set_optimizer_attribute(model, "MIPFocus", 2)
-    set_optimizer_attribute(model, "MIPGap", 10^(-9))
-    set_optimizer_attribute(model, "Crossover", 0)
 
     println("Solution .... ")
     optimize!(model)

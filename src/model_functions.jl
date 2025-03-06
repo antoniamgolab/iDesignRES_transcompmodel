@@ -1538,7 +1538,7 @@ function objective(model::Model, data_structures::Dict)
             end
         end
 
-        if data_structures["initialsupplyinfr_list"] !=0
+        if data_structures["initialsupplyinfr_list"] != []
             supplytype_list = data_structures["supplytype_list"]
             initialsupplyinfr_list = data_structures["initialsupplyinfr_list"]
             for st in supplytype_list

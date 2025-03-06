@@ -23,7 +23,7 @@ file = yaml_file_path
 @info "Initialization ..."
 data_dict = get_input_data(file)
 data_structures = parse_data(data_dict)
-model, data_structures = create_model(data_structures, case)
+model, data_structures = create_model(data_structures, case, Gurobi.Optimizer)
 @info "Model created successfully"
 
 # -------- constraints --------

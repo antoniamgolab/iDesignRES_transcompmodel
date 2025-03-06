@@ -1,4 +1,3 @@
-
 function generate_data_case_tech_shift()
     Y = 5
     y_init = 2020
@@ -71,6 +70,8 @@ function generate_data_case_tech_shift()
             [product_list[1]],
             fill(100, Y + 1 + pre_y),
             fill(30, Y + 1 + pre_y),
+            fill(5/60, Y + 1 + pre_y),
+
         ),
         TechVehicle(
             2,
@@ -87,6 +88,7 @@ function generate_data_case_tech_shift()
             [product_list[1]],
             fill(100, Y + 1 + pre_y),
             fill(30, Y + 1 + pre_y),
+            fill(5/60, Y + 1 + pre_y),
         ),
     ]
 
@@ -124,6 +126,7 @@ function generate_data_case_tech_shift()
             initvehiclestock_list,
             financial_status_list[1],
             regiontype_list[1],
+            120,
         ),
     ]
     speed_list = [Speed(1, regiontype_list[1], vehicle_type_list[1], 60)]
@@ -165,13 +168,15 @@ function generate_data_case_tech_shift()
         "beta_h" => 0.5,
         "beta_f" => 1,
         "discount_rate" => 0,
+        "supplytype_list" => [],
+        "initialsupplyinfr_list" => [],
     )
 end
 
 @testset "Tech shift test" begin
     case_name = "test_tech_shift"
     data_structures = generate_data_case_tech_shift()
-    model, data_structures = create_model(data_structures, case_name)
+    model, data_structures = create_model(data_structures, case_name, HiGHS.Optimizer)
     constraint_demand_coverage(model, data_structures)
     constraint_vehicle_sizing(model, data_structures)
     constraint_vehicle_aging(model, data_structures)

@@ -810,8 +810,8 @@ Definition of JuMP.model and adding of variables.
 - model::JuMP.Model: JuMP model with the variables added
 - data_structures::Dict: dictionary with the input data
 """
-function create_model(data_structures, case_name::String)
-    model = Model(Gurobi.Optimizer)
+function create_model(data_structures, case_name::String, optimizer)
+    model = Model(optimizer)
     base_define_variables(model, data_structures)
     return model, data_structures
 end
