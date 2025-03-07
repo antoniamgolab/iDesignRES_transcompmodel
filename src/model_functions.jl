@@ -220,7 +220,7 @@ function constraint_vehicle_sizing(model::JuMP.Model, data_structures::Dict)
             g in data_structures["g_init"]:data_structures["Y_end"];
             modes[findfirst(m -> m.id == mv[1], modes)].quantify_by_vehs && g <= y,
         ],
-        model[:h][y, r.id, mv[2], g] >= sum(
+        model[:h][y, r.id, mv[2], g] == sum(
             (
                 k.length / (
                     data_structures["techvehicle_list"][findfirst(
@@ -378,6 +378,16 @@ function constraint_vehicle_aging(model::JuMP.Model, data_structures::Dict)
             model[:h_exist][y, r.id, tv.id, g] == r.vehicle_stock_init[stock_index].stock
         )
 
+        @constraint(model, model[:h_plus][y, r.id, tv.id, g] == 0)
+        # @constraint(model, model[:h_minus][y, r.id, tv.id, g] == 0)
+    end
+
+    # case 2.1 : g < y && g > y
+    valid_subset_case2 = filter(
+        t -> t[2] < t[1],
+        all_indices,
+    )
+    for (y, g, r, tv) ∈ valid_subset_case2
         @constraint(model, model[:h_plus][y, r.id, tv.id, g] == 0)
         # @constraint(model, model[:h_minus][y, r.id, tv.id, g] == 0)
     end
@@ -722,7 +732,7 @@ function constraint_vehicle_stock_shift(model::JuMP.Model, data_structures::Dict
                 model[:h][y_init, r.id, tv.id, g] for g ∈ g_init:y_init for v ∈ vehicletypes
                 for tv ∈ techvehicles if g <= y_init && tv.technology.id == t.id
             ) - sum(
-                model[:h][y_init, r.id, tv.id, g] for g ∈ g_init:y_init for v ∈ vehicletypes
+                model[:h_exist][y_init, r.id, tv.id, g] for g ∈ g_init:y_init for v ∈ vehicletypes
                 for tv ∈ techvehicles if g <= y_init - 1 && tv.technology.id == t.id
             )
         ) <=

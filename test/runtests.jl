@@ -1,6 +1,3 @@
-include("../src/structs.jl")
-include("../src/model_functions.jl")
-include("../src/support_functions.jl")
 include(joinpath(@__DIR__, "../src/TransComp.jl"))
 using .TransComp
 using JuMP
@@ -18,3 +15,15 @@ end
         include("test_mode_shift.jl")
     end
 end
+
+@testset "Minimum viable case" begin
+    @testset "Vehicle stock shift test" begin
+        include("test_minimum_viable_case.jl")
+    end
+end
+
+@testset "Minimum viable case | Parameter testing" begin+
+    @testset "Model robustness" begin
+        include("test_model_robustness.jl")
+    end
+end 
