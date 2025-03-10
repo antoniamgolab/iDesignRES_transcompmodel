@@ -25,7 +25,7 @@ jobs:
           - version: 'lts'  # lts
             os: windows-latest
             arch: x64
-    steps:
+  steps:
       - uses: actions/checkout@v4
       - uses: julia-actions/cache@v2
       - name: Install JuliaFormatter and format
