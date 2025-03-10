@@ -56,7 +56,10 @@ jobs:
         uses: julia-actions/julia-runtest@v1
         with:
           depwarn: error
-      - name: Install JuliaFormatter and format
+      - name: Install JuliaFormatter
         run: |
           julia  -e 'import Pkg; Pkg.add("JuliaFormatter")'
+
+      - name: Format code
+        run: |
           julia  -e 'using JuliaFormatter; format(".")'
