@@ -85,8 +85,7 @@ function generate_data_case_mode_shift()
             [product_list[1]],
             fill(100, Y + 1 + pre_y),
             fill(30, Y + 1 + pre_y),
-            fill(5/60, Y + 1 + pre_y),
-
+            fill(5 / 60, Y + 1 + pre_y),
         ),
         TechVehicle(
             2,
@@ -103,8 +102,7 @@ function generate_data_case_mode_shift()
             [product_list[1]],
             fill(100, Y + 1 + pre_y),
             fill(30, Y + 1 + pre_y),
-            fill(5/60, Y + 1 + pre_y),
-
+            fill(5 / 60, Y + 1 + pre_y),
         ),
     ]
 
@@ -128,7 +126,7 @@ function generate_data_case_mode_shift()
             initvehiclestock_list,
             financial_status_list[1],
             regiontype_list[1],
-            120
+            120,
         ),
     ]
     speed_list = [

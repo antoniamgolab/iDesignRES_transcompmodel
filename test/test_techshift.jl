@@ -70,8 +70,7 @@ function generate_data_case_tech_shift()
             [product_list[1]],
             fill(100, Y + 1 + pre_y),
             fill(30, Y + 1 + pre_y),
-            fill(5/60, Y + 1 + pre_y),
-
+            fill(5 / 60, Y + 1 + pre_y),
         ),
         TechVehicle(
             2,
@@ -88,7 +87,7 @@ function generate_data_case_tech_shift()
             [product_list[1]],
             fill(100, Y + 1 + pre_y),
             fill(30, Y + 1 + pre_y),
-            fill(5/60, Y + 1 + pre_y),
+            fill(5 / 60, Y + 1 + pre_y),
         ),
     ]
 

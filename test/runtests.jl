@@ -21,8 +21,9 @@ end
     end
 end
 
-@testset "Minimum viable case | Parameter testing" begin+
+@testset "Minimum viable case | Parameter testing" begin
+    +
     @testset "Model robustness" begin
         include("test_model_robustness.jl")
     end
-end 
+end

@@ -85,8 +85,7 @@ function generate_data_case_tech_shift()
             [product_list[1]],
             fill(100, Y + 1 + pre_y),
             fill(30, Y + 1 + pre_y),
-            fill(5/60, Y + 1 + pre_y),
-
+            fill(5 / 60, Y + 1 + pre_y),
         ),
         TechVehicle(
             2,
@@ -103,7 +102,7 @@ function generate_data_case_tech_shift()
             [product_list[1]],
             fill(100, Y + 1 + pre_y),
             fill(30, Y + 1 + pre_y),
-            fill(5/60, Y + 1 + pre_y),
+            fill(5 / 60, Y + 1 + pre_y),
         ),
     ]
     total_vehs = 0.08
@@ -122,9 +121,7 @@ function generate_data_case_tech_shift()
         InitialVehicleStock(12, techvehicle_list[2], 2019, 0),
     ]
     initialmodeinfr_list =
-        [InitialModeInfr(1, mode_list[1], 1, 0)
-        , InitialModeInfr(2, mode_list[2], 1, 0)
-        ]
+        [InitialModeInfr(1, mode_list[1], 1, 0), InitialModeInfr(2, mode_list[2], 1, 0)]
 
     initialfuelinginfr_list = [
         InitialFuelingInfr(1, fuel_list[1], 1, 0),
@@ -142,7 +139,7 @@ function generate_data_case_tech_shift()
             initvehiclestock_list,
             financial_status_list[1],
             regiontype_list[1],
-            120
+            120,
         ),
     ]
     speed_list = [
@@ -189,7 +186,7 @@ function generate_data_case_tech_shift()
         "supplytype_list" => [],
         "initialsupplyinfr_list" => [],
     )
-end 
+end
 
 
 @testset "Test minimum viable case" begin
@@ -234,88 +231,96 @@ end
         sum(
             f_dict[(y_init, (prk), mv, g)] for prk ∈ p_r_k_pairs for mv ∈ m_tv_pairs for
             g ∈ g_init:y_init if mv[1] == 1
-        )
+        ),
     )
 
 
     println(
         sum(
-            h_dict[(y_init, r.id, tv.id, g)] for r ∈ odpair_list for
-            tv ∈ techvehicle_list for g ∈ g_init:y_init if tv.technology.id == 1 
-        )
+            h_dict[(y_init, r.id, tv.id, g)] for r ∈ odpair_list for tv ∈ techvehicle_list
+            for g ∈ g_init:y_init if tv.technology.id == 1
+        ),
     )
     println(
         sum(
             h_dict[((y_init + 1), r.id, tv.id, g)] for r ∈ odpair_list for
-            tv ∈ techvehicle_list for g ∈ g_init:(y_init + 1) if tv.technology.id == 1 
-        )
+            tv ∈ techvehicle_list for g ∈ g_init:(y_init+1) if tv.technology.id == 1
+        ),
     )
     @test (
         round(
             sum(
-            h_minus_dict[(y_init, r.id, tv.id, g)] for r ∈ odpair_list for
-            tv ∈ techvehicle_list for g ∈ g_init:y_init if tv.technology.id == 1 
-        ), 
-        digits = 2) == 0.02
+                h_minus_dict[(y_init, r.id, tv.id, g)] for r ∈ odpair_list for
+                tv ∈ techvehicle_list for g ∈ g_init:y_init if tv.technology.id == 1
+            ),
+            digits = 2,
+        ) == 0.02
     )
 
     @test (
         round(
             sum(
-            h_minus_dict[(y_init, r.id, tv.id, g)] for r ∈ odpair_list for
-            tv ∈ techvehicle_list for g ∈ g_init:y_init if tv.technology.id == 2 
-        ), 
-        digits = 2) == 0.0
+                h_minus_dict[(y_init, r.id, tv.id, g)] for r ∈ odpair_list for
+                tv ∈ techvehicle_list for g ∈ g_init:y_init if tv.technology.id == 2
+            ),
+            digits = 2,
+        ) == 0.0
     )
 
     # check modal shift
     @test (
         round(
-            sum(f_dict[(y_init, (prk), mv, g)] for prk ∈ p_r_k_pairs for mv ∈ m_tv_pairs for
-            g ∈ g_init:y_init if mv[1] == 1), 
-            digits = 2
+            sum(
+                f_dict[(y_init, (prk), mv, g)] for prk ∈ p_r_k_pairs for mv ∈ m_tv_pairs for
+                g ∈ g_init:y_init if mv[1] == 1
+            ),
+            digits = 2,
         ) == 17.02
     )
 
     @test (
         round(
-            sum(f_dict[(Y_end, (prk), mv, g)] for prk ∈ p_r_k_pairs for mv ∈ m_tv_pairs for
-            g ∈ g_init:Y_end if mv[1] == 2), 
-            digits = 2
+            sum(
+                f_dict[(Y_end, (prk), mv, g)] for prk ∈ p_r_k_pairs for mv ∈ m_tv_pairs for
+                g ∈ g_init:Y_end if mv[1] == 2
+            ),
+            digits = 2,
         ) == 100.0
     )
 
     # check tech shift 
     @test (
-        
         sum(
-            h_dict[(y_init, r.id, tv.id, g)] for r ∈ odpair_list for
-            tv ∈ techvehicle_list for g ∈ g_init:y_init if tv.technology.id == 1
+            h_dict[(y_init, r.id, tv.id, g)] for r ∈ odpair_list for tv ∈ techvehicle_list
+            for g ∈ g_init:y_init if tv.technology.id == 1
         ) - sum(
             h_exist_dict[(y_init, r.id, tv.id, g)] for r ∈ odpair_list for
             tv ∈ techvehicle_list for g ∈ g_init:y_init if tv.technology.id == 1
         ) <=
         data_structures["alpha_h"] * sum(
-            h_dict[(y_init, r.id, tv.id, g)] for r ∈ odpair_list for
-            tv ∈ techvehicle_list for g ∈ g_init:y_init
-        ) + data_structures["beta_h"] * sum(
+            h_dict[(y_init, r.id, tv.id, g)] for r ∈ odpair_list for tv ∈ techvehicle_list
+            for g ∈ g_init:y_init
+        ) +
+        data_structures["beta_h"] * sum(
             h_exist_dict[(y_init, r.id, tv.id, g)] for r ∈ odpair_list for
             tv ∈ techvehicle_list for g ∈ g_init:y_init if tv.technology.id == 1
         )
-            
     )
     @test(
-        - (sum(
-            h_dict[(y_init, r.id, tv.id, g)] for r ∈ odpair_list for
-            tv ∈ techvehicle_list for g ∈ g_init:y_init if tv.technology.id == 1
-        ) - sum(
-            h_exist_dict[(y_init, r.id, tv.id, g)] for r ∈ odpair_list for
-            tv ∈ techvehicle_list for g ∈ g_init:y_init if tv.technology.id == 1
-        )) <=
+        -(
+            sum(
+                h_dict[(y_init, r.id, tv.id, g)] for r ∈ odpair_list for
+                tv ∈ techvehicle_list for g ∈ g_init:y_init if tv.technology.id == 1
+            ) - sum(
+                h_exist_dict[(y_init, r.id, tv.id, g)] for r ∈ odpair_list for
+                tv ∈ techvehicle_list for g ∈ g_init:y_init if tv.technology.id == 1
+            )
+        ) <=
         data_structures["alpha_h"] * sum(
-            h_dict[(y_init, r.id, tv.id, g)] for r ∈ odpair_list for
-            tv ∈ techvehicle_list for g ∈ g_init:y_init
-        ) + data_structures["beta_h"] * sum(
+            h_dict[(y_init, r.id, tv.id, g)] for r ∈ odpair_list for tv ∈ techvehicle_list
+            for g ∈ g_init:y_init
+        ) +
+        data_structures["beta_h"] * sum(
             h_exist_dict[(y_init, r.id, tv.id, g)] for r ∈ odpair_list for
             tv ∈ techvehicle_list for g ∈ g_init:y_init if tv.technology.id == 1
         )
@@ -325,51 +330,58 @@ end
     # check vehicle aging - testing that the lifetime cannot be exceeded 
     y = 2020
     @test (
-            sum(
-                h_dict[(y, r.id, tv.id, g)] for r ∈ odpair_list for
-                tv ∈ techvehicle_list for g ∈ g_init:(y-2)
-            )
-            == 0
+        sum(
+            h_dict[(y, r.id, tv.id, g)] for r ∈ odpair_list for tv ∈ techvehicle_list for
+            g ∈ g_init:(y-2)
+        ) == 0
     )
 
     y = 2025
     @test (
-            round(sum(
-                h_dict[(y, r.id, tv.id, g)] for r ∈ odpair_list for
-                tv ∈ techvehicle_list for g ∈ g_init:(y-2)
-            ), digits = 2)
-            == 0
+        round(
+            sum(
+                h_dict[(y, r.id, tv.id, g)] for r ∈ odpair_list for tv ∈ techvehicle_list
+                for g ∈ g_init:(y-2)
+            ),
+            digits = 2,
+        ) == 0
     )
     y = 2030
     @test (
-            round(sum(
-                h_dict[(y, r.id, tv.id, g)] for r ∈ odpair_list for
-                tv ∈ techvehicle_list for g ∈ g_init:(y-2)
-            ), digits = 2)
-            == 0
+        round(
+            sum(
+                h_dict[(y, r.id, tv.id, g)] for r ∈ odpair_list for tv ∈ techvehicle_list
+                for g ∈ g_init:(y-2)
+            ),
+            digits = 2,
+        ) == 0
     )
     y = 2035
     @test (
-            round(sum(
-                h_dict[(y, r.id, tv.id, g)] for r ∈ odpair_list for
-                tv ∈ techvehicle_list for g ∈ g_init:(y-2)
-            ), digits = 2)
-            == 0
+        round(
+            sum(
+                h_dict[(y, r.id, tv.id, g)] for r ∈ odpair_list for tv ∈ techvehicle_list
+                for g ∈ g_init:(y-2)
+            ),
+            digits = 2,
+        ) == 0
     )
     y = Y_end
     @test (
-            round(sum(
-                h_dict[(y, r.id, tv.id, g)] for r ∈ odpair_list for
-                tv ∈ techvehicle_list for g ∈ g_init:(y-2)
-            ), digits = 2)
-            == 0
+        round(
+            sum(
+                h_dict[(y, r.id, tv.id, g)] for r ∈ odpair_list for tv ∈ techvehicle_list
+                for g ∈ g_init:(y-2)
+            ),
+            digits = 2,
+        ) == 0
     )
 
     # check fueling infrastructure sizing 
     @test (
         round(
             sum(q_fuel_infr_plus_dict[(y, 1, 1)] for f ∈ fuel_list for y ∈ y_init:Y_end),
-            digits = 2
+            digits = 2,
         ) == 0.14
     )
 end

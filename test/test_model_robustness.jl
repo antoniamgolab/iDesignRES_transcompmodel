@@ -85,8 +85,7 @@ function generate_data_case_tech_shift(W = 1)
             [product_list[1]],
             fill(100, Y + 1 + pre_y),
             fill(30, Y + 1 + pre_y),
-            fill(5/60, Y + 1 + pre_y),
-
+            fill(5 / 60, Y + 1 + pre_y),
         ),
         TechVehicle(
             2,
@@ -103,10 +102,10 @@ function generate_data_case_tech_shift(W = 1)
             [product_list[1]],
             fill(100, Y + 1 + pre_y),
             fill(30, Y + 1 + pre_y),
-            fill(5/60, Y + 1 + pre_y),
+            fill(5 / 60, Y + 1 + pre_y),
         ),
     ]
-    total_vehs = 0.08/W
+    total_vehs = 0.08 / W
     initvehiclestock_list = [
         InitialVehicleStock(1, techvehicle_list[1], 2014, total_vehs / pre_y),
         InitialVehicleStock(2, techvehicle_list[1], 2015, total_vehs / pre_y),
@@ -122,9 +121,7 @@ function generate_data_case_tech_shift(W = 1)
         InitialVehicleStock(12, techvehicle_list[2], 2019, 0),
     ]
     initialmodeinfr_list =
-        [InitialModeInfr(1, mode_list[1], 1, 0)
-        , InitialModeInfr(2, mode_list[2], 1, 0)
-        ]
+        [InitialModeInfr(1, mode_list[1], 1, 0), InitialModeInfr(2, mode_list[2], 1, 0)]
 
     initialfuelinginfr_list = [
         InitialFuelingInfr(1, fuel_list[1], 1, 0),
@@ -142,7 +139,7 @@ function generate_data_case_tech_shift(W = 1)
             initvehiclestock_list,
             financial_status_list[1],
             regiontype_list[1],
-            120
+            120,
         ),
     ]
     speed_list = [
@@ -189,7 +186,7 @@ function generate_data_case_tech_shift(W = 1)
         "supplytype_list" => [],
         "initialsupplyinfr_list" => [],
     )
-end 
+end
 
 
 function apply_modeling(data_structures::Dict, case_name::String = "test_case")
@@ -267,8 +264,10 @@ A set of key parameters that budget_penalty_minus_dict_str that are driving the 
         save_results(model, case_name, data_structures_v2, true, results_file_path)
 
     p_r_k_pairs = create_p_r_k_set(data_structures_v2["odpair_list"])
-    m_tv_pairs =
-        create_m_tv_pairs(data_structures_v2["techvehicle_list"], data_structures_v2["mode_list"])
+    m_tv_pairs = create_m_tv_pairs(
+        data_structures_v2["techvehicle_list"],
+        data_structures_v2["mode_list"],
+    )
     g_init = data_structures_v2["g_init"]
     Y_end = data_structures_v2["Y_end"]
     y_init = data_structures_v2["y_init"]
@@ -276,8 +275,12 @@ A set of key parameters that budget_penalty_minus_dict_str that are driving the 
     techvehicle_list = data_structures_v2["techvehicle_list"]
     # expected outcome: mode shift of 1 == 100% at Y_end
     @test (
-        round(sum(f_dict[(y_init, (prk), mv, g)] for prk ∈ p_r_k_pairs for mv ∈ m_tv_pairs for
-        g ∈ g_init:y_init if mv[1] == 1)) == 100
+        round(
+            sum(
+                f_dict[(y_init, (prk), mv, g)] for prk ∈ p_r_k_pairs for mv ∈ m_tv_pairs for
+                g ∈ g_init:y_init if mv[1] == 1
+            ),
+        ) == 100
     )
 
     # demand elasticity parameters are altered for mode shift, indicating a fast slower transition to public transport 
@@ -301,9 +304,11 @@ A set of key parameters that budget_penalty_minus_dict_str that are driving the 
     budget_penalty_minus_dict =
         save_results(model3, case_name3, data_structures_v3, true, results_file_path)
 
-        p_r_k_pairs = create_p_r_k_set(data_structures_v2["odpair_list"])
-    m_tv_pairs =
-        create_m_tv_pairs(data_structures_v2["techvehicle_list"], data_structures_v2["mode_list"])
+    p_r_k_pairs = create_p_r_k_set(data_structures_v2["odpair_list"])
+    m_tv_pairs = create_m_tv_pairs(
+        data_structures_v2["techvehicle_list"],
+        data_structures_v2["mode_list"],
+    )
     g_init = data_structures_v2["g_init"]
     Y_end = data_structures_v2["Y_end"]
     y_init = data_structures_v2["y_init"]
@@ -313,8 +318,12 @@ A set of key parameters that budget_penalty_minus_dict_str that are driving the 
 
     # expected outcome: mode shift of 2 == 100% at Y_end
     @test (
-        round(sum(f_dict[(Y_end, (prk), mv, g)] for prk ∈ p_r_k_pairs for mv ∈ m_tv_pairs for
-        g ∈ g_init:Y_end if mv[1] == 2)) == 90
+        round(
+            sum(
+                f_dict[(Y_end, (prk), mv, g)] for prk ∈ p_r_k_pairs for mv ∈ m_tv_pairs for
+                g ∈ g_init:Y_end if mv[1] == 2
+            ),
+        ) == 90
     )
 
 
@@ -357,14 +366,13 @@ A set of key parameters that budget_penalty_minus_dict_str that are driving the 
             fill(fill(10, Y + 1), Y + 1 + pre_y),
             fill(fill(10, Y + 1), Y + 1 + pre_y),
             fill(1, Y + 1 + pre_y),
-            fill(5, Y + 1 + pre_y), 
+            fill(5, Y + 1 + pre_y),
             fill(20, Y + 1 + pre_y), # lifetime 
             fill(10000, Y + pre_y + 1),
             [data_structures_v4["product_list"][1]],
             fill(100, Y + 1 + pre_y),
             fill(30, Y + 1 + pre_y),
-            fill(5/60, Y + 1 + pre_y),
-
+            fill(5 / 60, Y + 1 + pre_y),
         ),
         TechVehicle(
             2,
@@ -381,7 +389,7 @@ A set of key parameters that budget_penalty_minus_dict_str that are driving the 
             [data_structures_v4["product_list"][1]],
             fill(100, Y + 1 + pre_y),
             fill(30, Y + 1 + pre_y),
-            fill(5/60, Y + 1 + pre_y),
+            fill(5 / 60, Y + 1 + pre_y),
         ),
     ]
 
@@ -400,9 +408,11 @@ A set of key parameters that budget_penalty_minus_dict_str that are driving the 
     budget_penalty_minus_dict =
         save_results(model4, case_name4, data_structures_v4, true, results_file_path)
 
-        p_r_k_pairs = create_p_r_k_set(data_structures_v2["odpair_list"])
-    m_tv_pairs =
-        create_m_tv_pairs(data_structures_v2["techvehicle_list"], data_structures_v2["mode_list"])
+    p_r_k_pairs = create_p_r_k_set(data_structures_v2["odpair_list"])
+    m_tv_pairs = create_m_tv_pairs(
+        data_structures_v2["techvehicle_list"],
+        data_structures_v2["mode_list"],
+    )
     g_init = data_structures_v2["g_init"]
     Y_end = data_structures_v2["Y_end"]
     y_init = data_structures_v2["y_init"]
@@ -413,18 +423,35 @@ A set of key parameters that budget_penalty_minus_dict_str that are driving the 
 
     # checking that no vehicle are added to the system outside of y==g
     @test (
-        round(sum(h_plus_dict[(y, r.id, tv.id, g)] for y in y_init:Y_end for r ∈ odpair_list for
-        tv ∈ techvehicle_list for g ∈ g_init:y if y!=g), digits = 2) == 0
+        round(
+            sum(
+                h_plus_dict[(y, r.id, tv.id, g)] for y ∈ y_init:Y_end for r ∈ odpair_list
+                for tv ∈ techvehicle_list for g ∈ g_init:y if y != g
+            ),
+            digits = 2,
+        ) == 0
     )
 
     # testing that the amount of vehicles in the system is equal to the initial amount of vehicles
     @test (
-        round(sum(h_exist_dict[(y_init, r.id, tv.id, g)] for r ∈ odpair_list for tv ∈ techvehicle_list for g ∈ g_init:y_init if tv.id == 1), digits = 2) == 0.08
+        round(
+            sum(
+                h_exist_dict[(y_init, r.id, tv.id, g)] for r ∈ odpair_list for
+                tv ∈ techvehicle_list for g ∈ g_init:y_init if tv.id == 1
+            ),
+            digits = 2,
+        ) == 0.08
     )
 
     # testing if end share of battery-electric vehicles is correct 
     @test (
-        round(sum(h_exist_dict[(Y_end, r.id, tv.id, g)] for r ∈ odpair_list for tv ∈ techvehicle_list for g ∈ g_init:Y_end if tv.id == 2), digits = 2) == 0.06
+        round(
+            sum(
+                h_exist_dict[(Y_end, r.id, tv.id, g)] for r ∈ odpair_list for
+                tv ∈ techvehicle_list for g ∈ g_init:Y_end if tv.id == 2
+            ),
+            digits = 2,
+        ) == 0.06
     )
 
 
@@ -467,9 +494,11 @@ A set of key parameters that budget_penalty_minus_dict_str that are driving the 
     budget_penalty_minus_dict =
         save_results(model5, case_name5, data_structures_v5, true, results_file_path)
 
-        p_r_k_pairs = create_p_r_k_set(data_structures_v2["odpair_list"])
-    m_tv_pairs =
-        create_m_tv_pairs(data_structures_v2["techvehicle_list"], data_structures_v2["mode_list"])
+    p_r_k_pairs = create_p_r_k_set(data_structures_v2["odpair_list"])
+    m_tv_pairs = create_m_tv_pairs(
+        data_structures_v2["techvehicle_list"],
+        data_structures_v2["mode_list"],
+    )
     g_init = data_structures_v2["g_init"]
     Y_end = data_structures_v2["Y_end"]
     y_init = data_structures_v2["y_init"]
@@ -477,7 +506,12 @@ A set of key parameters that budget_penalty_minus_dict_str that are driving the 
     techvehicle_list = data_structures_v2["techvehicle_list"]
 
     @test (
-        round(sum(h_dict[(Y_end, r.id, tv.id, g)]  for r ∈ odpair_list for
-        tv ∈ techvehicle_list for g in g_init:Y_end), digits = 2) == 0.05
+        round(
+            sum(
+                h_dict[(Y_end, r.id, tv.id, g)] for r ∈ odpair_list for
+                tv ∈ techvehicle_list for g ∈ g_init:Y_end
+            ),
+            digits = 2,
+        ) == 0.05
     )
-end 
+end

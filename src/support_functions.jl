@@ -355,7 +355,7 @@ function parse_data(data_dict::Dict)
                 rt -> rt.name == odpair["region_type"],
                 regiontype_list,
             )],
-            odpair["travel_time_budget"]
+            odpair["travel_time_budget"],
         ) for odpair ∈ data_dict["Odpair"]
     ]
 
@@ -524,10 +524,7 @@ function parse_data(data_dict::Dict)
         supplytype_list = [
             SupplyType(
                 item["id"],
-                fuel_list[findfirst(
-                    f -> f.name == item["fuel"],
-                    fuel_list,
-                )],
+                fuel_list[findfirst(f -> f.name == item["fuel"], fuel_list)],
                 geographic_element_list[findfirst(
                     ge -> ge.name == item["location"],
                     geographic_element_list,
@@ -544,10 +541,7 @@ function parse_data(data_dict::Dict)
         initialsupplyinfr_list = [
             EmissionConstraintByYear(
                 item["id"],
-                fuel_list[findfirst(
-                    f -> f.name == item["fuel"],
-                    fuel_list,
-                )],
+                fuel_list[findfirst(f -> f.name == item["fuel"], fuel_list)],
                 supplytype_list[findfirst(
                     st -> st.id == item["supplytype"],
                     supplytype_list,
@@ -1063,7 +1057,8 @@ function save_results(
         supplytype_list = data_structures["supplytype_list"]
         q_supply_infr_dict = Dict()
         for y ∈ y_init:Y_end, st ∈ supplytype_list, geo ∈ geographic_element_list
-            q_supply_infr_dict[(y, st.id, geo.id)] = value(model[:q_supply_infr][y, st.id, geo.id])
+            q_supply_infr_dict[(y, st.id, geo.id)] =
+                value(model[:q_supply_infr][y, st.id, geo.id])
         end
         q_supply_infr_dict_str = stringify_keys(q_supply_infr_dict)
     end

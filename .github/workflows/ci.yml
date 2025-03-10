@@ -59,7 +59,3 @@ jobs:
       - name: Install JuliaFormatter
         run: |
           julia  -e 'import Pkg; Pkg.add("JuliaFormatter")'
-
-      - name: Format code
-        run: |
-          julia  -e 'using JuliaFormatter; format(".")'
