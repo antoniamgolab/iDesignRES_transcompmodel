@@ -1,9 +1,3 @@
-include(joinpath(@__DIR__, "../src/TransComp.jl"))
-using .TransComp
-using JuMP
-import HiGHS
-using Test
-
 function generate_data_case_tech_shift()
     Y = 20
     y_init = 2020
