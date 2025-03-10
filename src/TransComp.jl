@@ -5,7 +5,7 @@ This module contains the main functions and structures for the TransComp package
 """
 
 module TransComp
-using YAML, JuMP, Gurobi, Printf
+using YAML, JuMP, Printf
 # export data types
 
 include("structs.jl")

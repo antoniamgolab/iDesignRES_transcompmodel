@@ -4,7 +4,7 @@ This file contains the functions that are used in the model but are not directly
 """
 
 include("structs.jl")
-using YAML, JuMP, Gurobi, Printf
+using YAML, JuMP, Printf
 
 """
 	get_input_data(path_to_source_file::String)

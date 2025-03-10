@@ -4,7 +4,7 @@
 
 """
 
-using YAML, JuMP, Gurobi, Statistics
+using YAML, JuMP, Statistics
 include("checks.jl")
 """
 	base_define_variables(model::Model, data_structures::Dict)
