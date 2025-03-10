@@ -47,6 +47,15 @@ jobs:
             ${{ runner.os }}-test-
             ${{ runner.os }}-
       - uses: julia-actions/julia-buildpkg@v1
-      - uses: julia-actions/julia-runtest@v1
+      - name: Activate environment and install dependencies
+        run: |
+          # Activate the main project environment (root Project.toml)
+          julia --project=./ -e 'using Pkg; Pkg.instantiate(); Pkg.precompile()'
+
+          # Optionally, activate the test environment if it's in a separate folder
+          julia --project=./test -e 'using Pkg; Pkg.instantiate(); Pkg.precompile()'
+
+      - name: Run tests
+        uses: julia-actions/julia-runtest@v1
         with:
           depwarn: error
