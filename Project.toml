@@ -7,6 +7,7 @@ license = "MIT"
 YAML = "ddb6d928-2868-570f-bddf-ab3f9cf99eb6"
 JuMP = "4076af6c-e467-56ae-b986-b466b2749572"
 Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
+Statistics = "cbdf2221-440d-5f48-8ae7-bc23dc903d89"
 
 [compat]
 julia = "1.6"
