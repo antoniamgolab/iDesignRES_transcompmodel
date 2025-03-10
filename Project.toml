@@ -1,20 +1,15 @@
 name = "TransComp"
-uuid = "b596f64e-e7eb-4ba8-8bcd-d8f82e2b38d9"
-
-version = "0.1.0"
+uuid = "3fb1ea32-fe1d-487b-b926-6db75a8950b6"
 authors = ["Antonia Golab <antonia.golab@tuwien.ac.at>"]
 license = "MIT"
-description = "Regional transport sector model"
 
 [deps]
 YAML = "ddb6d928-2868-570f-bddf-ab3f9cf99eb6"
 JuMP = "4076af6c-e467-56ae-b986-b466b2749572"
-Gurobi = "2e9cd046-0924-5485-92f1-d5272153d98b"
 Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 
 [compat]
 julia = "1.6"
-YAML = "0.4"  # Adjust version range as needed
+YAML = "0.4"
 JuMP = "1.9"
-Gurobi = "1.0"
-Printf = "0.1"
+Printf = "1.11"
