@@ -27,9 +27,6 @@ jobs:
           - version: 'lts'  # lts
             os: windows-latest
             arch: x64
-          # - version: 'nightly'
-          #   os: ubuntu-latest
-          #   arch: x64
     steps:
       - uses: actions/checkout@v4
       - uses: julia-actions/setup-julia@v2
@@ -59,3 +56,7 @@ jobs:
         uses: julia-actions/julia-runtest@v1
         with:
           depwarn: error
+      
+      - name: Format Julia Code with JuliaFormatter.jl
+        run: |
+          julia --project=./ -e 'using JuliaFormatter; JuliaFormatter.format("**/*.jl")'
