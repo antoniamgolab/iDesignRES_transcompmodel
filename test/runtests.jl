@@ -1,5 +1,5 @@
-include(joinpath(@__DIR__, "../src/TransComp.jl"))
-using .TransComp
+# include(joinpath(@__DIR__, "../src/TransComp.jl"))
+using TransComp
 using JuMP
 import HiGHS
 using Test
