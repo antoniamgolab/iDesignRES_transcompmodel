@@ -1159,3 +1159,58 @@ function save_results(
     budget_penalty_plus_dict,
     budget_penalty_minus_dict
 end
+
+
+"""
+    Function to disaggregate the total electricity load into hourly load profiles for a specific fuel type.
+
+    # Arguments
+    - `model::JuMP.Model`: The optimization model.
+    - `data_structures::Dict`: The data structures.
+    - `fuel_id::Int`: The fuel ID.
+    - `year::Int`: The year.
+
+    # Returns
+    - `yearly_load_dict::Dict`: Demand distribution among different vehicle types.
+"""
+
+function disagreggate(model::JuMP.Model, data_structures::Dict, fuel_id::Int=2, year::Int=2020)
+    # creating hourly load profile for each year
+    y_init = data_structures["y_init"]
+    g_init = data_structures["g_init"]
+    Y_end = data_structures["Y_end"]
+    p_r_k_g_pairs = data_structures["p_r_k_g_pairs"]
+    techvehicle_list = data_structures["techvehicle_list"]
+    technology_list = data_structures["technology_list"]
+
+    s = value.(model[:s])
+    h = value.(model[:h])
+    yearly_load_dict = Dict()
+    y = year 
+    for tv in techvehicle_list
+
+        if tv.technology.fuel.id == fuel_id
+            total_h = sum(h[y, r.id, tv.id, g] for r in data_structures["odpair_list"] for g in data_structures["g_init"]:y)
+            
+            # i need for each year the total electricity load
+            total_load = sum(s[y, p_r_k_g, tv.id] for p_r_k_g in p_r_k_g_pairs for tv in techvehicle_list if tv.technology.fuel.id == fuel_id)
+    
+            # i need amount of vehicles driving this year  
+            load_dict_h_g = Dict()
+
+            for g in data_structures["g_init"]:y
+                h_g = sum(h[y, r.id, tv.id, g] for r in data_structures["odpair_list"])
+                share_load = h_g / total_h
+                if share_load > 0
+                    load_dict_h_g[g] = (h_g, share_load * total_load, tv.tank_capacity[g-g_init+1])
+                    
+                end
+            end
+            yearly_load_dict[tv.id] = load_dict_h_g
+
+        end
+    end
+
+    return yearly_load_dict
+
+end
