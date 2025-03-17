@@ -87,6 +87,7 @@ export create_r_k_set
 export create_model
 export depreciation_factor
 export create_emission_price_along_path
+export disagreggate
 export save_results
 
 end
