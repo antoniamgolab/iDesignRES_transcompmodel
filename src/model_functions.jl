@@ -55,7 +55,7 @@ function base_define_variables(model::Model, data_structures::Dict)
     geographic_element_list = data_structures["geographic_element_list"]
     fuel_list = data_structures["fuel_list"]
     techvehicle_list = data_structures["techvehicle_list"]
-
+    investment_period = data_structures["investment_period"]
     @variable(
         model,
         h[
@@ -100,7 +100,7 @@ function base_define_variables(model::Model, data_structures::Dict)
     @variable(
         model,
         q_fuel_infr_plus[
-            y in y_init:Y_end,
+            y in collect(y_init:investment_period:Y_end),
             f_id in [f.id for f ∈ fuel_list],
             geo_id in [geo.id for geo ∈ geographic_element_list],
         ] >= 0
@@ -118,9 +118,17 @@ function base_define_variables(model::Model, data_structures::Dict)
         budget_penalty_minus[y in y_init:Y_end, r_id in [r.id for r ∈ odpairs]] >= 0
     )
     @variable(
+        model, 
+        budget_penalty_yearly_plus[y in y_init:Y_end, r_id in [r.id for r ∈ odpairs]] >= 0
+    )
+    @variable(
+        model, 
+        budget_penalty_yearly_minus[y in y_init:Y_end, r_id in [r.id for r ∈ odpairs]] >= 0
+    )
+    @variable(
         model,
         q_mode_infr_plus[
-            y in y_init:Y_end,
+            y in collect(y_init:investment_period:Y_end),
             m_id in [m.id for m ∈ mode_list],
             geo_id in [geo.id for geo ∈ geographic_element_list],
         ] >= 0
@@ -138,9 +146,9 @@ function base_define_variables(model::Model, data_structures::Dict)
                 f_id in [f.id for f ∈ fuel_list],
             ] >= 0
         )
-        @variable(model, x_a[y in y_init:Y_end, gif_pair in geo_i_f_pairs], Bin)
-        @variable(model, x_b[y in y_init:Y_end, gif_pair in geo_i_f_pairs], Bin)
-        @variable(model, x_c[y in y_init:Y_end, gif_pair in geo_i_f_pairs], Bin)
+        # @variable(model, x_a[y in y_init:Y_end, gif_pair in geo_i_f_pairs], Bin)
+        # @variable(model, x_b[y in y_init:Y_end, gif_pair in geo_i_f_pairs], Bin)
+        @variable(model, x_c[y in y_init:investment_period:Y_end, gif_pair in geo_i_f_pairs], Bin)
 
         @variable(
             model,
@@ -151,7 +159,7 @@ function base_define_variables(model::Model, data_structures::Dict)
         supplytype_list = data_structures["SupplyType"]
         @variable(
             model,
-            q_supply_infr[y in y_init:Y_end, st_id in [st.id for s ∈ supplytype_list], geo_id in [geo.id for geo ∈ geographic_element_list]] >= 0
+            q_supply_infr[y in collect(y_init:investment_period:Y_end), st_id in [st.id for s ∈ supplytype_list], geo_id in [geo.id for geo ∈ geographic_element_list]] >= 0
         )
     end
 end
@@ -220,7 +228,7 @@ function constraint_vehicle_sizing(model::JuMP.Model, data_structures::Dict)
             g in data_structures["g_init"]:data_structures["Y_end"];
             modes[findfirst(m -> m.id == mv[1], modes)].quantify_by_vehs && g <= y,
         ],
-        model[:h][y, r.id, mv[2], g] >= sum(
+        model[:h][y, r.id, mv[2], g] == sum(
             (
                 k.length / (
                     data_structures["techvehicle_list"][findfirst(
@@ -488,17 +496,18 @@ function constraint_monetary_budget(model::JuMP.Model, data_structures::Dict)
     odpairs = data_structures["odpair_list"]
     techvehicles = data_structures["techvehicle_list"]
     g_init = data_structures["g_init"]
+    y_init = data_structures["y_init"]
     @constraint(
         model,
         [r in odpairs],
         sum([
-            (model[:h_plus][y, r.id, v.id, g] * v.capital_cost[g-g_init+1]) for
+            (model[:h_plus][y, r.id, v.id, g] * v.capital_cost[y-y_init+1]) for
             y ∈ data_structures["y_init"]:data_structures["Y_end"] for v ∈ techvehicles for
             g ∈ data_structures["g_init"]:y
         ]) <=
-        r.financial_status.monetary_budget_purchase_ub *
-        mean(r.F) *
-        (data_structures["Y_end"] - data_structures["y_init"] + 1) *
+        r.financial_status.monetary_budget_purchase_ub * 
+        r.F[1] * 
+        data_structures["Y"] *
         (1 / r.financial_status.monetary_budget_purchase_time_horizon) + sum(
             model[:budget_penalty_plus][y, r.id] for
             y ∈ data_structures["y_init"]:data_structures["Y_end"]
@@ -508,13 +517,13 @@ function constraint_monetary_budget(model::JuMP.Model, data_structures::Dict)
         model,
         [r in odpairs],
         sum([
-            (model[:h_plus][y, r.id, v.id, g] * v.capital_cost[g-g_init+1]) for
+            (model[:h_plus][y, r.id, v.id, g] * v.capital_cost[y-y_init+1]) for
             y ∈ data_structures["y_init"]:data_structures["Y_end"] for v ∈ techvehicles for
             g ∈ g_init:y
         ]) >=
         r.financial_status.monetary_budget_purchase_lb *
-        mean(r.F) *
-        (data_structures["Y_end"] - data_structures["y_init"] + 1) *
+        r.F[1] * 
+        data_structures["Y"] *
         (1 / r.financial_status.monetary_budget_purchase_time_horizon) - sum(
             model[:budget_penalty_minus][y, r.id] for
             y ∈ data_structures["y_init"]:data_structures["Y_end"]
@@ -527,28 +536,27 @@ function constraint_monetary_budget(model::JuMP.Model, data_structures::Dict)
             data_structures["Y_end"],
             r.financial_status.monetary_budget_purchase_time_horizon,
         )
-
         @constraint(
             model,
             [y0 in y_set],
             sum(
-                model[:h_plus][y, r.id, v.id, g] * v.capital_cost[g-g_init+1] for y ∈ y0 for
+                model[:h_plus][y, r.id, v.id, g] * v.capital_cost[y-y_init+1] for y ∈ y0 for
                 v ∈ techvehicles for g ∈ g_init:y
             ) <=
             r.financial_status.monetary_budget_purchase_ub * mean(
-                r.F[(y0[1]-data_structures["y_init"]+1):(y0[1]-data_structures["y_init"]+r.financial_status.monetary_budget_purchase_time_horizon-1)],
-            ) + sum(model[:budget_penalty_plus][y, r.id] for y ∈ y0)
+                r.F[(y0[1]-data_structures["y_init"]+1):(y0[1]-data_structures["y_init"]+r.financial_status.monetary_budget_purchase_time_horizon)],
+            )+ sum(model[:budget_penalty_yearly_plus][y, r.id] for y ∈ y0)
         )
         @constraint(
             model,
             [y0 in y_set],
             sum(
-                model[:h_plus][y, r.id, v.id, g] * v.capital_cost[g-g_init+1] for y ∈ y0 for
+                model[:h_plus][y, r.id, v.id, g] * v.capital_cost[y-y_init+1] for y ∈ y0 for
                 v ∈ techvehicles for g ∈ g_init:y
             ) >=
             r.financial_status.monetary_budget_purchase_lb * mean(
-                r.F[(y0[1]-data_structures["y_init"]+1):(y0[1]-data_structures["y_init"]+r.financial_status.monetary_budget_purchase_time_horizon-1)],
-            ) - sum(model[:budget_penalty_minus][y, r.id] for y ∈ y0)
+                r.F[(y0[1]-data_structures["y_init"]+1):(y0[1]-data_structures["y_init"]+r.financial_status.monetary_budget_purchase_time_horizon)],
+            )- sum(model[:budget_penalty_yearly_minus][y, r.id] for y ∈ y0)
         )
     end
 end
@@ -573,6 +581,9 @@ function constraint_fueling_infrastructure(model::JuMP.Model, data_structures::D
     geographic_element_list = data_structures["geographic_element_list"]
     initialfuelinginfr_list = data_structures["initialfuelinginfr_list"]
     gamma = data_structures["gamma"]
+    investment_period = data_structures["investment_period"]
+    investment_years = collect(data_structures["y_init"]:investment_period:data_structures["Y_end"])  # List of years where x_c is defined
+ 
 
     @constraint(
         model,
@@ -585,7 +596,41 @@ function constraint_fueling_infrastructure(model::JuMP.Model, data_structures::D
             i -> i.fuel.name == f.name && i.allocation == geo.id,
             initialfuelinginfr_list,
         )].installed_kW + sum(
-            model[:q_fuel_infr_plus][y0, f.id, geo.id] for y0 ∈ data_structures["y_init"]:y
+            model[:q_fuel_infr_plus][y0, f.id, geo.id] for y0 ∈ data_structures["y_init"]:investment_period:y
+        ) >= sum(
+            gamma * model[:s][maximum(filter(t -> t <= y, investment_years)), p_r_k_g, tv.id] for p_r_k_g ∈ p_r_k_g_pairs for
+            tv ∈ techvehicles if p_r_k_g[4] == geo.id && tv.technology.fuel.name == f.name
+        )
+    )
+end
+
+function constraint_constant_fueling_since_yinit(model::JuMP.Model, data_structures::Dict)
+    echnologies = data_structures["technology_list"]
+    y_init = data_structures["y_init"]
+    p_r_k_n_pairs = data_structures["p_r_k_n_pairs"]
+    p_r_k_e_pairs = data_structures["p_r_k_e_pairs"]
+    p_r_k_g_pairs = data_structures["p_r_k_g_pairs"]
+    techvehicles = data_structures["techvehicle_list"]
+    fuel_list = data_structures["fuel_list"]
+    geographic_element_list = data_structures["geographic_element_list"]
+    initialfuelinginfr_list = data_structures["initialfuelinginfr_list"]
+    gamma = data_structures["gamma"]
+    investment_period = data_structures["investment_period"]
+    investment_years = collect(data_structures["y_init"]:investment_period:data_structures["Y_end"])  # List of years where x_c is defined
+ 
+
+    @constraint(
+        model,
+        [
+            y in data_structures["y_init"]:data_structures["Y_end"],
+            f in fuel_list,
+            geo in geographic_element_list,
+        ],
+        initialfuelinginfr_list[findfirst(
+            i -> i.fuel.name == f.name && i.allocation == geo.id,
+            initialfuelinginfr_list,
+        )].installed_kW + sum(
+            model[:q_fuel_infr_plus][y_init, f.id, geo.id]
         ) >= sum(
             gamma * model[:s][y, p_r_k_g, tv.id] for p_r_k_g ∈ p_r_k_g_pairs for
             tv ∈ techvehicles if p_r_k_g[4] == geo.id && tv.technology.fuel.name == f.name
@@ -593,6 +638,68 @@ function constraint_fueling_infrastructure(model::JuMP.Model, data_structures::D
     )
 end
 
+function constraint_fueling_infrastructure_init(model::JuMP.Model, data_structures::Dict)
+    technologies = data_structures["technology_list"]
+
+    p_r_k_n_pairs = data_structures["p_r_k_n_pairs"]
+    p_r_k_e_pairs = data_structures["p_r_k_e_pairs"]
+    p_r_k_g_pairs = data_structures["p_r_k_g_pairs"]
+    techvehicles = data_structures["techvehicle_list"]
+    fuel_list = data_structures["fuel_list"]
+    geographic_element_list = data_structures["geographic_element_list"]
+    initialfuelinginfr_list = data_structures["initialfuelinginfr_list"]
+    gamma = data_structures["gamma"]
+    investment_period = data_structures["investment_period"]
+    investment_years = collect(data_structures["y_init"]:investment_period:data_structures["Y_end"])  # List of years where x_c is defined
+    Y_end = data_structures["Y_end"]
+
+    @constraint(
+        model,
+        [
+            f in fuel_list,
+            geo in geographic_element_list,
+        ],
+        sum(
+            model[:q_fuel_infr_plus][y0, f.id, geo.id] for y0 ∈ (data_structures["y_init"] + 1):investment_period:Y_end
+        ) 
+        == 0
+    )
+end
+
+
+function constraint_fueling_cap_constant(model::JuMP.Model, data_structures::Dict)
+    echnologies = data_structures["technology_list"]
+    y_init = data_structures["y_init"]
+    p_r_k_n_pairs = data_structures["p_r_k_n_pairs"]
+    p_r_k_e_pairs = data_structures["p_r_k_e_pairs"]
+    p_r_k_g_pairs = data_structures["p_r_k_g_pairs"]
+    techvehicles = data_structures["techvehicle_list"]
+    fuel_list = data_structures["fuel_list"]
+    geographic_element_list = data_structures["geographic_element_list"]
+    initialfuelinginfr_list = data_structures["initialfuelinginfr_list"]
+    gamma = data_structures["gamma"]
+    investment_period = data_structures["investment_period"]
+    investment_years = collect(data_structures["y_init"]:investment_period:data_structures["Y_end"])  # List of years where x_c is defined
+ 
+
+    @constraint(
+        model,
+        [
+            y in data_structures["y_init"]:data_structures["Y_end"],
+            f in fuel_list[2:2],
+            geo in geographic_element_list,
+        ],
+        initialfuelinginfr_list[findfirst(
+            i -> i.fuel.name == f.name && i.allocation == geo.id,
+            initialfuelinginfr_list,
+        )].installed_kW + sum(
+            model[:q_fuel_infr_plus][y_init, f.id, geo.id]
+        ) == sum(
+            gamma * model[:s][y, p_r_k_g, tv.id] for p_r_k_g ∈ p_r_k_g_pairs for
+            tv ∈ techvehicles if p_r_k_g[4] == geo.id && tv.technology.fuel.name == f.name
+        )
+    )
+end
 
 function constraint_supply_infrastructure(model::JuMP.Model, data_structures::Dict)
     technologies = data_structures["technology_list"]
@@ -604,6 +711,7 @@ function constraint_supply_infrastructure(model::JuMP.Model, data_structures::Di
     initsupplyinfr_list = data_structures["initsupplyinfr_list"]
     gamma = data_structures["gamma"]
     supplytype_list = data_structures["supplytype_list"]
+    investment_period = data_structures["investment_period"]
 
     @constraint(
         model,
@@ -637,18 +745,22 @@ function constraint_mode_infrastructure(model::JuMP.Model, data_structures::Dict
     path_list = data_structures["path_list"]
     initialmodeinfr_list = data_structures["initialmodeinfr_list"]
     geographic_element_list = data_structures["geographic_element_list"]
+    investment_period = data_structures["investment_period"]
+    investment_years = collect(data_structures["y_init"]:investment_period:data_structures["Y_end"])  # List of years where x_c is defined
+
     @constraint(
         model,
         [
             y in data_structures["y_init"]:data_structures["Y_end"],
             m in data_structures["mode_list"],
+            # m in [data_structures["mode_list"][1]],
             geo in geographic_element_list,
         ],
         initialmodeinfr_list[findfirst(
             i -> i.mode.id == m.id && i.allocation == geo.id,
             initialmodeinfr_list,
         )].installed_ukm + sum(
-            model[:q_mode_infr_plus][y0, m.id, geo.id] for y0 ∈ data_structures["y_init"]:y
+            model[:q_mode_infr_plus][y0, m.id, geo.id] for y0 ∈ data_structures["y_init"]:investment_period:y 
         ) >=
         data_structures["gamma"] * sum(
             model[:f][y, p_r_k, m_tv, g] for p_r_k ∈ data_structures["p_r_k_pairs"] for
@@ -683,7 +795,7 @@ function constraint_fueling_demand(model::JuMP.Model, data_structures::Dict)
         sum(
             model[:s][y, (p.id, r_k[1], r_k[2], el.id), v.id] for
             el ∈ paths[findfirst(k0 -> k0.id == r_k[2], paths)].sequence
-        ) >= sum(
+        ) == sum(
             (
                 (v.spec_cons[g-g_init+1]) / v.W[g-g_init+1] *
                 paths[findfirst(p0 -> p0.id == r_k[2], paths)].length
@@ -708,8 +820,8 @@ function constraint_vehicle_stock_shift(model::JuMP.Model, data_structures::Dict
     g_init = data_structures["g_init"]
     odpairs = data_structures["odpair_list"]
     techvehicles = data_structures["techvehicle_list"]
-    alpha_h = data_structures["alpha_h"]
-    beta_h = data_structures["beta_h"]
+    alpha_h = data_structures["alpha_h_t"]
+    beta_h = data_structures["beta_h_t"]
     technologies = data_structures["technology_list"]
     vehicletypes = data_structures["vehicletype_list"]
 
@@ -719,19 +831,19 @@ function constraint_vehicle_stock_shift(model::JuMP.Model, data_structures::Dict
         [r in odpairs, t in technologies],
         (
             sum(
-                model[:h][y_init, r.id, tv.id, g] for g ∈ g_init:y_init for v ∈ vehicletypes
+                model[:h][y_init, r.id, tv.id, g] for g ∈ g_init:y_init
                 for tv ∈ techvehicles if g <= y_init && tv.technology.id == t.id
             ) - sum(
-                model[:h][y_init, r.id, tv.id, g] for g ∈ g_init:y_init for v ∈ vehicletypes
+                model[:h_exist][y_init, r.id, tv.id, g] for g ∈ g_init:y_init
                 for tv ∈ techvehicles if g <= y_init - 1 && tv.technology.id == t.id
             )
         ) <=
         alpha_h * sum(
-            model[:h][y_init, r.id, tv.id, g] for g ∈ g_init:(y_init-1) for
+            model[:h][y_init, r.id, tv.id, g] for g ∈ g_init:y_init for
             tv ∈ techvehicles
         ) +
         beta_h * sum(
-            model[:h_exist][y_init, r.id, tv.id, g] for v ∈ vehicletypes for
+            model[:h_exist][y_init, r.id, tv.id, g] for
             g ∈ g_init:(y_init-1) for tv ∈ techvehicles if tv.technology.id == t.id
         )
     )
@@ -741,20 +853,19 @@ function constraint_vehicle_stock_shift(model::JuMP.Model, data_structures::Dict
         [r in odpairs, t in technologies],
         -(
             sum(
-                model[:h][y_init, r.id, tv.id, g] for g ∈ g_init:y_init for v ∈ vehicletypes
+                model[:h][y_init, r.id, tv.id, g] for g ∈ g_init:y_init 
                 for tv ∈ techvehicles if g <= y_init && tv.technology.id == t.id
             ) - sum(
                 model[:h_exist][y_init, r.id, tv.id, g] for g ∈ g_init:y_init for
-                v ∈ vehicletypes for
                 tv ∈ techvehicles if g <= y_init - 1 && tv.technology.id == t.id
             )
         ) <=
         alpha_h * sum(
-            model[:h][y_init, r.id, tv.id, g] for g ∈ g_init:(y_init-1) for
+            model[:h][y_init, r.id, tv.id, g] for g ∈ g_init:y_init for
             tv ∈ techvehicles
         ) +
         beta_h * sum(
-            model[:h_exist][y_init, r.id, tv.id, g] for v ∈ vehicletypes for
+            model[:h_exist][y_init, r.id, tv.id, g] for
             g ∈ g_init:(y_init-1) for tv ∈ techvehicles if tv.technology.id == t.id
         )
     )
@@ -765,17 +876,17 @@ function constraint_vehicle_stock_shift(model::JuMP.Model, data_structures::Dict
         [y in (y_init+1):Y_end, r in odpairs, t in technologies],
         (
             sum(
-                model[:h][y, r.id, tv.id, g] for g ∈ g_init:y for v ∈ vehicletypes for
-                tv ∈ techvehicles if g <= y && tv.technology.id == t.id
+                model[:h][y, r.id, tv.id, g] for g ∈ g_init:y for
+                tv ∈ techvehicles if tv.technology.id == t.id
             ) - sum(
-                model[:h][y-1, r.id, tv.id, g] for g ∈ g_init:y for v ∈ vehicletypes for
-                tv ∈ techvehicles if g <= y - 1 && tv.technology.id == t.id
+                model[:h][y-1, r.id, tv.id, g] for g ∈ g_init:(y-1) for
+                tv ∈ techvehicles if tv.technology.id == t.id
             )
         ) <=
         alpha_h *
-        sum(model[:h][y, r.id, tv.id, g] for g ∈ g_init:(y-1) for tv ∈ techvehicles) +
+        sum(model[:h][y, r.id, tv.id, g] for g ∈ g_init:y for tv ∈ techvehicles) +
         beta_h * sum(
-            model[:h][y-1, r.id, tv.id, g] for v ∈ vehicletypes for g ∈ g_init:(y-1) for
+            model[:h][y-1, r.id, tv.id, g] for g ∈ g_init:(y-1) for
             tv ∈ techvehicles if tv.technology.id == t.id
         )
     )
@@ -786,17 +897,112 @@ function constraint_vehicle_stock_shift(model::JuMP.Model, data_structures::Dict
         -(
             sum(
                 model[:h][y, r.id, tv.id, g] for g ∈ g_init:y for v ∈ vehicletypes for
-                tv ∈ techvehicles if g <= y && tv.technology.id == t.id
+                tv ∈ techvehicles if tv.technology.id == t.id
             ) - sum(
-                model[:h][y-1, r.id, tv.id, g] for g ∈ g_init:y for v ∈ vehicletypes for
-                tv ∈ techvehicles if g <= y - 1 && tv.technology.id == t.id
+                model[:h][y-1, r.id, tv.id, g] for g ∈ g_init:(y-1) for v ∈ vehicletypes for
+                tv ∈ techvehicles if tv.technology.id == t.id
             )
         ) <=
         alpha_h *
-        sum(model[:h][y, r.id, tv.id, g] for g ∈ g_init:(y-1) for tv ∈ techvehicles) +
+        sum(model[:h][y, r.id, tv.id, g] for g ∈ g_init:y for tv ∈ techvehicles) +
         beta_h * sum(
-            model[:h][y-1, r.id, tv.id, g] for v ∈ vehicletypes for g ∈ g_init:(y-1) for
+            model[:h][y-1, r.id, tv.id, g] for g ∈ g_init:(y-1) for
             tv ∈ techvehicles if tv.technology.id == t.id
+        )
+    )
+end
+
+
+"""
+	constraint_vehicle_stock_shift_vehicle_type(model::JuMP.Model, data_structures::Dict)
+
+Constraints for vehicle stock turnover.
+
+# Arguments
+- model::JuMP.Model: JuMP model
+- data_structures::Dict: dictionary with the input data
+"""
+function constraint_vehicle_stock_shift_vehicle_type(model::JuMP.Model, data_structures::Dict)
+    y_init = data_structures["y_init"]
+    Y_end = data_structures["Y_end"]
+    g_init = data_structures["g_init"]
+    odpairs = data_structures["odpair_list"]
+    techvehicles = data_structures["techvehicle_list"]
+    alpha_h = data_structures["alpha_h"]
+    beta_h = data_structures["beta_h"]
+    technologies = data_structures["technology_list"]
+    vehicletypes = data_structures["vehicletype_list"]
+
+    # for y = y_init
+    @constraint(
+        model,
+        [r in odpairs, tv in techvehicles],
+        (
+            sum(
+                model[:h][y_init, r.id, tv.id, g] for g ∈ g_init:y_init
+            ) - sum(
+                model[:h_exist][y_init, r.id, tv.id, g] for g ∈ g_init:(y_init-1)
+            )
+        ) <=
+        alpha_h * sum(
+            model[:h][y_init, r.id, tv0.id, g] for g ∈ g_init:y_init for tv0 ∈ techvehicles
+        ) +
+        beta_h * sum(
+            model[:h_exist][y_init, r.id, tv.id, g] for
+            g ∈ g_init:(y_init-1)
+        )
+    )
+
+    @constraint(
+        model,
+        [r in odpairs, tv in techvehicles],
+        -(
+            sum(
+                model[:h][y_init, r.id, tv.id, g] for g ∈ g_init:y_init
+            ) - sum(
+                model[:h_exist][y_init, r.id, tv.id, g] for g ∈ g_init:(y_init-1)
+            )
+        ) <=
+        alpha_h * sum(
+            model[:h][y_init, r.id, tv0.id, g] for g ∈ g_init:y_init for tv0 ∈ techvehicles
+        ) +
+        beta_h * sum(
+            model[:h_exist][y_init, r.id, tv.id, g] for g ∈ g_init:(y_init-1)
+        )
+    )
+
+    # for  y > y_init
+    @constraint(
+        model,
+        [y in (y_init+1):Y_end, r in odpairs, tv in techvehicles],
+        (
+            sum(
+                model[:h][y, r.id, tv.id, g] for g ∈ g_init:y
+            ) - sum(
+                model[:h][y-1, r.id, tv.id, g] for g ∈ g_init:(y-1)
+            )
+        ) <=
+        alpha_h *
+        sum(model[:h][y, r.id, tv0.id, g] for g ∈ g_init:y for tv0 ∈ techvehicles) +
+        beta_h * sum(
+            model[:h][y-1, r.id, tv.id, g] for g ∈ g_init:(y-1)
+        )
+    )
+
+    @constraint(
+        model,
+        [y in (y_init+1):Y_end, r in odpairs, tv in techvehicles],
+        -(
+            sum(
+                model[:h][y, r.id, tv.id, g] for g ∈ g_init:y
+            ) - sum(
+                model[:h][y-1, r.id, tv.id, g] for g ∈ g_init:(y-1) 
+            )
+        ) <=
+        alpha_h *
+        sum(model[:h][y, r.id, tv0.id, g] for g ∈ g_init:y for tv0 ∈ techvehicles) +
+        beta_h * sum(
+            model[:h][y-1, r.id, tv.id, g] for g ∈ g_init:(y-1)
         )
     )
 end
@@ -838,8 +1044,8 @@ function constraint_mode_shift(model::JuMP.Model, data_structures::Dict)
             for mv ∈ m_tv_pairs
         ) +
         beta_f * sum(
-            model[:f][y-1, (r.product.id, r.id, k.id), mv, g] for m0 ∈ modes for
-            mv ∈ m_tv_pairs for k ∈ r.paths for g ∈ g_init:(y-1)
+            model[:f][y-1, (r.product.id, r.id, k.id), mv, g] for k ∈ r.paths for
+            mv ∈ m_tv_pairs for g ∈ g_init:(y-1) if mv[1] == m.id
         )
     )
 
@@ -860,8 +1066,8 @@ function constraint_mode_shift(model::JuMP.Model, data_structures::Dict)
             for mv ∈ m_tv_pairs
         ) +
         beta_f * sum(
-            model[:f][y-1, (r.product.id, r.id, k.id), mv, g] for m0 ∈ modes for
-            mv ∈ m_tv_pairs for k ∈ r.paths for g ∈ g_init:(y-1)
+            model[:f][y-1, (r.product.id, r.id, k.id), mv, g] for k ∈ r.paths for
+            mv ∈ m_tv_pairs for g ∈ g_init:(y-1) if mv[1] == m.id
         )
     )
 end
@@ -977,7 +1183,7 @@ function constraint_market_share(model::JuMP.Model, data_structures::Dict)
     p_r_k_pairs = data_structures["p_r_k_pairs"]
     g_init = data_structures["g_init"]
     odpairs = data_structures["odpair_list"]
-
+    #println("market_share_list: ", market_share_list)
     @constraint(
         model,
         [el in market_share_list],
@@ -985,7 +1191,7 @@ function constraint_market_share(model::JuMP.Model, data_structures::Dict)
             model[:h_plus][el.year, r.id, el.type.id, g] for r ∈ odpairs for
             g ∈ g_init:(el.year)
         ) ==
-        el.share * sum(
+        el.market_share * sum(
             model[:h_plus][el.year, r.id, tv.id, g] for r ∈ odpairs for
             tv ∈ data_structures["techvehicle_list"] for
             g ∈ g_init:(el.year) if tv.vehicle_type.mode.id == el.type.vehicle_type.mode.id
@@ -1014,7 +1220,6 @@ function constraint_emissions_by_mode(model::JuMP.Model, data_structures::Dict)
                 [el in emission_constraints_by_mode_list],
                 sum(
                     model[:s][el.year, (r.product.id, r.id, k.id, geo), tv.id] *
-                    (1 / 1000) *
                     tv.technology.fuel.emission_factor for
                     r ∈ data_structures["odpair_list"] for k ∈ r.paths for
                     tv ∈ data_structures["techvehicle_list"] for
@@ -1124,8 +1329,6 @@ function constraint_detour_time(model::JuMP.Model, data_structures::Dict)
                         g_id ∈ geo_i_f_pairs if g_id[1] == geo_id && g_id[3] == f.id
                     )
                 )
-                for sel ∈ selection
-                end
             end
         end
     end
@@ -1154,6 +1357,8 @@ function constraint_lin_z_nalpha(model::JuMP.Model, data_structures::Dict)
     g_init = data_structures["g_init"]
     gamma = data_structures["gamma"]
     geographic_element_list = data_structures["geographic_element_list"]
+    investment_period = data_structures["investment_period"]
+    investment_years = collect(y_init:investment_period:Y_end)  # List of years where x_c is defined
     M = 10^8
     for geo_i_f ∈ geo_id_pairs
         matching_item = detour_time_reduction_list[findfirst(
@@ -1178,14 +1383,14 @@ function constraint_lin_z_nalpha(model::JuMP.Model, data_structures::Dict)
         @constraint(
             model,
             [y in y_init:Y_end, p_r_k in p_r_k_g_pairs],
-            model[:z][y, geo_i_f, p_r_k] <= M * model[:x_c][y, geo_i_f]
+            model[:z][y, geo_i_f, p_r_k] <= M * model[:x_c][maximum(filter(t -> t <= y, investment_years)), geo_i_f]
         )
 
         @constraint(
             model,
             [y in y_init:Y_end, p_r_k in p_r_k_g_pairs],
             model[:z][y, geo_i_f, p_r_k] >=
-            model[:n_fueling][y, p_r_k, f.id] - M * (1 - model[:x_c][y, geo_i_f])
+            model[:n_fueling][y, p_r_k, f.id] - M * (1 - model[:x_c][maximum(filter(t -> t <= y, investment_years)), geo_i_f])
         )
     end
 end
@@ -1213,6 +1418,8 @@ function constraint_detour_time_capacity_reduction(model::JuMP.Model, data_struc
     detour_time_reduction_list = data_structures["detour_time_reduction_list"]
     fuel_list = data_structures["fuel_list"]
     geographic_element_list = data_structures["geographic_element_list"]
+    investment_period = data_structures["investment_period"]
+    investment_years = collect(y_init:investment_period:Y_end)  # List of years where x_c is defined
     M = 10^8
 
     global counter_ = 0
@@ -1233,39 +1440,59 @@ function constraint_detour_time_capacity_reduction(model::JuMP.Model, data_struc
 
         @constraint(
             model,
-            [y in y_init:Y_end],
+            [y in y_init:investment_period:Y_end],
             lb * model[:x_c][y, geo_i_f] <=
-            sum(model[:q_fuel_infr_plus][y0, fuel_type.id, geo_i_f[1]] for y0 ∈ y_init:y)
+            sum(model[:q_fuel_infr_plus][y0, fuel_type.id, geo_i_f[1]] for y0 ∈ y_init:investment_period:y)
         )
         @constraint(
             model,
-            [y in y_init:Y_end],
+            [y in y_init:investment_period:Y_end],
             sum(
-                model[:q_fuel_infr_plus][y0, fuel_type.id, geo_i_f[1]] for y0 ∈ y_init:y
+                model[:q_fuel_infr_plus][y0, fuel_type.id, geo_i_f[1]] for y0 ∈ y_init:investment_period:y
             ) <= ub * model[:x_c][y, geo_i_f] + M * (1 - model[:x_c][y, geo_i_f])
         )
-        @constraint(
-            model,
-            [y in y_init:Y_end],
-            sum(
-                model[:q_fuel_infr_plus][y0, fuel_type.id, geo_i_f[1]] for y0 ∈ y_init:y
-            ) <= M * model[:x_a][y, geo_i_f]
-        )
-        @constraint(
-            model,
-            [y in y_init:Y_end],
-            ub - sum(
-                model[:q_fuel_infr_plus][y0, fuel_type.id, geo_i_f[1]] for y0 ∈ y_init:y
-            ) <= M * model[:x_b][y, geo_i_f]
-        )
-        @constraint(
-            model,
-            [y in y_init:Y_end],
-            model[:x_c][y, geo_i_f] >=
-            model[:x_a][y, geo_i_f] + model[:x_b][y, geo_i_f] - 1
-        )
+    #     @constraint(
+    #         model,
+    #         [y in y_init:Y_end],
+    #         sum(
+    #             model[:q_fuel_infr_plus][y0, fuel_type.id, geo_i_f[1]] for y0 ∈ y_init:y
+    #         ) <= M * model[:x_a][y, geo_i_f]
+    #     )
+    #     @constraint(
+    #         model,
+    #         [y in y_init:Y_end],
+    #         ub - sum(
+    #             model[:q_fuel_infr_plus][y0, fuel_type.id, geo_i_f[1]] for y0 ∈ y_init:y
+    #         ) <= M * model[:x_b][y, geo_i_f]
+    #     )
+    #     @constraint(
+    #         model,
+    #         [y in y_init:Y_end],
+    #         model[:x_c][y, geo_i_f] >=
+    #         model[:x_a][y, geo_i_f] + model[:x_b][y, geo_i_f] - 1
+    #     )
     end
 end
+
+
+
+function constraint_sum_x(model::JuMP.Model, data_structures::Dict)
+    geo_id_pairs = data_structures["geo_i_f_pairs"]
+    y_init = data_structures["y_init"]
+    Y_end = data_structures["Y_end"]
+    p_r_k_g_pairs = data_structures["p_r_k_g_pairs"]
+    paths = data_structures["path_list"]
+    gamma = data_structures["gamma"]
+    detour_time_reduction_list = data_structures["detour_time_reduction_list"]
+    fuel_list = data_structures["fuel_list"]
+    geographic_element_list = data_structures["geographic_element_list"]
+    investment_period = data_structures["investment_period"]
+    M = 10^8
+
+    @constraint(model, [y in y_init:investment_period:Y_end, geo in geographic_element_list, f in fuel_list], sum(model[:x_c][y, geo_i_f] for geo_i_f ∈ geo_id_pairs if geo_i_f[1] == geo.id && geo_i_f[3] == f.id) <= 1)
+
+end
+
 
 """
     constraint_travel_time(model::JuMP.Model, data_structures::Dict)
@@ -1331,8 +1558,10 @@ function objective(model::Model, data_structures::Dict)
     speed_list = data_structures["speed_list"]
     initialfuelinfr_list = data_structures["initialfuelinginfr_list"]
     initialmodeinfr_list = data_structures["initialmodeinfr_list"]
+    investment_period = data_structures["investment_period"]
+    investment_years = collect(y_init:investment_period:Y_end)  # List of years where x_c is defined
     capital_cost_map = Dict(
-        (v.id, g) => v.capital_cost[g-g_init+1] for v ∈ techvehicles for g ∈ g_init:Y_end
+        (v.id, y) => v.capital_cost[y-y_init+1] for v ∈ techvehicles for y ∈ y_init:Y_end
     )
     vehicle_subsidy_list = data_structures["vehicle_subsidy_list"]
 
@@ -1354,6 +1583,16 @@ function objective(model::Model, data_structures::Dict)
                 total_cost_expr,
                 model[:budget_penalty_minus][y, r.id] *
                 data_structures["budget_penalty_minus"] * discount_factor,
+            )
+            add_to_expression!(
+                total_cost_expr,
+                model[:budget_penalty_yearly_plus][y, r.id] *
+                data_structures["budget_penalty_yearly_plus"] * discount_factor * (1/r.financial_status.monetary_budget_purchase_time_horizon),
+            )
+            add_to_expression!(
+                total_cost_expr,
+                model[:budget_penalty_yearly_minus][y, r.id] *
+                data_structures["budget_penalty_yearly_minus"] * discount_factor * (1/r.financial_status.monetary_budget_purchase_time_horizon),
             )
         end
         for v ∈ techvehicles
@@ -1383,25 +1622,31 @@ function objective(model::Model, data_structures::Dict)
                     for geo ∈ k.sequence
                         add_to_expression!(
                             total_cost_expr,
-                            model[:s][y, (r.product.id, r.id, k.id, geo.id), v.id] *
+                            model[:s][y, (r.product.id, r.id, k.id, geo.id), v.id] * 
                             fuel_cost * discount_factor +
-                            10^(-3) *
+                            10^(-6) *
                             model[:s][y, (r.product.id, r.id, k.id, geo.id), v.id] *
                             v.technology.fuel.emission_factor[y-y_init+1] *
                             geo.carbon_price[y-y_init+1] * discount_factor,
                         )
                     end
                 end
+                capital_cost = capital_cost_map[(v.id, y)]
+
+                
 
                 for g ∈ g_init:y
-                    capital_cost = capital_cost_map[(v.id, g)]
-
                     add_to_expression!(
                         total_cost_expr,
-                        model[:h_plus][y, r.id, v.id, g] * (capital_cost - veh_sub)* discount_factor,
+                        model[:h_plus][y, r.id, v.id, y] * (capital_cost - veh_sub)* discount_factor,
                     )
+                    # add_to_expression!(
+                    #     total_cost_expr,
+                    #     model[:h_minus][y, r.id, v.id, y] * depreciated_inv_costs(capital_cost- veh_sub, y - g) * discount_factor,
+                    # )
 
                     if y - g < v.Lifetime[g-g_init+1]
+                        # println(length(v.maintenance_cost_annual[g-g_init+1]), " ",  length(v.maintenance_cost_annua))
                         add_to_expression!(
                             total_cost_expr,
                             model[:h][y, r.id, v.id, g] *
@@ -1426,13 +1671,20 @@ function objective(model::Model, data_structures::Dict)
                     
                     # value of time
 
-                    # the detour time reduction needs to go somewhere els
+                    # the detour time reduction needs to go somewhere else
+
+                    driving_range_veh = v.tank_capacity[g-g_init+1] * (1/v.spec_cons[g-g_init+1])
+                    if driving_range_veh < route_length
+                        fueling_time = (route_length * v.spec_cons[g-g_init+1]) / v.peak_fueling[g-g_init+1]
+                    else
+                        fueling_time = 0
+                    end
                     for k ∈ r.paths
                         vot = r.financial_status.VoT
                         los_wo_detour =
                             route_length / speed +
                             v.vehicle_type.mode.waiting_time[y-y_init+1] +
-                            v.fueling_time[g-g_init+1]
+                            fueling_time
                         intangible_costs = vot * los_wo_detour
                         add_to_expression!(
                             total_cost_expr,
@@ -1443,6 +1695,17 @@ function objective(model::Model, data_structures::Dict)
                                 g,
                             ],
                         )
+                        if y - g < v.Lifetime[g-g_init+1]
+                            add_to_expression!(
+                                total_cost_expr,
+                                discount_factor * v.maintenance_cost_distance[g-g_init+1][y-g+1] * route_length * model[:f][
+                                    y,
+                                    (r.product.id, r.id, k.id),
+                                    (v.vehicle_type.mode.id, v.id),
+                                    g,
+                                ],
+                            )
+                        end
                     end
                 end
                 if length(data_structures["detour_time_reduction_list"]) > 0
@@ -1463,11 +1726,13 @@ function objective(model::Model, data_structures::Dict)
         end
         for m ∈ modes
             for geo ∈ geographic_element_list
-                add_to_expression!(
-                    total_cost_expr,
-                    model[:q_mode_infr_plus][y, m.id, geo.id] *
-                    m.infrastructure_expansion_costs[y-y_init+1] * discount_factor,
-                )
+                if y in investment_years
+                    add_to_expression!(
+                        total_cost_expr,
+                        model[:q_mode_infr_plus][y, m.id, geo.id] *
+                        m.infrastructure_expansion_costs[y-y_init+1] * discount_factor,
+                    )
+                end
                 for y0 ∈ y_init:y
                     add_to_expression!(
                         total_cost_expr,
@@ -1475,7 +1740,7 @@ function objective(model::Model, data_structures::Dict)
                             initialmodeinfr_list[findfirst(
                                 i -> i.mode.id == m.id && i.allocation == geo.id,
                                 initialmodeinfr_list,
-                            )].installed_ukm + model[:q_mode_infr_plus][y0, m.id, geo.id]
+                            )].installed_ukm + model[:q_mode_infr_plus][maximum(filter(t -> t <= y0, investment_years)), m.id, geo.id]
                         ) * m.infrastructure_om_costs[y-y_init+1] * discount_factor,
                     )
                 end
@@ -1493,12 +1758,12 @@ function objective(model::Model, data_structures::Dict)
                                 for g ∈ g_init:y
                                     add_to_expression!(
                                         total_cost_expr,
-                                        model[:f][y, (r.product.id, r.id, k.id), mv, g] *
+                                        model[:f][y, (r.product.id, r.id, k.id), mv, g] * 
                                         discount_factor * route_length *
                                         (
                                             m.cost_per_ukm[y-y_init+1] +
                                             m.emission_factor[y-y_init+1] *
-                                            10^(-3) *
+                                            10^(-6) *
                                             create_emission_price_along_path(
                                                 k,
                                                 y - y_init + 1,
@@ -1508,7 +1773,7 @@ function objective(model::Model, data_structures::Dict)
                                     )
                                     add_to_expression!(
                                         total_cost_expr,
-                                        intangible_costs *
+                                        intangible_costs * 
                                         discount_factor * model[:f][y, (r.product.id, r.id, k.id), mv, g],
                                     )
                                 end
@@ -1520,10 +1785,12 @@ function objective(model::Model, data_structures::Dict)
         end
         for f ∈ fuel_list
             for geo ∈ geographic_element_list
-                add_to_expression!(
-                    total_cost_expr,
-                    model[:q_fuel_infr_plus][y, f.id, geo.id] * f.cost_per_kW[y-y_init+1] * discount_factor,
-                )
+                if y in investment_years
+                    add_to_expression!(
+                        total_cost_expr,
+                        model[:q_fuel_infr_plus][y, f.id, geo.id] * f.cost_per_kW[y-y_init+1] * discount_factor,
+                    )
+                end
                 for y0 ∈ y_init:y
                     add_to_expression!(
                         total_cost_expr,
@@ -1531,7 +1798,7 @@ function objective(model::Model, data_structures::Dict)
                             initialfuelinfr_list[findfirst(
                                 i -> i.fuel.id == f.id && i.allocation == geo.id,
                                 initialfuelinfr_list,
-                            )].installed_kW + model[:q_fuel_infr_plus][y0, f.id, geo.id]
+                            )].installed_kW + model[:q_fuel_infr_plus][maximum(filter(t -> t <= y0, investment_years)), f.id, geo.id]
                         ) * f.fueling_infrastructure_om_costs[y-y_init+1] * discount_factor,
                     )
                 end
@@ -1543,10 +1810,12 @@ function objective(model::Model, data_structures::Dict)
             initialsupplyinfr_list = data_structures["initialsupplyinfr_list"]
             for st in supplytype_list
                 for geo in geographic_element_list
-                    add_to_expression!(
-                        total_cost_expr,
-                        model[:q_supply_infr_plus][y, st.id, geo.id] * st.install_costs[y-y_init+1] * discount_factor,
-                    )
+                    if y in investment_years
+                        add_to_expression!(
+                            total_cost_expr,
+                            model[:q_supply_infr_plus][y, st.id, geo.id] * st.install_costs[y-y_init+1] * discount_factor,
+                        )
+                    end
                     for y0 in y_init:y
                         add_to_expression!(
                             total_cost_expr,
@@ -1554,7 +1823,7 @@ function objective(model::Model, data_structures::Dict)
                                 initialsupplyinfr_list[findfirst(
                                     i -> i.supplytype.id == st.id && i.allocation == geo.id,
                                     initialsupplyinfr_list,
-                                )].installed_kW + model[:q_supply_infr_plus][y0, st.id, geo.id]
+                                )].installed_kW + model[:q_supply_infr_plus][maximum(filter(t -> t <= y0, investment_years)), st.id, geo.id]
                             ) * st.om_costs[y-y_init+1] * discount_factor,
                         )
                     end
@@ -1563,5 +1832,6 @@ function objective(model::Model, data_structures::Dict)
 
         end 
     end
+
     @objective(model, Min, total_cost_expr)
 end

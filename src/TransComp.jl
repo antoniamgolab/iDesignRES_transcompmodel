@@ -61,6 +61,7 @@ export constraint_fueling_infrastructure
 export constraint_mode_infrastructure
 export constraint_fueling_demand
 export constraint_vehicle_stock_shift
+export constraint_vehicle_stock_shift_vehicle_type
 export constraint_mode_shift
 export constraint_mode_share
 export constraint_max_mode_share
@@ -71,6 +72,10 @@ export constraint_detour_time_capacity_reduction
 export constraint_lin_z_nalpha
 export constraint_detour_time
 export constraint_def_n_fueling
+export constraint_sum_x
+export constraint_constant_fueling_since_yinit
+export constraint_fueling_infrastructure_init
+export constraint_fueling_cap_constant
 export objective
 
 # exporting supporting functions
@@ -87,6 +92,7 @@ export create_r_k_set
 export create_model
 export depreciation_factor
 export create_emission_price_along_path
+export disagreggate
 export save_results
 
 end

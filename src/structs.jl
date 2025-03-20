@@ -463,11 +463,10 @@ A 'Market_shares' describes the market share of a vehicle type with a specific d
 """
 
 struct Market_shares
-    id::Int
-    type::TechVehicle
-    share::Float64
-    year::Int
-    region_type::Array{Regiontype,1}
+    id::Any
+    type::Any
+    market_share::Any
+    year::Any
 end
 
 """
@@ -952,4 +951,4 @@ global struct_names_extended = [
 ]
 
 global default_data =
-    Dict("alpha_f" => 0.1, "beta_f" => 0.1, "alpha_h" => 0.1, "beta_h" => 0.1)
+    Dict("alpha_f" => 0.01, "beta_f" => 0.01, "alpha_h" => 0.1, "beta_h" => 0.1, "alpha_h_t" => 0.05, "beta_h_t" => 0.05)

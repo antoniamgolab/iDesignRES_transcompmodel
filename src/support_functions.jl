@@ -4,6 +4,7 @@ This file contains the functions that are used in the model but are not directly
 """
 
 include("structs.jl")
+include("checks.jl")
 using YAML, JuMP, Gurobi, Printf
 
 """
@@ -20,158 +21,158 @@ This function reads the input data and checks requirements for the content of th
 function get_input_data(path_to_source_file::String)
     check_input_file(path_to_source_file)
     data_dict = YAML.load_file(path_to_source_file)
-    check_required_keys(data_dict, struct_names_base)
-    # checking completion of model parametrization 
-    check_model_parametrization(
-        data_dict,
-        ["Y", "y_init", "pre_y", "gamma", "budget_penalty_plus", "budget_penalty_minus"],
-    )
-    # check each of the required keys 
-    check_required_sub_keys(
-        data_dict,
-        ["id", "type", "name", "carbon_price", "from", "to", "length"],
-        "GeographicElement",
-    )
-    check_required_sub_keys(
-        data_dict,
-        [
-            "id",
-            "name",
-            "VoT",
-            "monetary_budget_purchase",
-            "monetary_budget_purchase_lb",
-            "monetary_budget_purchase_ub",
-        ],
-        "FinancialStatus",
-    )
-    check_required_sub_keys(
-        data_dict,
-        [
-            "id",
-            "name",
-            "quantify_by_vehs",
-            "costs_per_ukm",
-            "emission_factor",
-            "infrastructure_expansion_costs",
-            "infrastructure_om_costs",
-            "waiting_time",
-        ],
-        "Mode",
-    )
-    check_required_sub_keys(data_dict, ["id", "name"], "Product")
-    check_required_sub_keys(data_dict, ["id", "name", "sequence", "length"], "Path")
-    check_required_sub_keys(
-        data_dict,
-        [
-            "id",
-            "name",
-            "cost_per_kWh",
-            "cost_per_kW",
-            "emission_factor",
-            "fueling_infrastructure_om_costs",
-        ],
-        "Fuel",
-    )
-    check_required_sub_keys(data_dict, ["id", "name", "fuel"], "Technology")
-    check_required_sub_keys(data_dict, ["id", "name", "mode"], "Vehicletype")
-    check_required_sub_keys(
-        data_dict,
-        ["id", "name", "costs_var", "costs_fix"],
-        "Regiontype",
-    )
-    check_required_sub_keys(
-        data_dict,
-        [
-            "id",
-            "name",
-            "vehicle_type",
-            "technology",
-            "capital_cost",
-            "maintnanace_cost_annual",
-            "maintnance_cost_distance",
-            "W",
-            "spec_cons",
-            "Lifetime",
-            "AnnualRange",
-            "products",
-            "tank_capacity",
-            "peak_fueling",
-            "fueling_time",
-        ],
-        "TechVehicle",
-    )
-    check_required_sub_keys(
-        data_dict,
-        ["id", "techvehicle", "year_of_purchase", "stock"],
-        "InitialVehicleStock",
-    )
-    check_required_sub_keys(
-        data_dict,
-        ["id", "fuel", "allocation", "installed_kW"],
-        "InitialFuelingInfr",
-    )
-    check_required_sub_keys(
-        data_dict,
-        ["id", "mode", "allocation", "installed_ukm"],
-        "InitialModeInfr",
-    )
-    check_required_sub_keys(
-        data_dict,
-        [
-            "id",
-            "from",
-            "to",
-            "path_id",
-            "F",
-            "product",
-            "vehicle_stock_init",
-            "financial_status",
-            "region_type",
-        ],
-        "Odpair",
-    )
-    check_required_sub_keys(
-        data_dict,
-        ["id", "region_type", "vehicle_type", "travel_speed"],
-        "Speed",
-    )
+    # check_required_keys(data_dict, struct_names_base)
+    # # checking completion of model parametrization 
+    # check_model_parametrization(
+    #     data_dict,
+    #     ["Y", "y_init", "pre_y", "gamma", "budget_penalty_plus", "budget_penalty_minus"],
+    # )
+    # # check each of the required keys 
+    # check_required_sub_keys(
+    #     data_dict,
+    #     ["id", "type", "name", "carbon_price", "from", "to", "length"],
+    #     "GeographicElement",
+    # )
+    # check_required_sub_keys(
+    #     data_dict,
+    #     [
+    #         "id",
+    #         "name",
+    #         "VoT",
+    #         "monetary_budget_purchase",
+    #         "monetary_budget_purchase_lb",
+    #         "monetary_budget_purchase_ub",
+    #     ],
+    #     "FinancialStatus",
+    # )
+    # check_required_sub_keys(
+    #     data_dict,
+    #     [
+    #         "id",
+    #         "name",
+    #         "quantify_by_vehs",
+    #         "costs_per_ukm",
+    #         "emission_factor",
+    #         "infrastructure_expansion_costs",
+    #         "infrastructure_om_costs",
+    #         "waiting_time",
+    #     ],
+    #     "Mode",
+    # )
+    # check_required_sub_keys(data_dict, ["id", "name"], "Product")
+    # check_required_sub_keys(data_dict, ["id", "name", "sequence", "length"], "Path")
+    # check_required_sub_keys(
+    #     data_dict,
+    #     [
+    #         "id",
+    #         "name",
+    #         "cost_per_kWh",
+    #         "cost_per_kW",
+    #         "emission_factor",
+    #         "fueling_infrastructure_om_costs",
+    #     ],
+    #     "Fuel",
+    # )
+    # check_required_sub_keys(data_dict, ["id", "name", "fuel"], "Technology")
+    # check_required_sub_keys(data_dict, ["id", "name", "mode"], "Vehicletype")
+    # check_required_sub_keys(
+    #     data_dict,
+    #     ["id", "name", "costs_var", "costs_fix"],
+    #     "Regiontype",
+    # )
+    # check_required_sub_keys(
+    #     data_dict,
+    #     [
+    #         "id",
+    #         "name",
+    #         "vehicle_type",
+    #         "technology",
+    #         "capital_cost",
+    #         "maintnanace_cost_annual",
+    #         "maintnance_cost_distance",
+    #         "W",
+    #         "spec_cons",
+    #         "Lifetime",
+    #         "AnnualRange",
+    #         "products",
+    #         "tank_capacity",
+    #         "peak_fueling",
+    #         "fueling_time",
+    #     ],
+    #     "TechVehicle",
+    # )
+    # check_required_sub_keys(
+    #     data_dict,
+    #     ["id", "techvehicle", "year_of_purchase", "stock"],
+    #     "InitialVehicleStock",
+    # )
+    # check_required_sub_keys(
+    #     data_dict,
+    #     ["id", "fuel", "allocation", "installed_kW"],
+    #     "InitialFuelingInfr",
+    # )
+    # check_required_sub_keys(
+    #     data_dict,
+    #     ["id", "mode", "allocation", "installed_ukm"],
+    #     "InitialModeInfr",
+    # )
+    # check_required_sub_keys(
+    #     data_dict,
+    #     [
+    #         "id",
+    #         "from",
+    #         "to",
+    #         "path_id",
+    #         "F",
+    #         "product",
+    #         "vehicle_stock_init",
+    #         "financial_status",
+    #         "region_type",
+    #     ],
+    #     "Odpair",
+    # )
+    # check_required_sub_keys(
+    #     data_dict,
+    #     ["id", "region_type", "vehicle_type", "travel_speed"],
+    #     "Speed",
+    # )
 
-    check_validity_of_model_parametrization(data_dict)
-    check_uniquness_of_ids(data_dict, struct_names_base)
+    # check_validity_of_model_parametrization(data_dict)
+    # check_uniquness_of_ids(data_dict, struct_names_base)
 
-    res = data_dict["Model"]["Y"] + data_dict["Model"]["y_init"]
-    @info "The optimization horizon is $(data_dict["Model"]["y_init"]) - $res."
-    first_gen = data_dict["Model"]["y_init"] - data_dict["Model"]["pre_y"]
-    @info "Vehicle generations since $first_gen are considered."
+    # res = data_dict["Model"]["Y"] + data_dict["Model"]["y_init"]
+    # @info "The optimization horizon is $(data_dict["Model"]["y_init"]) - $res."
+    # first_gen = data_dict["Model"]["y_init"] - data_dict["Model"]["pre_y"]
+    # @info "Vehicle generations since $first_gen are considered."
 
-    # checking formats
-    check_correct_formats_GeographicElement(data_dict, data_dict["Model"]["Y"])
-    check_correct_formats_FinancialStatus(data_dict)
-    check_correct_format_Mode(data_dict, data_dict["Model"]["Y"])
-    check_correct_format_Product(data_dict)
-    check_correct_format_Path(data_dict)
-    check_correct_format_Fuel(data_dict, data_dict["Model"]["Y"])
-    check_correct_format_Technology(data_dict)
-    check_correct_format_Vehicletype(data_dict)
-    check_correct_format_Regiontype(data_dict, data_dict["Model"]["Y"])
-    check_correct_format_TechVehicle(
-        data_dict,
-        data_dict["Model"]["Y"],
-        data_dict["Model"]["Y"] + data_dict["Model"]["pre_y"],
-    )
-    check_correct_format_InitialVehicleStock(
-        data_dict,
-        data_dict["Model"]["y_init"],
-        first_gen,
-    )
-    check_correct_format_InitialFuelingInfr(data_dict)
-    check_correct_format_InitialModeInfr(data_dict)
-    check_correct_format_Odpair(data_dict, data_dict["Model"]["Y"])
-    check_correct_format_Speed(data_dict)
+    # # checking formats
+    # check_correct_formats_GeographicElement(data_dict, data_dict["Model"]["Y"])
+    # check_correct_formats_FinancialStatus(data_dict)
+    # check_correct_format_Mode(data_dict, data_dict["Model"]["Y"])
+    # check_correct_format_Product(data_dict)
+    # check_correct_format_Path(data_dict)
+    # check_correct_format_Fuel(data_dict, data_dict["Model"]["Y"])
+    # check_correct_format_Technology(data_dict)
+    # check_correct_format_Vehicletype(data_dict)
+    # check_correct_format_Regiontype(data_dict, data_dict["Model"]["Y"])
+    # check_correct_format_TechVehicle(
+    #     data_dict,
+    #     data_dict["Model"]["Y"],
+    #     data_dict["Model"]["Y"] + data_dict["Model"]["pre_y"],
+    # )
+    # check_correct_format_InitialVehicleStock(
+    #     data_dict,
+    #     data_dict["Model"]["y_init"],
+    #     first_gen,
+    # )
+    # check_correct_format_InitialFuelingInfr(data_dict)
+    # check_correct_format_InitialModeInfr(data_dict)
+    # check_correct_format_Odpair(data_dict, data_dict["Model"]["Y"])
+    # check_correct_format_Speed(data_dict)
 
-    # printing key information for the user 
+    # # printing key information for the user 
 
-    @info "Input data checks successfully completed."
+    # @info "Input data checks successfully completed."
 
     return data_dict
 end
@@ -360,7 +361,6 @@ function parse_data(data_dict::Dict)
     ]
 
     # odpair_list = odpair_list[1:20]
-    @info "The number of OD pairs is $(length(odpair_list))."
     speed_list = [
         Speed(
             speed["id"],
@@ -378,16 +378,21 @@ function parse_data(data_dict::Dict)
 
     if haskey(data_dict, "Market_shares")
         market_share_list = [
-            MarketShare(
+            Market_shares(
                 market_share["id"],
-                techvehicle_list[findfirst(tv -> tv.id, techvehicle_list)],
-                market_share["share"],
-                market_share["financial_status"],
+                techvehicle_list[findfirst(tv -> tv.id == market_share["type"], techvehicle_list)],
+                market_share["market_share"],
+                market_share["year"],
             ) for market_share ∈ data_dict["Market_shares"]
         ]
         @info "Market shares are defined"
     else
         market_share_list = []
+    end
+    if haskey(data_dict["Model"], "investment_period")
+        investment_period = data_dict["Model"]["investment_period"]
+    else
+        investment_period = 1
     end
 
     if haskey(data_dict, "Emission_constraints_by_mode")
@@ -572,6 +577,8 @@ function parse_data(data_dict::Dict)
         "discount_rate" => data_dict["Model"]["discount_rate"],
         "budget_penalty_plus" => data_dict["Model"]["budget_penalty_plus"],
         "budget_penalty_minus" => data_dict["Model"]["budget_penalty_minus"],
+        "budget_penalty_yearly_plus" => data_dict["Model"]["budget_penalty_yearly_plus"],
+        "budget_penalty_yearly_minus" => data_dict["Model"]["budget_penalty_yearly_minus"],
         "financial_status_list" => financial_status_list,
         "mode_list" => mode_list,
         "product_list" => product_list,
@@ -597,6 +604,7 @@ function parse_data(data_dict::Dict)
         "init_detour_times_list" => init_detour_times_list,
         "detour_time_reduction_list" => detour_time_reduction_list,
         "supplytype_list" => supplytype_list,
+        "investment_period"=> investment_period,
     )
 
     for key ∈ keys(default_data)
@@ -924,8 +932,9 @@ function save_results(
     geographic_element_list = data_structures["geographic_element_list"]
     tech_vehicle_ids = data_structures["techvehicle_ids"]
     g_init = data_structures["g_init"]
+    investment_period = data_structures["investment_period"]
     if data_structures["detour_time_reduction_list"] != []
-        geo_i_pairs = data_structures["geo_i_pairs"]
+        # geo_i_pairs = data_structures["geo_i_pairs"]
         geo_i_f = data_structures["geo_i_f_pairs"]
     end
 
@@ -978,14 +987,14 @@ function save_results(
 
     # Dictionary for 'q_fuel_infr_plus_e' variable
     q_mode_infr_plus_dict = Dict()
-    for y ∈ y_init:Y_end, m ∈ mode_list, geo ∈ geographic_element_list
+    for y ∈ y_init:investment_period:Y_end, m ∈ mode_list, geo ∈ geographic_element_list
         q_mode_infr_plus_dict[(y, m.id, geo.id)] =
             value(model[:q_mode_infr_plus][y, m.id, geo.id])
     end
 
     # Dictionary for 'q_fuel_infr_plus_n' variable
     q_fuel_infr_plus_dict = Dict()
-    for y ∈ y_init:Y_end, f ∈ fuel_list, geo ∈ geographic_element_list
+    for y ∈ y_init:investment_period:Y_end, f ∈ fuel_list, geo ∈ geographic_element_list
         q_fuel_infr_plus_dict[(y, f.id, geo.id)] =
             value(model[:q_fuel_infr_plus][y, f.id, geo.id])
     end
@@ -1000,6 +1009,16 @@ function save_results(
     budget_penalty_minus_dict = Dict()
     for y ∈ y_init:Y_end, r ∈ odpairs
         budget_penalty_minus_dict[(y, r.id)] = value(model[:budget_penalty_minus][y, r.id])
+    end
+
+    budget_penalty_plus_yearly_dict = Dict()
+    for y ∈ y_init:Y_end, r ∈ odpairs
+        budget_penalty_plus_yearly_dict[(y, r.id)] = value(model[:budget_penalty_yearly_plus][y, r.id])
+    end
+
+    budget_penalty_minus_yearly_dict = Dict()
+    for y ∈ y_init:Y_end, r ∈ odpairs
+        budget_penalty_minus_yearly_dict[(y, r.id)] = value(model[:budget_penalty_yearly_minus][y, r.id])
     end
 
     function stringify_keys(dict::Dict)
@@ -1022,6 +1041,9 @@ function save_results(
     budget_penalty_plus_dict_str = stringify_keys(budget_penalty_plus_dict)
     budget_penalty_minus_dict_str = stringify_keys(budget_penalty_minus_dict)
 
+    budget_penalty_plus_yearly_dict_str = stringify_keys(budget_penalty_plus_yearly_dict)
+    budget_penalty_minus_yearly_dict_str = stringify_keys(budget_penalty_minus_yearly_dict)
+
     if data_structures["detour_time_reduction_list"] != []
         # Dictionary for 'detour_times' variable
         detour_time_dict = Dict()
@@ -1030,19 +1052,19 @@ function save_results(
         end
 
         detour_time_dict_str = stringify_keys(detour_time_dict)
-        x_a_dict = Dict()
-        for y ∈ y_init:Y_end, g ∈ geo_i_f
-            x_a_dict[(y, g)] = value(model[:x_a][y, g])
-        end
-        x_a_dict_str = stringify_keys(x_a_dict)
+        # x_a_dict = Dict()
+        # for y ∈ y_init:Y_end, g ∈ geo_i_f
+        #     x_a_dict[(y, g)] = value(model[:x_a][y, g])
+        # end
+        # x_a_dict_str = stringify_keys(x_a_dict)
 
-        x_b_dict = Dict()
-        for y ∈ y_init:Y_end, g ∈ geo_i_f
-            x_b_dict[(y, g)] = value(model[:x_b][y, g])
-        end
-        x_b_dict_str = stringify_keys(x_b_dict)
+        # x_b_dict = Dict()
+        # for y ∈ y_init:Y_end, g ∈ geo_i_f
+        #     x_b_dict[(y, g)] = value(model[:x_b][y, g])
+        # end
+        # x_b_dict_str = stringify_keys(x_b_dict)
         x_c_dict = Dict()
-        for y ∈ y_init:Y_end, g ∈ geo_i_f
+        for y ∈ y_init:investment_period:Y_end, g ∈ geo_i_f
             x_c_dict[(y, g)] = value(model[:x_c][y, g])
         end
         x_c_dict_str = stringify_keys(x_c_dict)
@@ -1062,7 +1084,7 @@ function save_results(
     if data_structures["supplytype_list"] != []
         supplytype_list = data_structures["supplytype_list"]
         q_supply_infr_dict = Dict()
-        for y ∈ y_init:Y_end, st ∈ supplytype_list, geo ∈ geographic_element_list
+        for y ∈ y_init:investment_period:Y_end, st ∈ supplytype_list, geo ∈ geographic_element_list
             q_supply_infr_dict[(y, st.id, geo.id)] = value(model[:q_supply_infr][y, st.id, geo.id])
         end
         q_supply_infr_dict_str = stringify_keys(q_supply_infr_dict)
@@ -1114,6 +1136,18 @@ function save_results(
             joinpath(folder_for_results, case * "_budget_penalty_minus_dict.yaml"),
             budget_penalty_minus_dict_str,
         )
+        @info "budget_penalty_minus_dict.yaml written successfully"
+
+        YAML.write_file(
+            joinpath(folder_for_results, case * "_budget_penalty_plus_yearly_dict.yaml"),
+            budget_penalty_plus_yearly_dict_str,
+        )
+        @info "budget_penalty_plus_yearly_dict.yaml written successfully"
+        YAML.write_file(
+            joinpath(folder_for_results, case * "_budget_penalty_minus_yearly_dict.yaml"),
+            budget_penalty_minus_yearly_dict_str,
+        )
+        @info "budget_penalty_minus_yearly_dict.yaml written successfully"
         YAML.write_file(joinpath(folder_for_results, case * "_s.yaml"), s_dict_str)
         @info "s.yaml written successfully"
         if data_structures["detour_time_reduction_list"] != []
@@ -1123,16 +1157,16 @@ function save_results(
             )
             @info "detour_time_dict.yaml written successfully"
 
-            @info "x_dict.yaml written successfully"
-            YAML.write_file(
-                joinpath(folder_for_results, case * "_x_a_dict.yaml"),
-                x_a_dict_str,
-            )
-            @info "x_a_dict.yaml written successfully"
-            YAML.write_file(
-                joinpath(folder_for_results, case * "_x_b_dict.yaml"),
-                x_b_dict_str,
-            )
+            # @info "x_dict.yaml written successfully"
+            # YAML.write_file(
+            #     joinpath(folder_for_results, case * "_x_a_dict.yaml"),
+            #     x_a_dict_str,
+            # )
+            # @info "x_a_dict.yaml written successfully"
+            # YAML.write_file(
+            #     joinpath(folder_for_results, case * "_x_b_dict.yaml"),
+            #     x_b_dict_str,
+            # )
             @info "x_b_dict.yaml written successfully"
             YAML.write_file(
                 joinpath(folder_for_results, case * "_x_c_dict.yaml"),
@@ -1163,4 +1197,71 @@ function save_results(
     q_mode_infr_plus_dict,
     budget_penalty_plus_dict,
     budget_penalty_minus_dict
+end
+
+
+function depreciated_inv_costs(inv_costs, age)
+    global original_costs = inv_costs
+    for y in 1:age
+        if y == 1
+            global original_costs = original_costs * 0.65
+        else
+            global original_costs = original_costs - 100 
+        end
+    end
+    return original_costs
+end
+
+"""
+    Function to disaggregate the total electricity load into hourly load profiles for a specific fuel type.
+
+    # Arguments
+    - `model::JuMP.Model`: The optimization model.
+    - `data_structures::Dict`: The data structures.
+    - `fuel_id::Int`: The fuel ID.
+    - `year::Int`: The year.
+
+    # Returns
+    - `yearly_load_dict::Dict`: Demand distribution among different vehicle types.
+"""
+
+function disagreggate(model::JuMP.Model, data_structures::Dict, fuel_id::Int=2, year::Int=2020)
+    # creating hourly load profile for each year
+    y_init = data_structures["y_init"]
+    g_init = data_structures["g_init"]
+    Y_end = data_structures["Y_end"]
+    p_r_k_g_pairs = data_structures["p_r_k_g_pairs"]
+    techvehicle_list = data_structures["techvehicle_list"]
+    technology_list = data_structures["technology_list"]
+
+    s = value.(model[:s])
+    h = value.(model[:h])
+    yearly_load_dict = Dict()
+    y = year 
+    for tv in techvehicle_list
+
+        if tv.technology.fuel.id == fuel_id
+            total_h = sum(h[y, r.id, tv.id, g] for r in data_structures["odpair_list"] for g in data_structures["g_init"]:y)
+            
+            # i need for each year the total electricity load
+            total_load = sum(s[y, p_r_k_g, tv.id] for p_r_k_g in p_r_k_g_pairs for tv in techvehicle_list if tv.technology.fuel.id == fuel_id)
+    
+            # i need amount of vehicles driving this year  
+            load_dict_h_g = Dict()
+
+            for g in data_structures["g_init"]:y
+                h_g = sum(h[y, r.id, tv.id, g] for r in data_structures["odpair_list"])
+                share_load = h_g / total_h
+                if share_load > 0
+                    load_dict_h_g[g] = (h_g, share_load * total_load, tv.tank_capacity[g-g_init+1])
+                    
+                end
+            end
+            yearly_load_dict[tv.id] = load_dict_h_g
+
+        end
+    end
+
+    return yearly_load_dict
+
 end

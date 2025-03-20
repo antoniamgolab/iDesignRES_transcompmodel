@@ -1,0 +1,7 @@
+strategy,lower_bound,upper_bound,reduction
+densification-focused,5000,15000,0.17958360424805575
+densification-focused,15000,20000,0.4020948657378235
+densification-focused,20000,30000,0.4959426552502155
+densification-focused,30000,1000000,0.6132231958844755
+moderate-densification,30000,45000,0.08634421180030488
+moderate-densification,45000,1000000,0.22810779079689356
