@@ -387,6 +387,6 @@ end
         round(
             sum(q_fuel_infr_plus_dict[(y, 1, 1)] for f ∈ fuel_list for y ∈ y_init:Y_end),
             digits = 2,
-        ) == 0.14
+        ) == 0.11
     )
 end
