@@ -1,7 +1,7 @@
 name = "TransComp"
 uuid = "3fb1ea32-fe1d-487b-b926-6db75a8950b6"
 authors = ["Antonia Golab <antonia.golab@tuwien.ac.at>"]
-license = "MIT"
+license = "Apache License 2.0"
 
 [deps]
 YAML = "ddb6d928-2868-570f-bddf-ab3f9cf99eb6"
