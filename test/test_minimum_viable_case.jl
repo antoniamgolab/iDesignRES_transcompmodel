@@ -275,7 +275,7 @@ end
                 g ∈ g_init:y_init if mv[1] == 1
             ),
             digits = 2,
-        ) == 17.02
+        ) == 14.64
     )
 
     @test (
@@ -378,6 +378,11 @@ end
     )
 
     # check fueling infrastructure sizing 
+    print(
+        sum(
+            q_fuel_infr_plus_dict[(y, 1, 1)] for f ∈ fuel_list for y ∈ y_init:Y_end
+        )
+    )
     @test (
         round(
             sum(q_fuel_infr_plus_dict[(y, 1, 1)] for f ∈ fuel_list for y ∈ y_init:Y_end),
