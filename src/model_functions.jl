@@ -731,13 +731,11 @@ function constraint_vehicle_stock_shift(model::JuMP.Model, data_structures::Dict
         [r in odpairs, t in technologies],
         (
             sum(
-                model[:h][y_init, r.id, tv.id, g] for g ∈ g_init:y_init for v ∈
-                                                                            vehicletypes for
-                tv ∈ techvehicles if g <= y_init && tv.technology.id == t.id
+                model[:h][y_init, r.id, tv.id, g] for g ∈ g_init:y_init for
+                tv ∈ techvehicles if tv.technology.id == t.id
             ) - sum(
                 model[:h_exist][y_init, r.id, tv.id, g] for g ∈ g_init:y_init for
-                v ∈ vehicletypes for
-                tv ∈ techvehicles if g <= y_init - 1 && tv.technology.id == t.id
+                tv ∈ techvehicles if tv.technology.id == t.id
             )
         ) <=
         alpha_h * sum(
@@ -745,7 +743,7 @@ function constraint_vehicle_stock_shift(model::JuMP.Model, data_structures::Dict
             tv ∈ techvehicles
         ) +
         beta_h * sum(
-            model[:h_exist][y_init, r.id, tv.id, g] for v ∈ vehicletypes for
+            model[:h_exist][y_init, r.id, tv.id, g] for
             g ∈ g_init:(y_init-1) for tv ∈ techvehicles if tv.technology.id == t.id
         )
     )
@@ -755,12 +753,10 @@ function constraint_vehicle_stock_shift(model::JuMP.Model, data_structures::Dict
         [r in odpairs, t in technologies],
         -(
             sum(
-                model[:h][y_init, r.id, tv.id, g] for g ∈ g_init:y_init for v ∈
-                                                                            vehicletypes for
+                model[:h][y_init, r.id, tv.id, g] for g ∈ g_init:y_init for
                 tv ∈ techvehicles if g <= y_init && tv.technology.id == t.id
             ) - sum(
                 model[:h_exist][y_init, r.id, tv.id, g] for g ∈ g_init:y_init for
-                v ∈ vehicletypes for
                 tv ∈ techvehicles if g <= y_init - 1 && tv.technology.id == t.id
             )
         ) <=
@@ -769,7 +765,7 @@ function constraint_vehicle_stock_shift(model::JuMP.Model, data_structures::Dict
             tv ∈ techvehicles
         ) +
         beta_h * sum(
-            model[:h_exist][y_init, r.id, tv.id, g] for v ∈ vehicletypes for
+            model[:h_exist][y_init, r.id, tv.id, g] for
             g ∈ g_init:(y_init-1) for tv ∈ techvehicles if tv.technology.id == t.id
         )
     )
@@ -780,17 +776,17 @@ function constraint_vehicle_stock_shift(model::JuMP.Model, data_structures::Dict
         [y in (y_init+1):Y_end, r in odpairs, t in technologies],
         (
             sum(
-                model[:h][y, r.id, tv.id, g] for g ∈ g_init:y for v ∈ vehicletypes for
+                model[:h][y, r.id, tv.id, g] for g ∈ g_init:y for
                 tv ∈ techvehicles if g <= y && tv.technology.id == t.id
             ) - sum(
-                model[:h][y-1, r.id, tv.id, g] for g ∈ g_init:y for v ∈ vehicletypes for
+                model[:h][y-1, r.id, tv.id, g] for g ∈ g_init:y for
                 tv ∈ techvehicles if g <= y - 1 && tv.technology.id == t.id
             )
         ) <=
         alpha_h *
         sum(model[:h][y, r.id, tv.id, g] for g ∈ g_init:(y-1) for tv ∈ techvehicles) +
         beta_h * sum(
-            model[:h][y-1, r.id, tv.id, g] for v ∈ vehicletypes for g ∈ g_init:(y-1) for
+            model[:h][y-1, r.id, tv.id, g] for g ∈ g_init:(y-1) for
             tv ∈ techvehicles if tv.technology.id == t.id
         )
     )
@@ -800,17 +796,17 @@ function constraint_vehicle_stock_shift(model::JuMP.Model, data_structures::Dict
         [y in (y_init+1):Y_end, r in odpairs, t in technologies],
         -(
             sum(
-                model[:h][y, r.id, tv.id, g] for g ∈ g_init:y for v ∈ vehicletypes for
+                model[:h][y, r.id, tv.id, g] for g ∈ g_init:y for
                 tv ∈ techvehicles if g <= y && tv.technology.id == t.id
             ) - sum(
-                model[:h][y-1, r.id, tv.id, g] for g ∈ g_init:y for v ∈ vehicletypes for
+                model[:h][y-1, r.id, tv.id, g] for g ∈ g_init:y for
                 tv ∈ techvehicles if g <= y - 1 && tv.technology.id == t.id
             )
         ) <=
         alpha_h *
         sum(model[:h][y, r.id, tv.id, g] for g ∈ g_init:(y-1) for tv ∈ techvehicles) +
         beta_h * sum(
-            model[:h][y-1, r.id, tv.id, g] for v ∈ vehicletypes for g ∈ g_init:(y-1) for
+            model[:h][y-1, r.id, tv.id, g]  for g ∈ g_init:(y-1) for
             tv ∈ techvehicles if tv.technology.id == t.id
         )
     )
