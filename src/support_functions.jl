@@ -376,14 +376,14 @@ function parse_data(data_dict::Dict)
         ) for speed ∈ data_dict["Speed"]
     ]
 
-    if haskey(data_dict, "Market_shares")
+    if haskey(data_dict, "MarketShares")
         market_share_list = [
             MarketShare(
                 market_share["id"],
                 techvehicle_list[findfirst(tv -> tv.id, techvehicle_list)],
                 market_share["share"],
                 market_share["financial_status"],
-            ) for market_share ∈ data_dict["Market_shares"]
+            ) for market_share ∈ data_dict["MarketShares"]
         ]
         @info "Market shares are defined"
     else
@@ -405,7 +405,7 @@ function parse_data(data_dict::Dict)
         emission_constraint_by_mode_list = []
     end
 
-    if haskey(data_dict, "Mode_shares")
+    if haskey(data_dict, "ModeShares")
         mode_shares_list = [
             ModeShare(
                 mode_share["id"],
@@ -416,7 +416,7 @@ function parse_data(data_dict::Dict)
                     regiontype_list[findfirst(rt -> rt.id == rt_id, regiontype_list)]
                     for rt_id ∈ mode_share["regiontype_list"]
                 ],
-            ) for mode_share ∈ data_dict["Mode_shares"]
+            ) for mode_share ∈ data_dict["ModeShares"]
         ]
         @info "Mode shares are defined by year"
 
@@ -435,7 +435,7 @@ function parse_data(data_dict::Dict)
                     regiontype_list[findfirst(rt -> rt.id == rt_id, regiontype_list)]
                     for rt_id ∈ mode_share["regiontype_list"]
                 ],
-            ) for mode_share ∈ data_dict["Mode_shares"]
+            ) for mode_share ∈ data_dict["ModeShares"]
         ]
         @info "Max Mode shares are defined by year"
 
@@ -454,7 +454,7 @@ function parse_data(data_dict::Dict)
                     regiontype_list[findfirst(rt -> rt.id == rt_id, regiontype_list)]
                     for rt_id ∈ mode_share["regiontype_list"]
                 ],
-            ) for mode_share ∈ data_dict["Mode_shares"]
+            ) for mode_share ∈ data_dict["ModeShares"]
         ]
         @info "Min Mode shares are defined by year"
 

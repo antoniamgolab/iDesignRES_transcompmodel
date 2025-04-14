@@ -28,8 +28,8 @@ export FinancialStatus
 export Regiontype
 export Odpair
 export Speed
-export Market_shares
-export Mode_shares
+export MarketShares
+export ModeShares
 export Mode_share_max_by_year
 export Mode_share_min_by_year
 export Mode_share_max

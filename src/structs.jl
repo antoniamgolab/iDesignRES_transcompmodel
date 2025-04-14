@@ -1,42 +1,4 @@
 """
-    Node
-
-A 'Node' represents geographic region. 
-
-# Fields
-- `id::Int`: unique identifier of the node
-- `name::String`: name the region
-- `carbon_price::Array{Float64,1}`: carbon price in €/tCO2 for each year
-"""
-struct Node
-    id::Int
-    name::String
-    carbon_price::Array{Float64,1}
-end
-
-"""
-    Edge
-
-An 'Edge' represents a connection between two nodes and is a representation of connecting transport infrastructure.
-
-# Fields
-- `id::Int`: unique identifier of the edge
-- `name::String`: name of the connection
-- `length::Float64`: length of the connection in km
-- `from::Node`: the node from which the edge starts
-- `to::Node`: the node to which the edge ends
-- `carbon_price::Array{Float64,1}`: carbon price in €/tCO2 for each year
-"""
-struct Edge
-    id::Int
-    name::String
-    length::Float64
-    from::Node
-    to::Node
-    carbon_price::Array{Float64,1}
-end
-
-"""
     GeographicElement
 
 A 'Graph_item' represents a graph item that is either a node or an edge.
@@ -450,9 +412,9 @@ struct Speed
 end
 
 """
-    Market_shares
+    MarketShares
 
-A 'Market_shares' describes the market share of a vehicle type with a specific drivetrain technology in a specific year.
+A 'MarketShares' describes the market share of a vehicle type with a specific drivetrain technology in a specific year.
 
 # Fields
 - `id::Int`: unique identifier of the market share
@@ -462,7 +424,7 @@ A 'Market_shares' describes the market share of a vehicle type with a specific d
 - `region_type::Array{Regiontype,1}`: array of region types that are affected by this TechVehicle share constraint
 """
 
-struct Market_shares
+struct MarketShares
     id::Int
     type::TechVehicle
     share::Float64
@@ -471,9 +433,9 @@ struct Market_shares
 end
 
 """
-    Mode_shares
+    ModeShares
 
-A 'Mode_shares' describes the mode share of a transport mode in a specific year.
+A 'ModeShares' describes the mode share of a transport mode in a specific year.
 
 # Fields
 - `id::Int`: unique identifier of the mode share
@@ -483,7 +445,7 @@ A 'Mode_shares' describes the mode share of a transport mode in a specific year.
 - `region_type::Array{Regiontype,1}`: array of region types that are affected by this TechVehicle share constraint
 """
 
-struct Mode_shares
+struct ModeShares
     id::Int
     mode::Mode
     share::Float64
@@ -925,8 +887,8 @@ global struct_names_base = [
 
 global struct_names_extended = [
     "F_init_mode_share",
-    "Market_shares",
-    "Mode_shares",
+    "MarketShares",
+    "ModeShares",
     "Mode_share_max_by_year",
     "Mode_share_min_by_year",
     "Mode_share_max",
