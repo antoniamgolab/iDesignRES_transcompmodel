@@ -136984,8 +136984,6 @@ Mode:
   - 0.08333333333333333
   - 0.08333333333333333
 Model:
-  E: 12
-  N: 2
   Y: 31
   budget_penalty_minus: 10000
   budget_penalty_plus: 10000

@@ -8,7 +8,7 @@ include(joinpath(@__DIR__, "../../src/TransComp.jl"))
 using .TransComp
 
 script_dir = @__DIR__   # Directory of the current script
-yaml_file_path = normpath(joinpath(@__DIR__, "data/transport_data_years_v64.yaml"))
+yaml_file_path = normpath(joinpath(@__DIR__, "data/basque_country_input.yaml"))
 println("Constructed file path: $yaml_file_path")
 
 using Dates
