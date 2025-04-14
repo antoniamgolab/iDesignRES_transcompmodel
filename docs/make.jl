@@ -35,4 +35,8 @@ makedocs(;
     # Optional: You can customize the theme and navigation options here
     # Change theme if you prefer
 )
-deploydocs(; repo = "github.com/antoniamgolab/iDesignRES_transcompmodel.git")
+deploydocs(
+    repo = "github.com/antoniamgolab/iDesignRES_transcompmodel.git",
+    push_preview = true,
+    deploy_config = Documenter.GitHubActions()
+)
