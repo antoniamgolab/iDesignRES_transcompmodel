@@ -24,7 +24,9 @@ makedocs(;
             "Quick Start"=>"manual/quick-start.md",
             "How to use"=>"manual/how-to-use.md",
             "Preparation of input data"=>"manual/input_data.md",
+            "Output data"=>"manual/output_data.md",
             "Types and functions"=>"manual/types_and_functions.md",
+            
         ]  # Entry point to the docs
         "Examples" => Any["Basque Country"=>"examples/basque-case.md",]  # Entry point to the docs
     ],
