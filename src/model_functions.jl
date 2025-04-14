@@ -922,7 +922,7 @@ If share are given for specific modes, this function will create constraints for
 """
 function constraint_max_mode_share(model::JuMP.Model, data_structures::Dict)
     y_init = data_structures["y_init"]
-    max_mode_share_list = data_structures["max_mode_share_list"]
+    max_mode_share_list = data_structures["max_mode_shares_list"]
     m_tv_pairs = data_structures["m_tv_pairs"]
     p_r_k_pairs = data_structures["p_r_k_pairs"]
     g_init = data_structures["g_init"]
@@ -954,7 +954,7 @@ If share are given for specific modes, this function will create constraints for
 """
 function constraint_min_mode_share(model::JuMP.Model, data_structures::Dict)
     y_init = data_structures["y_init"]
-    min_mode_share_list = data_structures["min_mode_share_list"]
+    min_mode_share_list = data_structures["min_mode_shares_list"]
     m_tv_pairs = data_structures["m_tv_pairs"]
     p_r_k_pairs = data_structures["p_r_k_pairs"]
     g_init = data_structures["g_init"]

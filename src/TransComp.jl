@@ -30,25 +30,10 @@ export Odpair
 export Speed
 export MarketShares
 export ModeShares
-export Mode_share_max_by_year
-export Mode_share_min_by_year
-export Mode_share_max
-export Mode_share_min
-export Technology_share_max_by_year
-export Technology_share_min_by_year
-export Technology_share_max
-export Technology_share_min
-export VehicleType_share_max_by_year
-export VehicleType_share_min_by_year
-export VehicleType_share_max
-export VehicleType_share_min
-export TechVehicle_share_max_by_year
-export TechVehicle_share_min_by_year
-export TechVehicle_share_max
-export TechVehicle_share_min
-export Emission_constraints_by_mode
-export Emission_constraints_by_year
-export Transportation_speeds
+export ModeSharemaxbyyear
+export ModeShareminbyyear
+export EmissionLimitbymode
+export EmissionLimitbyyear
 export VehicleSubsidy
 
 # exporting model functions

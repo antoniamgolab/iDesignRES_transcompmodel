@@ -454,7 +454,7 @@ struct ModeShares
 end
 
 """
-    Mode_share_max_by_year
+    ModeSharemaxbyyear
 
 Maximum mode shares of a transport mode in a specific year.
 
@@ -465,7 +465,7 @@ Maximum mode shares of a transport mode in a specific year.
 - `year::Int`: year of the maximum mode share
 - `region_type::Array{Regiontype,1}`: array of region types that are affected by this TechVehicle share constraint
 """
-struct Mode_share_max_by_year
+struct ModeSharemaxbyyear
     id::Int
     mode::Mode
     share::Float64
@@ -474,7 +474,7 @@ struct Mode_share_max_by_year
 end
 
 """
-    Mode_share_min_by_year
+    ModeShareminbyyear
 
 Minimum mode shares of a transport mode in a specific year.
 
@@ -485,7 +485,7 @@ Minimum mode shares of a transport mode in a specific year.
 - `year::Int`: year of the minimum mode share
 - `region_type::Array{Regiontype,1}`: array of region types that are affected by this TechVehicle share constraint
 """
-struct Mode_share_min_by_year
+struct ModeShareminbyyear
     id::Int
     mode::Mode
     share::Float64
@@ -494,301 +494,11 @@ struct Mode_share_min_by_year
     region_type::Array{Regiontype,1}
 end
 
-"""
-    Mode_share_max
-
-Maximum mode shares of a transport mode independent of year, i.e. over total horizon.
-
-# Fields
-- `id::Int`: unique identifier of the mode share
-- `mode::Mode`: mode of transport
-- `share::Float64`: maximum share of the mode
-- `financial_status::Array{FinancialStatus, 1}`: array of financial status that is affected by this mode share constraint
-- `region_type::Array{Regiontype,1}`: array of region types that are affected by this TechVehicle share constraint
-"""
-struct Mode_share_max
-    id::Int
-    mode::Mode
-    share::Float64
-    financial_status::Array{FinancialStatus,1}
-    region_type::Array{Regiontype,1}
-end
 
 """
-    Mode_share_min
+    EmissionLimitbymode
 
-Maximum mode shares of a transport mode independent of year, i.e. over total horizon.
-
-# Fields
-- `id::Int`: unique identifier of the mode share
-- `mode::Mode`: mode of transport
-- `share::Float64`: maximum share of the mode
-- `financial_status::Array{FinancialStatus, 1}`: array of financial status that is affected by this mode share constraint
-- `region_type::Array{Regiontype,1}`: array of region types that are affected by this TechVehicle share constraint
-"""
-struct Mode_share_min
-    id::Int
-    mode::Mode
-    share::Float64
-    financial_status::Array{FinancialStatus,1}
-    region_type::Array{Regiontype,1}
-end
-
-"""
-    Technology_share_max_by_year
-
-Maximum technology shares of a vehicle technology in a specific year.
-
-# Fields
-- `id::Int`: unique identifier of the technology share
-- `technology::Technology`: vehicle technology
-- `share::Float64`: maximum share of the technology
-- `year::Int`: year of the maximum technology share
-- `financial_status::Array{FinancialStatus, 1}`: financial status that is affected by this technology share constraint
-- `region_type::Array{Regiontype,1}`: array of region types that are affected by this TechVehicle share constraint
-"""
-struct Technology_share_max_by_year
-    id::Int
-    technology::Technology
-    share::Float64
-    year::Int
-    financial_status::Array{FinancialStatus,1}
-    region_type::Array{Regiontype,1}
-end
-
-"""
-    Technology_share_min_by_year
-
-Minimum technology shares of a vehicle technology in a specific year.
-
-# Fields
-- `id::Int`: unique identifier of the technology share
-- `technology::Technology`: vehicle technology
-- `share::Float64`: minimum share of the technology
-- `year::Int`: year of the minimum technology share
-- `financial_status::Array{FinancialStatus, 1}`: financial status that is affected by this technology share constraint
-- `region_type::Array{Regiontype,1}`: array of region types that are affected by this TechVehicle share constraint
-"""
-struct Technology_share_min_by_year
-    id::Int
-    technology::Technology
-    share::Float64
-    year::Int
-    financial_status::Array{FinancialStatus,1}
-    region_type::Array{Regiontype,1}
-end
-
-"""
-    Technology_share_max
-
-Maximum technology shares of a vehicle technology independent of year, i.e. over total horizon.
-
-# Fields
-- `id::Int`: unique identifier of the technology share
-- `technology::Technology`: vehicle technology
-- `share::Float64`: maximum share of the technology
-- `financial_status::Array{FinancialStatus, 1}`: array of financial status that is affected by this technology share constraint
-- `region_type::Array{Regiontype,1}`: array of region types that are affected by this TechVehicle share constraint
-"""
-struct Technology_share_max
-    id::Int
-    technology::Technology
-    share::Float64
-    financial_status::Array{FinancialStatus,1}
-    region_type::Array{Regiontype,1}
-end
-
-"""
-    Technology_share_min
-
-Minimum technology shares of a vehicle technology independent of year, i.e. over total horizon.
-
-# Fields
-- `id::Int`: unique identifier of the technology share
-- `technology::Technology`: vehicle technology
-- `share::Float64`: minimum share of the technology
-- `financial_status::Array{FinancialStatus, 1}`: array of financial status that is affected by this technology share constraint
-- `region_type::Array{Regiontype,1}`: array of region types that are affected by this TechVehicle share constraint
-"""
-struct Technology_share_min
-    id::Int
-    technology::Technology
-    share::Float64
-    financial_status::Array{FinancialStatus,1}
-    region_type::Array{Regiontype,1}
-end
-
-"""
-    VehicleType_share_max_by_year
-
-Maximum vehicle type shares of a vehicle type in a specific year.
-
-# Fields
-- `id::Int`: unique identifier of the vehicle type share
-- `vehicle_type::Vehicletype`: vehicle type
-- `share::Float64`: maximum share of the vehicle type
-- `year::Int`: year of the maximum vehicle type share
-- `financial_status::Array{FinancialStatus, 1}`: financial status that is affected by this vehicle type share constraint
-- `region_type::Array{Regiontype,1}`: array of region types that are affected by this TechVehicle share constraint
-"""
-struct VehicleType_share_max_by_year
-    id::Int
-    vehicle_type::Vehicletype
-    share::Float64
-    year::Int
-    financial_status::Array{FinancialStatus,1}
-    region_type::Array{Regiontype,1}
-end
-
-"""
-    VehicleType_share_min_by_year
-
-Minimum vehicle type shares of a vehicle type in a specific year.
-
-# Fields
-- `id::Int`: unique identifier of the vehicle type share
-- `vehicle_type::Vehicletype`: vehicle type
-- `share::Float64`: minimum share of the vehicle type
-- `year::Int`: year of the minimum vehicle type share
-- `financial_status::Array{FinancialStatus, 1}`: financial status that is affected by this vehicle type share constraint
-- `region_type::Array{Regiontype,1}`: array of region types that are affected by this TechVehicle share constraint
-"""
-struct VehicleType_share_min_by_year
-    id::Int
-    vehicle_type::Vehicletype
-    share::Float64
-    year::Int
-    financial_status::Array{FinancialStatus,1}
-    region_type::Array{Regiontype,1}
-end
-
-"""
-    VehicleType_share_max
-
-Maximum vehicle type shares of a vehicle type independent of year, i.e. over total horizon.
-
-# Fields
-- `id::Int`: unique identifier of the vehicle type share
-- `vehicle_type::Vehicletype`: vehicle type
-- `share::Float64`: maximum share of the vehicle type
-- `financial_status::Array{FinancialStatus, 1}`: array of financial status that is affected by this vehicle type share constraint
-- `region_type::Array{Regiontype,1}`: array of region types that are affected by this TechVehicle share constraint
-"""
-struct VehicleType_share_max
-    id::Int
-    vehicle_type::Vehicletype
-    share::Float64
-    financial_status::Array{FinancialStatus,1}
-    region_type::Array{Regiontype,1}
-end
-
-"""
-    VehicleType_share_min
-
-Minimum vehicle type shares of a vehicle type independent of year, i.e. over total horizon.
-
-# Fields
-- `id::Int`: unique identifier of the vehicle type share
-- `vehicle_type::Vehicletype`: vehicle type
-- `share::Float64`: minimum share of the vehicle type
-- `financial_status::Array{FinancialStatus, 1}`: array of financial status that is affected by this vehicle type share constraint
-- `region_type::Array{Regiontype,1}`: array of region types that are affected by this TechVehicle share constraint
-"""
-struct VehicleType_share_min
-    id::Int
-    vehicle_type::Vehicletype
-    share::Float64
-    financial_status::Array{FinancialStatus,1}
-    region_type::Array{Regiontype,1}
-end
-"""
-    TechVehicle_share_max_by_year
-
-Maximum vehicle type shares of a TechVehicle in a specific year.
-
-# Fields
-- `id::Int`: unique identifier of the TechVehicle share
-- `techvehicle::TechVehicle`: TechVehicle
-- `share::Float64`: maximum share of the TechVehicle
-- `year::Int`: year of the maximum TechVehicle share
-- `financial_status::Array{FinancialStatus, 1}`: financial status that is affected by this TechVehicle share constraint
-- `region_type::Array{Regiontype,1}`: array of region types that are affected by this TechVehicle share constraint
-"""
-struct TechVehicle_share_max_by_year
-    id::Int
-    techvehicle::TechVehicle
-    share::Float64
-    year::Int
-    financial_status::Array{FinancialStatus,1}
-    region_type::Array{Regiontype,1}
-end
-
-"""
-    TechVehicle_share_min_by_year
-
-Minimum vehicle type shares of a TechVehicle in a specific year.
-
-# Fields
-- `id::Int`: unique identifier of the TechVehicle share
-- `techvehicle::TechVehicle`: TechVehicle
-- `share::Float64`: minimum share of the TechVehicle
-- `year::Int`: year of the minimum TechVehicle share
-- `financial_status::Array{FinancialStatus, 1}`: financial status that is affected by this TechVehicle share constraint
-- `region_type::Array{Regiontype,1}`: array of region types that are affected by this TechVehicle share constraint
-"""
-struct TechVehicle_share_min_by_year
-    id::Int
-    techvehicle::TechVehicle
-    share::Float64
-    year::Int
-    financial_status::Array{FinancialStatus,1}
-    region_type::Array{Regiontype,1}
-end
-
-"""
-    TechVehicle_share_max
-
-Maximum vehicle type shares of a TechVehicle independent of year, i.e. over total horizon.
-
-# Fields
-- `id::Int`: unique identifier of the TechVehicle share
-- `techvehicle::TechVehicle`: TechVehicle
-- `share::Float64`: maximum share of the TechVehicle
-- `financial_status::Array{FinancialStatus, 1}`: array of financial status that is affected by this TechVehicle share constraint
-- `region_type::Array{Regiontype,1}`: array of region types that are affected by this TechVehicle share constraint
-"""
-struct TechVehicle_share_max
-    id::Int
-    techvehicle::TechVehicle
-    share::Float64
-    financial_status::Array{FinancialStatus,1}
-    region_type::Array{Regiontype,1}
-end
-
-"""
-    TechVehicle_share_min
-
-Minimum vehicle type shares of a TechVehicle independent of year, i.e. over total horizon.
-
-# Fields
-- `id::Int`: unique identifier of the TechVehicle share
-- `techvehicle::TechVehicle`: TechVehicle
-- `share::Float64`: minimum share of the TechVehicle
-- `financial_status::Array{FinancialStatus, 1}`: array of financial status that is affected by this TechVehicle share constraint
-- `region_type::Array{Regiontype,1}`: array of region types that are affected by this TechVehicle share constraint
-"""
-struct TechVehicle_share_min
-    id::Int
-    techvehicle::TechVehicle
-    share::Float64
-    financial_status::Array{FinancialStatus,1}
-    region_type::Array{Regiontype,1}
-end
-
-"""
-    Emission_constraints_by_mode
-
-An 'Emission_constraints_by_mode' describes emissions constrained for a mode.
+An 'EmissionLimitbymode' describes emissions constrained for a mode.
 
 # Fields
 - `id::Int`: unique identifier of the emission constraint
@@ -796,7 +506,7 @@ An 'Emission_constraints_by_mode' describes emissions constrained for a mode.
 - `emission::Float64`: emission constraint of the vehicle type (tCO2/year)
 - `year::Int`: year of the expected emission constraint
 """
-struct Emission_constraints_by_mode
+struct EmissionLimitbymode
     id::Int
     mode::Mode
     emission::Float64
@@ -804,36 +514,18 @@ struct Emission_constraints_by_mode
 end
 
 """
-    Emission_constraints_by_year
+    EmissionLimitbyyear
 
-An 'Emission_constraints_by_year' describes an emission goal for a specific year for the total emissions.
+An 'EmissionLimitbyyear' describes an emission goal for a specific year for the total emissions.
 
 # Fields
 - `id::Int`: unique identifier of the emission constraint
 - `emission::Float64`: emission constraint
 - `year::Int`: year of the expected emission constraint
 """
-struct Emission_constraints_by_year
+struct EmissionLimitbyyear
     id::Int
     emission::Float64
-    year::Int
-end
-
-"""
-    Transportation_speeds
-
-A 'Speed' describes the speed of a vehicle type in a specific year.
-
-# Fields
-
-
-"""
-struct Transportation_speeds
-    id::Int
-    definition_mode_based::Bool
-    mode::Mode
-    vehicle_type::Vehicletype
-    travel_speed::Float64
     year::Int
 end
 
@@ -889,25 +581,10 @@ global struct_names_extended = [
     "F_init_mode_share",
     "MarketShares",
     "ModeShares",
-    "Mode_share_max_by_year",
-    "Mode_share_min_by_year",
-    "Mode_share_max",
-    "Mode_share_min",
-    "Technology_share_max_by_year",
-    "Technology_share_min_by_year",
-    "Technology_share_max",
-    "Technology_share_min",
-    "VehicleType_share_max_by_year",
-    "VehicleType_share_min_by_year",
-    "VehicleType_share_max",
-    "VehicleType_share_min",
-    "TechVehicle_share_max_by_year",
-    "TechVehicle_share_min_by_year",
-    "TechVehicle_share_max",
-    "TechVehicle_share_min",
-    "Emission_constraints_by_mode",
-    "Emission_constraints_by_year",
-    "Transportation_speeds",
+    "ModeSharemaxbyyear",
+    "ModeShareminbyyear",
+    "EmissionLimitbymode",
+    "EmissionLimitbyyear",
     "VehicleSubsidy",
     "InitDetourTime",
     "DetourReductionFactor",
