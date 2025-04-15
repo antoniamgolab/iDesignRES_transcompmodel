@@ -2,4 +2,5 @@
 
 ```@autodocs
 Modules = [TransComp]
+Order   = [:function, :type]
 ```
