@@ -203,7 +203,7 @@ end
     q_mode_infr_plus_dict,
     budget_penalty_plus_dict,
     budget_penalty_minus_dict =
-        save_results(model, case_name, data_structures, true, results_file_path)
+        save_results(model, case_name, data_structures, false, results_file_path)
 
     p_r_k_pairs = create_p_r_k_set(data_structures["odpair_list"])
     m_tv_pairs =
