@@ -54,23 +54,6 @@ constraint_fueling_infrastructure(model, data_structures)
 constraint_mode_infrastructure(model, data_structures)
 @info "Constraint for mode infrastructure created successfully"
 
-@info "Constraints created successfully"
-if haskey(data_structures, "detour_time_reduction_list")
-    @info "Detour time reduction is added"
-else
-    @info "Detour time reduction is not added"
-end
-
-# -------- constraints (alternative) --------
-if data_structures["detour_time_reduction_list"] != []
-    constraint_detour_time(model, data_structures)
-    constraint_lin_z_nalpha(model, data_structures)
-    constraint_detour_time_capacity_reduction(model, data_structures)
-    constraint_def_n_fueling(model, data_structures)
-    (model, data_structures)
-    @info "Detour time reduction constraint is added"
-end
-
 # -------- objective --------
 objective(model, data_structures)
 

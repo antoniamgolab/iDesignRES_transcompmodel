@@ -2,6 +2,7 @@ using TransComp
 using JuMP
 import HiGHS
 using Test
+using YAML
 
 @testset "Model testing" begin
     @testset "Basic function | Technology shift" begin
@@ -26,5 +27,11 @@ using Test
         @testset "Model robustness" begin
             include("test_model_robustness.jl")
         end
-    end 
+    end
+    
+    @testset "Input data reading" begin
+        @testset "Input data test" begin
+            include("test_input_data_reading.jl")
+        end
+    end
 end

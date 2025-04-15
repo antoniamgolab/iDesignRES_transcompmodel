@@ -175154,7 +175154,7 @@ TechVehicle:
   - 0.01
   - 0.01
   id: 0
-  maintnanace_cost_annual:
+  maintenance_cost_annual:
   - - 929.196
     - 929.196
     - 929.196
@@ -179090,7 +179090,7 @@ TechVehicle:
   - 0.01
   - 0.01
   id: 1
-  maintnanace_cost_annual:
+  maintenance_cost_annual:
   - - 1056.303
     - 1056.303
     - 1056.303
@@ -183026,7 +183026,7 @@ TechVehicle:
   - 0.01
   - 0.01
   id: 2
-  maintnanace_cost_annual:
+  maintenance_cost_annual:
   - - 1313.439
     - 1313.439
     - 1313.439
@@ -186962,7 +186962,7 @@ TechVehicle:
   - 0.01
   - 0.01
   id: 3
-  maintnanace_cost_annual:
+  maintenance_cost_annual:
   - - 625.7993038652007
     - 625.7993038652007
     - 625.7993038652007
@@ -190898,7 +190898,7 @@ TechVehicle:
   - 0.01
   - 0.01
   id: 4
-  maintnanace_cost_annual:
+  maintenance_cost_annual:
   - - 809.9769297565539
     - 809.9769297565539
     - 809.9769297565539
@@ -194834,7 +194834,7 @@ TechVehicle:
   - 0.01
   - 0.01
   id: 5
-  maintnanace_cost_annual:
+  maintenance_cost_annual:
   - - 1070.489846258062
     - 1070.489846258062
     - 1070.489846258062
@@ -198770,7 +198770,7 @@ TechVehicle:
   - 0.01
   - 0.01
   id: 6
-  maintnanace_cost_annual:
+  maintenance_cost_annual:
   - - 929.196
     - 929.196
     - 929.196
@@ -202706,7 +202706,7 @@ TechVehicle:
   - 0.01
   - 0.01
   id: 7
-  maintnanace_cost_annual:
+  maintenance_cost_annual:
   - - 1056.303
     - 1056.303
     - 1056.303
@@ -206642,7 +206642,7 @@ TechVehicle:
   - 0.01
   - 0.01
   id: 8
-  maintnanace_cost_annual:
+  maintenance_cost_annual:
   - - 1313.439
     - 1313.439
     - 1313.439
@@ -210578,7 +210578,7 @@ TechVehicle:
   - 0.01
   - 0.01
   id: 9
-  maintnanace_cost_annual:
+  maintenance_cost_annual:
   - - 929.196
     - 929.196
     - 929.196
@@ -214514,7 +214514,7 @@ TechVehicle:
   - 0.01
   - 0.01
   id: 10
-  maintnanace_cost_annual:
+  maintenance_cost_annual:
   - - 1056.303
     - 1056.303
     - 1056.303
@@ -218450,7 +218450,7 @@ TechVehicle:
   - 0.01
   - 0.01
   id: 11
-  maintnanace_cost_annual:
+  maintenance_cost_annual:
   - - 1313.439
     - 1313.439
     - 1313.439
@@ -222386,7 +222386,7 @@ TechVehicle:
   - 0.01
   - 0.01
   id: 12
-  maintnanace_cost_annual:
+  maintenance_cost_annual:
   - - 929.196
     - 929.196
     - 929.196
@@ -226322,7 +226322,7 @@ TechVehicle:
   - 0.01
   - 0.01
   id: 13
-  maintnanace_cost_annual:
+  maintenance_cost_annual:
   - - 1056.303
     - 1056.303
     - 1056.303
@@ -230258,7 +230258,7 @@ TechVehicle:
   - 0.01
   - 0.01
   id: 14
-  maintnanace_cost_annual:
+  maintenance_cost_annual:
   - - 1313.439
     - 1313.439
     - 1313.439

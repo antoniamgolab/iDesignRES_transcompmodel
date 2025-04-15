@@ -25,13 +25,6 @@ function base_define_variables(model::Model, data_structures::Dict)
     p_r_k_e_pairs = create_p_r_k_e_set(data_structures["odpair_list"])
     p_r_k_n_pairs = create_p_r_k_n_set(data_structures["odpair_list"])
     p_r_k_g_pairs = create_p_r_k_g_set(data_structures["odpair_list"])
-    if length(data_structures["detour_time_reduction_list"]) > 0
-        geo_i_f_pairs = create_geo_i_f_pairs(
-            data_structures["geographic_element_list"],
-            data_structures["detour_time_reduction_list"],
-        )
-        println("geo_i_f_pairs", geo_i_f_pairs)
-    end
 
     data_structures["m_tv_pairs"] = m_tv_pairs
     data_structures["techvehicle_ids"] = techvehicle_ids
@@ -41,10 +34,6 @@ function base_define_variables(model::Model, data_structures::Dict)
     data_structures["p_r_k_n_pairs"] = p_r_k_n_pairs
     data_structures["p_r_k_g_pairs"] = p_r_k_g_pairs
     data_structures["r_k_pairs"] = create_r_k_set(data_structures["odpair_list"])
-    if length(data_structures["detour_time_reduction_list"]) > 0
-        data_structures["geo_i_f_pairs"] = geo_i_f_pairs
-    end
-
     odpairs = data_structures["odpair_list"]
     path_list = data_structures["path_list"]
     y_init = data_structures["y_init"]
@@ -129,24 +118,6 @@ function base_define_variables(model::Model, data_structures::Dict)
         model,
         n_fueling[y in y_init:Y_end, p_r_k_g_pairs, f_id in [f.id for f ∈ fuel_list]] >= 0
     )
-    if data_structures["detour_time_reduction_list"] != []
-        @variable(
-            model,
-            detour_time[
-                y in y_init:Y_end,
-                p_r_k in p_r_k_g_pairs,
-                f_id in [f.id for f ∈ fuel_list],
-            ] >= 0
-        )
-        @variable(model, x_a[y in y_init:Y_end, gif_pair in geo_i_f_pairs], Bin)
-        @variable(model, x_b[y in y_init:Y_end, gif_pair in geo_i_f_pairs], Bin)
-        @variable(model, x_c[y in y_init:Y_end, gif_pair in geo_i_f_pairs], Bin)
-
-        @variable(
-            model,
-            z[y in y_init:Y_end, gif_pair in geo_i_f_pairs, p_r_k_g in p_r_k_g_pairs] >= 0
-        )
-    end
     if data_structures["supplytype_list"] != []
         supplytype_list = data_structures["SupplyType"]
         @variable(
@@ -1049,232 +1020,6 @@ function constraint_emissions_by_mode(model::JuMP.Model, data_structures::Dict)
     end
 end
 
-"""
-    constraint_def_n_fueling(model::JuMP.Model, data_structures::Dict)
-
-Constraints for defining number of vehicles fueling at a location. The definition is for the determination of the detour time, and therefore only a necessary constraint for the model when the detour time is considered.
-
-# Arguments
-- model::JuMP.Model: JuMP model
-- data_structures::Dict: dictionary with the input data
-
-"""
-function constraint_def_n_fueling(model::JuMP.Model, data_structures::Dict)
-    y_init = data_structures["y_init"]
-    Y_end = data_structures["Y_end"]
-    p_r_k_g_pairs = data_structures["p_r_k_g_pairs"]
-    techvehicle_list = data_structures["techvehicle_list"]
-    fuel_list = data_structures["fuel_list"]
-    @constraint(
-        model,
-        [y in y_init:Y_end, p_r_k_g in p_r_k_g_pairs, f in fuel_list],
-        model[:n_fueling][y, p_r_k_g, f.id] == sum(
-            (1 / tv.tank_capacity[1]) * model[:s][y, p_r_k_g, tv.id] for
-            tv ∈ techvehicle_list if tv.technology.fuel.id == f.id
-        )
-    )
-end
-
-"""
-    constraint_detour_time(model::JuMP.Model, data_structures::Dict)
-
-Constraints for the detour time of vehicles fueling at a location. The detour time is determined by the number of vehicles fueling at a location and the initial detour time. The detour time can be reduced by the installation of fueling infrastructure which increases the density. The reduction potentials for different locations and fuel types need to be defined in the input data.
-
-# Arguments
-- model::JuMP.Model: JuMP model
-- data_structures::Dict: dictionary with the input data
-
-"""
-function constraint_detour_time(model::JuMP.Model, data_structures::Dict)
-    geo_i_f_pairs = data_structures["geo_i_f_pairs"]
-    fuel_list = data_structures["fuel_list"]
-    techvehicle_list = data_structures["techvehicle_list"]
-    detour_time_reduction_list = data_structures["detour_time_reduction_list"]
-    m_tv_pairs = data_structures["m_tv_pairs"]
-    y_init = data_structures["y_init"]
-    Y_end = data_structures["Y_end"]
-    p_r_k_pairs = data_structures["p_r_k_pairs"]
-    paths = data_structures["path_list"]
-    gamma = data_structures["gamma"]
-    geographic_element_list = data_structures["geographic_element_list"]
-    init_detour_times_list = data_structures["init_detour_times_list"]
-    g_init = data_structures["g_init"]
-    p_r_k_g_pairs = data_structures["p_r_k_g_pairs"]
-
-    for p_r_k_g ∈ p_r_k_g_pairs
-        geo_id = p_r_k_g[4]
-        for f ∈ fuel_list
-            matching_item = init_detour_times_list[findfirst(
-                elem -> elem.fuel.id == f.id && elem.location.id == geo_id,
-                init_detour_times_list,
-            )]
-            init_detour_time = matching_item.detour_time
-            if findfirst(elem -> elem.fuel.id == f.id, detour_time_reduction_list) ==
-               nothing
-                @constraint(
-                    model,
-                    [y in y_init:Y_end],
-                    model[:detour_time][y, p_r_k_g, f.id] ==
-                    model[:n_fueling][y, p_r_k_g, f.id] * init_detour_time
-                )
-            else
-                selection = detour_time_reduction_list[findall(
-                    elem -> elem.fuel.id == f.id && elem.location.id == geo_id,
-                    detour_time_reduction_list,
-                )]
-
-                @constraint(
-                    model,
-                    [y in y_init:Y_end],
-                    model[:detour_time][y, p_r_k_g, f.id] ==
-                    model[:n_fueling][y, p_r_k_g, f.id] * init_detour_time - sum(
-                        model[:z][y, g_id, p_r_k_g] *
-                        init_detour_time *
-                        selection[findfirst(
-                            item -> item.reduction_id == g_id[2],
-                            selection,
-                        )].detour_time_reduction for
-                        g_id ∈ geo_i_f_pairs if g_id[1] == geo_id && g_id[3] == f.id
-                    )
-                )
-            end
-        end
-    end
-end
-
-"""
-    constraint_lin_z_nalpha(model::JuMP.Model, data_structures::Dict)
-
-Constraints for the linearization of the product of the binary variable x and the number of vehicles fueling at a location. The linearization is necessary when the detour time is considered.
-
-# Arguments
-- model::JuMP.Model: JuMP model
-- data_structures::Dict: dictionary with the input data
-"""
-function constraint_lin_z_nalpha(model::JuMP.Model, data_structures::Dict)
-    geo_id_pairs = data_structures["geo_i_f_pairs"]
-    techvehicle_list = data_structures["techvehicle_list"]
-    fuel_list = data_structures["fuel_list"]
-    m_tv_pairs = data_structures["m_tv_pairs"]
-    y_init = data_structures["y_init"]
-    Y_end = data_structures["Y_end"]
-    paths = data_structures["path_list"]
-    p_r_k_g_pairs = data_structures["p_r_k_g_pairs"]
-    init_detour_times_list = data_structures["init_detour_times_list"]
-    detour_time_reduction_list = data_structures["detour_time_reduction_list"]
-    g_init = data_structures["g_init"]
-    gamma = data_structures["gamma"]
-    geographic_element_list = data_structures["geographic_element_list"]
-    M = 10^8
-    for geo_i_f ∈ geo_id_pairs
-        matching_item = detour_time_reduction_list[findfirst(
-            item ->
-                item.reduction_id == geo_i_f[2] &&
-                    item.location.id ==
-                    geographic_element_list[findfirst(
-                        item -> item.id == geo_i_f[1],
-                        geographic_element_list,
-                    )].id,
-            detour_time_reduction_list,
-        )]
-        #reduction_val = matching_item.detour_time_reduction
-
-        f = matching_item.fuel
-        @constraint(
-            model,
-            [y in y_init:Y_end, p_r_k in p_r_k_g_pairs, v in techvehicle_list],
-            model[:z][y, geo_i_f, p_r_k] <= model[:n_fueling][y, p_r_k, f.id]
-        )
-
-        @constraint(
-            model,
-            [y in y_init:Y_end, p_r_k in p_r_k_g_pairs],
-            model[:z][y, geo_i_f, p_r_k] <= M * model[:x_c][y, geo_i_f]
-        )
-
-        @constraint(
-            model,
-            [y in y_init:Y_end, p_r_k in p_r_k_g_pairs],
-            model[:z][y, geo_i_f, p_r_k] >=
-            model[:n_fueling][y, p_r_k, f.id] - M * (1 - model[:x_c][y, geo_i_f])
-        )
-    end
-end
-
-"""
-    constraint_detour_time_capacity_reduction(model::JuMP.Model, data_structures::Dict)
-
-Constraints for the reduction of the detour time by the installation of fueling infrastructure. The reduction potentials for different locations and fuel types need to be defined in the input data.	
-
-
-# Arguments
-- model::JuMP.Model: JuMP model
-- data_structures::Dict: dictionary with the input data
-
-"""
-function constraint_detour_time_capacity_reduction(model::JuMP.Model, data_structures::Dict)
-    geo_id_pairs = data_structures["geo_i_f_pairs"]
-    techvehicle_list = data_structures["techvehicle_list"]
-    m_tv_pairs = data_structures["m_tv_pairs"]
-    y_init = data_structures["y_init"]
-    Y_end = data_structures["Y_end"]
-    p_r_k_g_pairs = data_structures["p_r_k_g_pairs"]
-    paths = data_structures["path_list"]
-    gamma = data_structures["gamma"]
-    detour_time_reduction_list = data_structures["detour_time_reduction_list"]
-    fuel_list = data_structures["fuel_list"]
-    geographic_element_list = data_structures["geographic_element_list"]
-    M = 10^8
-
-    global counter_ = 0
-    for geo_i_f ∈ geo_id_pairs
-        matching_item = detour_time_reduction_list[findfirst(
-            item ->
-                item.reduction_id == geo_i_f[2] &&
-                    item.location.id ==
-                    geographic_element_list[findfirst(
-                        item -> item.id == geo_i_f[1],
-                        geographic_element_list,
-                    )].id,
-            detour_time_reduction_list,
-        )]
-        lb = matching_item.fueling_cap_lb
-        ub = matching_item.fueling_cap_ub
-        fuel_type = matching_item.fuel
-
-        @constraint(
-            model,
-            [y in y_init:Y_end],
-            lb * model[:x_c][y, geo_i_f] <=
-            sum(model[:q_fuel_infr_plus][y0, fuel_type.id, geo_i_f[1]] for y0 ∈ y_init:y)
-        )
-        @constraint(
-            model,
-            [y in y_init:Y_end],
-            sum(model[:q_fuel_infr_plus][y0, fuel_type.id, geo_i_f[1]] for y0 ∈ y_init:y) <=
-            ub * model[:x_c][y, geo_i_f] + M * (1 - model[:x_c][y, geo_i_f])
-        )
-        @constraint(
-            model,
-            [y in y_init:Y_end],
-            sum(model[:q_fuel_infr_plus][y0, fuel_type.id, geo_i_f[1]] for y0 ∈ y_init:y) <=
-            M * model[:x_a][y, geo_i_f]
-        )
-        @constraint(
-            model,
-            [y in y_init:Y_end],
-            ub -
-            sum(model[:q_fuel_infr_plus][y0, fuel_type.id, geo_i_f[1]] for y0 ∈ y_init:y) <=
-            M * model[:x_b][y, geo_i_f]
-        )
-        @constraint(
-            model,
-            [y in y_init:Y_end],
-            model[:x_c][y, geo_i_f] >=
-            model[:x_a][y, geo_i_f] + model[:x_b][y, geo_i_f] - 1
-        )
-    end
-end
 
 """
     constraint_travel_time(model::JuMP.Model, data_structures::Dict)
@@ -1475,22 +1220,6 @@ function objective(model::Model, data_structures::Dict)
                                 g,
                             ],
                         )
-                    end
-                end
-                if length(data_structures["detour_time_reduction_list"]) > 0
-                    for k ∈ r.paths
-                        for geo ∈ k.sequence
-                            add_to_expression!(
-                                total_cost_expr,
-                                discount_factor *
-                                model[:detour_time][
-                                    y,
-                                    (r.product.id, r.id, k.id, geo.id),
-                                    v.technology.fuel.id,
-                                ] *
-                                r.financial_status.VoT,
-                            )
-                        end
                     end
                 end
             end

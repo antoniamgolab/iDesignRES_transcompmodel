@@ -157,7 +157,7 @@ function check_correct_formats_GeographicElement(data_structures::Dict, years)
         @assert (isa(d["length"], Float64) || isa(d["length"], Int)) "The key 'length' in 'GeographicElement' must be a float value. Error at $(d["id"])."
 
         # checking for the correct length of arrays
-        @assert length(d["carbon_price"]) == years "The key 'carbon_price' in 'GeographicElement' must have the same length as the years of the optimization horizon. Error at $(d["id"])."
+        @assert length(d["carbon_price"]) >= years "The key 'carbon_price' in 'GeographicElement' must have the same length as the years of the optimization horizon. Error at $(d["id"])."
     end
 end
 
@@ -179,18 +179,6 @@ function check_correct_formats_FinancialStatus(data_structures::Dict)
         @assert isa(fs["name"], String) "The key 'name' in 'FinancialStatus' must be a string value. Error at $(fs["id"])."
         @assert (isa(fs["VoT"], Float64) || isa(fs["VoT"], Int)) "The key 'VoT' in 'FinancialStatus' must be a float or int value. Error at $(fs["id"])."
         @assert (
-            isa(fs["monetary_budget_operational"], Float64) ||
-            isa(fs["monetary_budget_operational"], Int)
-        ) "The key 'monetary_budget_operational' in 'FinancialStatus' must be a float or int value. Error at $(fs["id"])."
-        @assert (
-            isa(fs["monetary_budget_operational_lb"], Float64) ||
-            isa(fs["monetary_budget_operational_lb"], Int)
-        ) "The key 'monetary_budget_operational_lb' in 'FinancialStatus' must be a float or int value. Error at $(fs["id"])."
-        @assert (
-            isa(fs["monetary_budget_operational_ub"], Float64) ||
-            isa(fs["monetary_budget_operational_ub"], Int)
-        ) "The key 'monetary_budget_operational_ub' in 'FinancialStatus' must be a float or int value. Error at $(fs["id"])."
-        @assert (
             isa(fs["monetary_budget_purchase"], Float64) ||
             isa(fs["monetary_budget_purchase"], Int)
         ) "The key 'monetary_budget_purchase' in 'FinancialStatus' must be a float or int value. Error at $(fs["id"])."
@@ -204,25 +192,6 @@ function check_correct_formats_FinancialStatus(data_structures::Dict)
         ) "The key 'monetary_budget_purchase_ub' in 'FinancialStatus' must be a float or int value. Error at $(fs["id"])."
 
         # checking for appropriate values of the monetary budgets and their limits
-        # TODO: make warning for when the monetary budget is way to low are way to high
-
-        if fs["monetary_budget_operational"] < fs["monetary_budget_operational_lb"]
-            error(
-                "The lower bound of the operational monetary budget must be smaller than the operational monetary budget.",
-            )
-        end
-
-        if fs["monetary_budget_operational"] > fs["monetary_budget_operational_ub"]
-            error(
-                "The upper bound of the operational monetary budget must be larger than the operational monetary budget.",
-            )
-        end
-
-        if fs["monetary_budget_operational_lb"] > fs["monetary_budget_operational_ub"]
-            error(
-                "The upper bound of the operational monetary budget must be larger than the lower bound of the operational monetary budget.",
-            )
-        end
 
         if fs["monetary_budget_purchase"] < fs["monetary_budget_purchase_lb"]
             error(
@@ -246,9 +215,6 @@ function check_correct_formats_FinancialStatus(data_structures::Dict)
             @warn "The lower and upper bounds of the purchase monetary budget are equal."
         end
 
-        if fs["monetary_budget_operational_lb"] == fs["monetary_budget_operational_ub"]
-            @warn "The lower and upper bounds of the operational monetary budget are equal."
-        end
     end
 end
 
@@ -290,11 +256,11 @@ function check_correct_format_Mode(data_structures::Dict, years)
         ) "The key 'waiting_time' in 'Mode' must be an array with float or integer values. Error at $(m["id"])."
 
         # checking for correct lengths of the arrays 
-        @assert length(m["costs_per_ukm"]) == years "The key 'costs_per_ukm' in 'Mode' must have the same length as the years of the optimization horizon. Error at $(m["id"])."
-        @assert length(m["emission_factor"]) == years "The key 'emission_factor' in 'Mode' must have the same length as the years of the optimization horizon. Error at $(m["id"])."
-        @assert length(m["infrastructure_expansion_costs"]) == years "The key 'infrastructure_expansion_costs' in 'Mode' must have the same length as the years of the optimization horizon. Error at $(m["id"])."
-        @assert length(m["infrastructure_om_costs"]) == years "The key 'infrastructure_om_costs' in 'Mode' must have the same length as the years of the optimization horizon. Error at $(m["id"])."
-        @assert length(m["waiting_time"]) == years "The key 'waiting_time' in 'Mode' must have the same length as the years of the optimization horizon. Error at $(m["id"])."
+        @assert length(m["costs_per_ukm"]) >= years "The key 'costs_per_ukm' in 'Mode' must have the same length as the years of the optimization horizon. Error at $(m["id"])."
+        @assert length(m["emission_factor"]) >= years "The key 'emission_factor' in 'Mode' must have the same length as the years of the optimization horizon. Error at $(m["id"])."
+        @assert length(m["infrastructure_expansion_costs"]) >= years "The key 'infrastructure_expansion_costs' in 'Mode' must have the same length as the years of the optimization horizon. Error at $(m["id"])."
+        @assert length(m["infrastructure_om_costs"]) >= years "The key 'infrastructure_om_costs' in 'Mode' must have the same length as the years of the optimization horizon. Error at $(m["id"])."
+        @assert length(m["waiting_time"]) >= years "The key 'waiting_time' in 'Mode' must have the same length as the years of the optimization horizon. Error at $(m["id"])."
     end
 end
 
@@ -367,10 +333,10 @@ function check_correct_format_Fuel(data_structures::Dict, years::Int)
         ) "The key 'fueling_infrastructure_om_costs' in 'Fuel' must be an array with float or integer values. Error at $(f["id"])."
 
         # checking for correct lengths of the arrays
-        @assert length(f["cost_per_kWh"]) == years "The key 'cost_per_kWh' in 'Fuel' must have the same length as the years of the optimization horizon. Error at $(f["id"])."
-        @assert length(f["cost_per_kW"]) == years "The key 'cost_per_kW' in 'Fuel' must have the same length as the years of the optimization horizon. Error at $(f["id"])."
-        @assert length(f["emission_factor"]) == years "The key 'emission_factor' in 'Fuel' must have the same length as the years of the optimization horizon. Error at $(f["id"])."
-        @assert length(f["fueling_infrastructure_om_costs"]) == years "The key 'fueling_infrastructure_om_costs' in 'Fuel' must have the same length as the years of the optimization horizon. Error at $(f["id"])."
+        @assert length(f["cost_per_kWh"]) >= years "The key 'cost_per_kWh' in 'Fuel' must have the same length as the years of the optimization horizon. Error at $(f["id"])."
+        @assert length(f["cost_per_kW"]) >= years "The key 'cost_per_kW' in 'Fuel' must have the same length as the years of the optimization horizon. Error at $(f["id"])."
+        @assert length(f["emission_factor"]) >= years "The key 'emission_factor' in 'Fuel' must have the same length as the years of the optimization horizon. Error at $(f["id"])."
+        @assert length(f["fueling_infrastructure_om_costs"]) >= years "The key 'fueling_infrastructure_om_costs' in 'Fuel' must have the same length as the years of the optimization horizon. Error at $(f["id"])."
     end
 end
 
@@ -408,7 +374,7 @@ function check_correct_format_Vehicletype(data_structures::Dict)
         @assert isa(vt["id"], Int) "The key 'id' in 'VehicleType' must be an integer value. Error at $(vt["id"])."
         @assert isa(vt["name"], String) "The key 'name' in 'VehicleType' must be a string value. Error at $(vt["id"])."
         @assert isa(vt["mode"], Int) "The key 'mode' in 'VehicleType' must be an integer value. Error at $(vt["id"])."
-        @assert isa(vt["product"], String) "The key 'product' in 'VehicleType' must be an array of string values. Error at $(vt["id"])."
+        @assert isa(vt["product"], String) "The key 'product' in 'VehicleType' must be a string value. Error at $(vt["id"])."
     end
 end
 # TODO: check if an entry or reference to another is valid (maybe in other function) or in other 
@@ -437,8 +403,8 @@ function check_correct_format_Regiontype(data_structures::Dict, years::Int)
         ) "The key 'costs_fix' in 'Regiontype' must be an array with float or integer values. Error at $(rt["id"])."
 
         # check length of arrays
-        @assert length(rt["costs_var"]) == years "The key 'costs_var' in 'Regiontype' must have the same length as the years of the optimization horizon. Error at $(rt["id"])."
-        @assert length(rt["costs_fix"]) == years "The key 'costs_fix' in 'Regiontype' must have the same length as the years of the optimization horizon. Error at $(rt["id"])."
+        @assert length(rt["costs_var"]) >= years "The key 'costs_var' in 'Regiontype' must have the same length as the years of the optimization horizon. Error at $(rt["id"])."
+        @assert length(rt["costs_fix"]) >= years "The key 'costs_fix' in 'Regiontype' must have the same length as the years of the optimization horizon. Error at $(rt["id"])."
     end
 end
 
@@ -469,12 +435,12 @@ function check_correct_format_TechVehicle(
         @assert isa(tv["capital_cost"], Array{Float64,1}) ||
                 isa(tv["capital_cost"], Array{Int,1}) "The key 'capital_cost' in 'TechVehicle' must be an array with float or integer values. Error at $(tv["id"])."
         @assert (
-            isa(tv["maintnanace_cost_annual"], Array{Array{Float64,1},1}) ||
-            isa(tv["maintnanace_cost_annual"], Array{Array{Int,1},1})
-        ) "The key 'maintnanace_cost_annual' in 'TechVehicle' must be a two-dimensional array with float or integer values. Error at $(tv["id"])."
+            isa(tv["maintenance_cost_annual"], Array{Array{Float64,1},1}) ||
+            isa(tv["maintenance_cost_annual"], Array{Array{Int,1},1})
+        ) "The key 'maintenance_cost_annual' in 'TechVehicle' must be a two-dimensional array with float or integer values. Error at $(tv["id"])."
         @assert (
-            isa(tv["maintnance_cost_distance"], Array{Array{Float64,1},1}) ||
-            isa(tv["maintnance_cost_distance"], Array{Array{Int,1},1})
+            isa(tv["maintenance_cost_distance"], Array{Array{Float64,1},1}) ||
+            isa(tv["maintenance_cost_distance"], Array{Array{Int,1},1})
         ) "The key 'maintenance_cost_distance' in 'TechVehicle' must be a two-dimensional array with float or integer values. Error at $(tv["id"])."
         @assert (isa(tv["W"], Array{Float64,1}) || isa(tv["W"], Array{Int,1})) "The key 'W' in 'TechVehicle' must be an array with float or integer values. Error at $(tv["id"])."
         @assert (
@@ -492,22 +458,22 @@ function check_correct_format_TechVehicle(
                 isa(tv["peak_fueling"], Array{Int,1}) "The key 'peak_charging' in 'TechVehicle' must be an array with float or integer values. Error at $(tv["id"])."
 
         # check length of arrays
-        @assert length(tv["capital_cost"]) == generations "The key 'capital_cost' in 'TechVehicle' must have the same length as the years of the optimization horizon. Error at $(tv["id"])."
-        @assert length(tv["maintnanace_cost_annual"]) == generations "The key 'maintnanace_cost_annual' in 'TechVehicle' must have the same length as the years of the optimization horizon. Error at $(tv["id"])."
-        @assert length(tv["maintnance_cost_distance"]) == generations "The key 'maintnance_cost_distance' in 'TechVehicle' must have the same length as the years of the optimization horizon. Error at $(tv["id"])."
-        for i ∈ 1:length(tv["maintnance_cost_distance"])
-            @assert length(tv["maintnance_cost_distance"][i]) == years "The key 'maintnance_cost_distance' in 'TechVehicle' must have the same length as the years of the optimization horizon. Error at $(tv["id"])."
+        @assert length(tv["capital_cost"]) >= generations "The key 'capital_cost' in 'TechVehicle' must have the same length as the years of the optimization horizon. Error at $(tv["id"])."
+        @assert length(tv["maintenance_cost_annual"]) >= generations "The key 'maintenance_cost_annual' in 'TechVehicle' must have the same length as the years of the optimization horizon. Error at $(tv["id"])."
+        @assert length(tv["maintenance_cost_distance"]) >= generations "The key 'maintenance_cost_distance' in 'TechVehicle' must have the same length as the years of the optimization horizon. Error at $(tv["id"])."
+        for i ∈ 1:length(tv["maintenance_cost_distance"])
+            @assert length(tv["maintenance_cost_distance"][i]) >= years "The key 'maintenance_cost_distance' in 'TechVehicle' must have the same length as the years of the optimization horizon. Error at $(tv["id"])."
         end
-        for i ∈ 1:length(tv["maintnanace_cost_annual"])
-            @assert length(tv["maintnanace_cost_annual"][i]) == years "The key 'maintnanace_cost_annual' in 'TechVehicle' must have the same length as the years of the optimization horizon. Error at $(tv["id"])."
+        for i ∈ 1:length(tv["maintenance_cost_annual"])
+            @assert length(tv["maintenance_cost_annual"][i]) >= years "The key 'maintenance_cost_annual' in 'TechVehicle' must have the same length as the years of the optimization horizon. Error at $(tv["id"])."
         end
 
-        @assert length(tv["W"]) == generations "The key 'W' in 'TechVehicle' must have the same length as the years of the optimization horizon. Error at $(tv["id"])."
-        @assert length(tv["spec_cons"]) == generations "The key 'spec_cons' in 'TechVehicle' must have the same length as the years of the optimization horizon. Error at $(tv["id"])."
-        @assert length(tv["Lifetime"]) == generations "The key 'Lifetime' in 'TechVehicle' must have the same length as the years of the optimization horizon. Error at $(tv["id"])."
-        @assert length(tv["AnnualRange"]) == generations "The key 'AnnualRange' in 'TechVehicle' must have the same length as the years of the optimization horizon. Error at $(tv["id"])."
-        @assert length(tv["tank_capacity"]) == generations "The key 'battery_capacity' in 'TechVehicle' must have the same length as the years of the optimization horizon. Error at $(tv["id"])."
-        @assert length(tv["peak_fueling"]) == generations "The key 'peak_charging' in 'TechVehicle' must have the same length as the years of the optimization horizon. Error at $(tv["id"])."
+        @assert length(tv["W"]) >= generations "The key 'W' in 'TechVehicle' must have the same length as the years of the optimization horizon. Error at $(tv["id"])."
+        @assert length(tv["spec_cons"]) >= generations "The key 'spec_cons' in 'TechVehicle' must have the same length as the years of the optimization horizon. Error at $(tv["id"])."
+        @assert length(tv["Lifetime"]) >= generations "The key 'Lifetime' in 'TechVehicle' must have the same length as the years of the optimization horizon. Error at $(tv["id"])."
+        @assert length(tv["AnnualRange"]) >= generations "The key 'AnnualRange' in 'TechVehicle' must have the same length as the years of the optimization horizon. Error at $(tv["id"])."
+        @assert length(tv["tank_capacity"]) >= generations "The key 'battery_capacity' in 'TechVehicle' must have the same length as the years of the optimization horizon. Error at $(tv["id"])."
+        @assert length(tv["peak_fueling"]) >= generations "The key 'peak_charging' in 'TechVehicle' must have the same length as the years of the optimization horizon. Error at $(tv["id"])."
     end
 end
 
@@ -613,7 +579,7 @@ function check_correct_format_Odpair(data_structures::Dict, years::Int)
         @assert isa(od["region_type"], String) "The key 'region_type' in 'Odpair' must be a integer value. Error at $(od["id"])."
 
         # check length of arrays
-        @assert length(od["F"]) == years "The key 'F' in 'Odpair' must have the same length as the years of the optimization horizon. Error at $(od["id"])."
+        @assert length(od["F"]) >= years "The key 'F' in 'Odpair' must have the same length as the years of the optimization horizon. Error at $(od["id"])."
     end
 end
 

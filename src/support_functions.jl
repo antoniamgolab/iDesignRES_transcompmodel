@@ -87,8 +87,8 @@ function get_input_data(path_to_source_file::String)
             "vehicle_type",
             "technology",
             "capital_cost",
-            "maintnanace_cost_annual",
-            "maintnance_cost_distance",
+            "maintenance_cost_annual",
+            "maintenance_cost_distance",
             "W",
             "spec_cons",
             "Lifetime",
@@ -145,6 +145,7 @@ function get_input_data(path_to_source_file::String)
     @info "Vehicle generations since $first_gen are considered."
 
     # checking formats
+    println(data_dict["Model"]["Y"])
     check_correct_formats_GeographicElement(data_dict, data_dict["Model"]["Y"])
     check_correct_formats_FinancialStatus(data_dict)
     check_correct_format_Mode(data_dict, data_dict["Model"]["Y"])
@@ -284,8 +285,8 @@ function parse_data(data_dict::Dict)
                 technology_list,
             )],
             techvehicle["capital_cost"],
-            techvehicle["maintnanace_cost_annual"],
-            techvehicle["maintnance_cost_distance"],
+            techvehicle["maintenance_cost_annual"],
+            techvehicle["maintenance_cost_distance"],
             techvehicle["W"],
             techvehicle["spec_cons"],
             techvehicle["Lifetime"],
@@ -810,53 +811,6 @@ function create_model(data_structures, case_name::String, optimizer)
     return model, data_structures
 end
 
-function create_geo_i_pairs(
-    geographic_element_list::Vector{GeographicElement},
-    detour_time_reduction_list::Vector{DetourTimeReduction},
-)
-    geo_i_pairs = Set(
-        (geo.id, i.reduction_id) for geo ∈ geographic_element_list for
-        i ∈ detour_time_reduction_list[findall(
-            item -> item.location == geo.id,
-            detour_time_reduction_list,
-        )]
-    )
-    return geo_i_pairs
-end
-
-function create_geo_i_f_pairs(
-    geographic_element_list::Vector{GeographicElement},
-    detour_time_reduction_list::Vector{DetourTimeReduction},
-)
-    geo_i_f_pairs = Set()
-    for item ∈ detour_time_reduction_list
-        push!(geo_i_f_pairs, (item.location.id, item.reduction_id, item.fuel.id))
-    end
-    return geo_i_f_pairs
-end
-"""
-    depreciation_factor(y, g)
-
-Calculate the depreciation factor for a vehicle based on its age.
-
-# Arguments
-- `y::Int`: The year of the vehicle.
-- `g::Int`: The year the vehicle was purchased.
-
-# Returns
-- `Float64`: The depreciation factor.
-"""
-function depreciation_factor(y, g)
-    age = y - g  # Lifetime of the vehicle
-    if age == 0
-        return 1.0  # No depreciation in the first year
-    elseif age == 1
-        return 0.75  # 25% depreciation in the second year
-    else
-        return max(0, 0.75 - 0.05 * (age - 1))  # Decrease by 5% for each subsequent year
-    end
-end
-
 """
     create_emission_price_along_path(k::Path, y::Int64, data_structures::Dict)
 
@@ -903,8 +857,9 @@ function save_results(
     write_to_file::Bool = true,
     folder_for_results::String = "results",
 )
-    check_folder_writable(folder_for_results)
-
+    if write_to_file
+        check_folder_writable(folder_for_results)
+    end 
     y_init = data_structures["y_init"]
     Y_end = data_structures["Y_end"]
     odpairs = data_structures["odpair_list"]
@@ -1111,34 +1066,6 @@ function save_results(
         )
         YAML.write_file(joinpath(folder_for_results, case * "_s.yaml"), s_dict_str)
         @info "s.yaml written successfully"
-        if data_structures["detour_time_reduction_list"] != []
-            YAML.write_file(
-                joinpath(folder_for_results, case * "_detour_time_dict.yaml"),
-                detour_time_dict_str,
-            )
-            @info "detour_time_dict.yaml written successfully"
-
-            @info "x_dict.yaml written successfully"
-            YAML.write_file(
-                joinpath(folder_for_results, case * "_x_a_dict.yaml"),
-                x_a_dict_str,
-            )
-            @info "x_a_dict.yaml written successfully"
-            YAML.write_file(
-                joinpath(folder_for_results, case * "_x_b_dict.yaml"),
-                x_b_dict_str,
-            )
-            @info "x_b_dict.yaml written successfully"
-            YAML.write_file(
-                joinpath(folder_for_results, case * "_x_c_dict.yaml"),
-                x_c_dict_str,
-            )
-            YAML.write_file(
-                joinpath(folder_for_results, case * "_n_fueling_dict.yaml"),
-                n_fueling_dict,
-            )
-            YAML.write_file(joinpath(folder_for_results, case * "_z_dict.yaml"), z_str)
-        end
         if data_structures["supplytype_list"] != []
             YAML.write_file(
                 joinpath(folder_for_results, case * "_q_supply_infr_dict.yaml"),
