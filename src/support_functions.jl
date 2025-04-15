@@ -1010,12 +1010,12 @@ function save_results(
 
     if data_structures["supplytype_list"] != []
         supplytype_list = data_structures["supplytype_list"]
-        q_supply_infr_dict = Dict()
+        q_supply_infr_plus_dict = Dict()
         for y ∈ y_init:Y_end, st ∈ supplytype_list, geo ∈ geographic_element_list
-            q_supply_infr_dict[(y, st.id, geo.id)] =
-                value(model[:q_supply_infr][y, st.id, geo.id])
+            q_supply_infr_plus_dict[(y, st.id, geo.id)] =
+                value(model[:q_supply_infr_plus][y, st.id, geo.id])
         end
-        q_supply_infr_dict_str = stringify_keys(q_supply_infr_dict)
+        q_supply_infr_plus_dict_str = stringify_keys(q_supply_infr_plus_dict)
     end
     if write_to_file
         YAML.write_file(joinpath(folder_for_results, case * "_f_dict.yaml"), f_dict_str)
@@ -1068,23 +1068,36 @@ function save_results(
         @info "s.yaml written successfully"
         if data_structures["supplytype_list"] != []
             YAML.write_file(
-                joinpath(folder_for_results, case * "_q_supply_infr_dict.yaml"),
-                q_supply_infr_dict_str,
+                joinpath(folder_for_results, case * "_q_supply_infr_plus_dict.yaml"),
+                q_supply_infr_plus_dict_str,
             )
-            @info "q_supply_infr_dict.yaml written successfully"
+            @info "q_supply_infr_plus_dict.yaml written successfully"
         end
     end
-
-    return f_dict,
-    h_dict,
-    h_exist_dict,
-    h_plus_dict,
-    h_minus_dict,
-    s_dict,
-    q_fuel_infr_plus_dict,
-    q_mode_infr_plus_dict,
-    budget_penalty_plus_dict,
-    budget_penalty_minus_dict
+    if data_structures["supplytype_list"] == []
+        return f_dict,
+        h_dict,
+        h_exist_dict,
+        h_plus_dict,
+        h_minus_dict,
+        s_dict,
+        q_fuel_infr_plus_dict,
+        q_mode_infr_plus_dict,
+        budget_penalty_plus_dict,
+        budget_penalty_minus_dict
+    else
+        return f_dict,
+        h_dict,
+        h_exist_dict,
+        h_plus_dict,
+        h_minus_dict,
+        s_dict,
+        q_fuel_infr_plus_dict,
+        q_mode_infr_plus_dict,
+        budget_penalty_plus_dict,
+        budget_penalty_minus_dict,
+        q_supply_infr_plus_dict
+    end
 end
 
 

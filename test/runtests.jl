@@ -29,6 +29,12 @@ using YAML
         end
     end
     
+    @testset "Minimum viable case | Supply infrastructure" begin
+        @testset "Supply infrastructure test" begin
+            include("test_supply_infrastructure.jl")
+        end
+    end
+    
     @testset "Input data reading" begin
         @testset "Input data test" begin
             include("test_input_data_reading.jl")

@@ -119,12 +119,12 @@ function base_define_variables(model::Model, data_structures::Dict)
         n_fueling[y in y_init:Y_end, p_r_k_g_pairs, f_id in [f.id for f ∈ fuel_list]] >= 0
     )
     if data_structures["supplytype_list"] != []
-        supplytype_list = data_structures["SupplyType"]
+        supplytype_list = data_structures["supplytype_list"]
         @variable(
             model,
-            q_supply_infr[
+            q_supply_infr_plus[
                 y in y_init:Y_end,
-                st_id in [st.id for s ∈ supplytype_list],
+                s_id in [s.id for s ∈ supplytype_list],
                 geo_id in [geo.id for geo ∈ geographic_element_list],
             ] >= 0
         )
@@ -582,7 +582,7 @@ function constraint_supply_infrastructure(model::JuMP.Model, data_structures::Di
     techvehicles = data_structures["techvehicle_list"]
     fuel_list = data_structures["fuel_list"]
     geographic_element_list = data_structures["geographic_element_list"]
-    initsupplyinfr_list = data_structures["initsupplyinfr_list"]
+    initsupplyinfr_list = data_structures["initialsupplyinfr_list"]
     gamma = data_structures["gamma"]
     supplytype_list = data_structures["supplytype_list"]
 
@@ -594,10 +594,10 @@ function constraint_supply_infrastructure(model::JuMP.Model, data_structures::Di
             geo in geographic_element_list,
         ],
         initsupplyinfr_list[findfirst(
-            i -> i.supply_type.name == l.name && i.allocation == geo.id,
+            i -> i.supply_type.name == l.name && i.allocation.id == geo.id,
             initsupplyinfr_list,
         )].installed_kW +
-        sum(model[:q_supply_infr][y0, l.id, geo.id] for y0 ∈ data_structures["y_init"]:y) >=
+        sum(model[:q_supply_infr_plus][y0, l.id, geo.id] for y0 ∈ data_structures["y_init"]:y) >=
         sum(
             gamma * model[:s][y, p_r_k_g, tv.id] for p_r_k_g ∈ p_r_k_g_pairs for
             tv ∈ techvehicles for f ∈ fuel_list if p_r_k_g[4] == geo.id &&
@@ -1281,7 +1281,7 @@ function objective(model::Model, data_structures::Dict)
                             total_cost_expr,
                             (
                                 initialsupplyinfr_list[findfirst(
-                                    i -> i.supplytype.id == st.id && i.allocation == geo.id,
+                                    i -> i.supply_type.id == st.id && i.allocation.id == geo.id,
                                     initialsupplyinfr_list,
                                 )].installed_kW +
                                 model[:q_supply_infr_plus][y0, st.id, geo.id]

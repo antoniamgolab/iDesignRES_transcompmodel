@@ -35,6 +35,8 @@ export ModeShareminbyyear
 export EmissionLimitbymode
 export EmissionLimitbyyear
 export VehicleSubsidy
+export SupplyType
+export InitialSupplyInfr
 
 # exporting model functions
 export base_define_variables
@@ -52,6 +54,7 @@ export constraint_max_mode_share
 export constraint_min_mode_share
 export constraint_market_share
 export constraint_emissions_by_mode
+export constraint_supply_infrastructure
 export objective
 
 # exporting supporting functions

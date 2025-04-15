@@ -500,35 +500,35 @@ Odpair:
       - 8
       - 9
       - 10
-    travel_time_budget: 120
+    travel_demand:
+      - 100
+      - 100
+      - 100
+      - 100
+      - 100
+      - 100
+      - 100
+      - 100
+      - 100
+      - 100
+      - 100
+      - 100
+      - 100
+      - 100
+      - 100
+      - 100
+      - 100
+      - 100
+      - 100
+      - 100
+      - 100
     region_type: "Rural"
     id: 1
     path_id: 1
     to: 1
     from: 1
     product: "passenger"
-    F:
-      - 100
-      - 100
-      - 100
-      - 100
-      - 100
-      - 100
-      - 100
-      - 100
-      - 100
-      - 100
-      - 100
-      - 100
-      - 100
-      - 100
-      - 100
-      - 100
-      - 100
-      - 100
-      - 100
-      - 100
-      - 100
+    travel_time_budget: 120
     financial_status: "Middle class"
 Regiontype:
   - name: "Rural"
