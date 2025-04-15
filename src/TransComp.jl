@@ -52,10 +52,6 @@ export constraint_max_mode_share
 export constraint_min_mode_share
 export constraint_market_share
 export constraint_emissions_by_mode
-export constraint_detour_time_capacity_reduction
-export constraint_lin_z_nalpha
-export constraint_detour_time
-export constraint_def_n_fueling
 export objective
 
 # exporting supporting functions

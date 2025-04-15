@@ -1020,51 +1020,6 @@ function constraint_emissions_by_mode(model::JuMP.Model, data_structures::Dict)
     end
 end
 
-
-"""
-    constraint_travel_time(model::JuMP.Model, data_structures::Dict)
-
-Defining travel time budget for each route.
-
-# Arguments
-- model::JuMP.Model: JuMP model
-- data_structures::Dict: dictionary with the input data
-"""
-function constraint_travel_time(model::JuMP.Model, data_structures::Dict)
-    y_init = data_structures["y_init"]
-    Y_end = data_structures["Y_end"]
-    p_r_k_pairs = data_structures["p_r_k_pairs"]
-    techvehicle_list = data_structures["techvehicle_list"]
-    paths = data_structures["path_list"]
-    speed_list = data_structures["speed_list"]
-    odpair_list = data_structures["odpair_list"]
-    m_tv_pairs = data_structures["m_tv_pairs"]
-    mode_list = data_structures["mode_list"]
-    g_init = data_structures["g_init"]
-
-    @constraint(
-        model,
-        [y in y_init:Y_end, r in odpair_list, mv in m_tv_pairs],
-        sum(
-            model[:f][y, (r.product.id, r.id, k.id), mv, g] *
-            k.length *
-            (
-                1 /
-                speed_list[findfirst(
-                    s -> s.region_type.id == r.region_type.id && s.vehicle_type.id == mv[2],
-                    speed_list,
-                )].travel_speed
-            ) +
-            mode_list[findfirst(item -> item.id == mv[1], mode_list)].waiting_time *
-            model[:f][y, (r.product.id, r.id, k.id), mv, g] *
-            2 for k ∈ r.paths for g ∈ g_init:y
-        ) <=
-        sum(
-            model[:f][y, (r.product.id, r.id, k.id), mv, g] for k ∈ r.paths for g ∈ g_init:y
-        ) * r.travel_time_budget
-    )
-end
-
 """
 	objective(model::Model, data_structures::Dict)
 
