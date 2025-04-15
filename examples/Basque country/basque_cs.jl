@@ -58,8 +58,7 @@ constraint_mode_infrastructure(model, data_structures)
 objective(model, data_structures)
 
 # -------- model solution and saving of results --------
-# set_optimizer_attribute(model, "ScaleFlag", 2)
-# set_optimizer_attribute(model, "Presolve", 0)
+
 set_optimizer_attribute(model, "MIPFocus", 2)
 set_optimizer_attribute(model, "MIPGap", 10^(-9))
 set_optimizer_attribute(model, "Crossover", 0)

@@ -102,11 +102,11 @@ input_data_dic = Dict(
 )
 
 yaml_str = YAML.write(input_data_dic)
-open("test_input_data_reading.yaml", "w") do file
+open("test/data/test_input_data_reading.yaml", "w") do file
     write(file, yaml_str)
 end
 
-file = "test_input_data_reading.yaml"
+file = "test/data/test_input_data_reading.yaml"
 data_dict = get_input_data(file)
 data_structures = parse_data(data_dict)
 
@@ -189,11 +189,11 @@ keys_list = [
     )
 
     yaml_str = YAML.write(input_data_dic_2)
-    open("test_input_data_reading.yaml", "w") do file
+    open("test/data/test_input_data_reading.yaml", "w") do file
         write(file, yaml_str)
     end
 
-    file = "test_input_data_reading.yaml"
+    file = "test/data/test_input_data_reading.yaml"
     # data_dict = get_input_data(file)  # This should throw an error
     # end
     @test_throws AssertionError get_input_data(file)
@@ -226,11 +226,11 @@ keys_list = [
         "Speed" => speed_list,
     )
     yaml_str = YAML.write(input_data_dic_2)
-    open("test_input_data_reading.yaml", "w") do file
+    open("test/data/test_input_data_reading.yaml", "w") do file
         write(file, yaml_str)
     end
 
-    file = "test_input_data_reading.yaml"
+    file = "test/data/test_input_data_reading.yaml"
     @test_throws AssertionError get_input_data(file)  # This should throw an error
 
 

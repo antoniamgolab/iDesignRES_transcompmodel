@@ -7,6 +7,7 @@ authors = ["Antonia Golab <antonia.golab@tuwien.ac.at>"]
 JuMP = "4076af6c-e467-56ae-b986-b466b2749572"
 Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 YAML = "ddb6d928-2868-570f-bddf-ab3f9cf99eb6"
+Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 
 [compat]
 JuMP = "1.9"
