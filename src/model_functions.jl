@@ -872,13 +872,13 @@ function constraint_mode_share(model::JuMP.Model, data_structures::Dict)
         model,
         [el in mode_share_list],
         sum(
-            model[:f][el.year, (r.product.id, r.id, k.id), mv, g] for p_r_k ∈ p_r_k_pairs
+            model[:f][el.year, (r.product.id, r.id, k.id), mv, g] for r ∈ odpairs
             for mv ∈ m_tv_pairs for k ∈ r.paths for g ∈ g_init:(el.year) if
-            mv[1] == el.mode.id && r.region.id in [rt.id for rt ∈ el.region_type]
+            mv[1] == el.mode.id && r.region_type.id in [rt.id for rt ∈ el.region_type]
         ) ==
         el.share * sum(
             r.F[el.year-y_init+1] for
-            r ∈ odpairs if r.region.id in [rt.id for rt ∈ el.region_type]
+            r ∈ odpairs if r.region_type.id in [rt.id for rt ∈ el.region_type]
         )
     )
 end

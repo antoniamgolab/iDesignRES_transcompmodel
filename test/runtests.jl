@@ -35,9 +35,22 @@ using YAML
         end
     end
     
+    @testset "Constraining mode share" begin
+        @testset "Constraining mode share test" begin
+            include("test_mode_share_restrict.jl")
+        end
+    end
+
+    @testset "Constraining market share" begin
+        @testset "Constraining market share test" begin
+            include("test_market_share_restrict.jl")
+        end
+    end
+    
     @testset "Input data reading" begin
         @testset "Input data test" begin
             include("test_input_data_reading.jl")
         end
     end
+
 end
