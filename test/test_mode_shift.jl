@@ -17,19 +17,19 @@ function generate_data_case_mode_shift()
             false,
             fill(0.12, Y + 1),
             fill(263, Y + 1),
-            fill(0.1, Y + 1),
-            fill(0.2, Y + 1),
+            fill(0, Y + 1),
+            fill(0, Y + 1),
             fill(0, Y + 1),
         ),
         Mode(
             2,
             "Rail",
             false,
-            fill(0.12, Y + 1),
+            fill(1, Y + 1),
             fill(0, Y + 1),
-            fill(0.3, Y + 1),
-            fill(0.2, Y + 1),
-            fill(20, Y + 1),
+            fill(0, Y + 1),
+            fill(0, Y + 1),
+            fill(0, Y + 1),
         ),
     ]
 
@@ -140,7 +140,7 @@ function generate_data_case_mode_shift()
         "pre_y" => pre_y,
         "Y_end" => Y + y_init - 1,
         "g_init" => y_init - pre_y,
-        "gamma" => 0.0001,
+        "gamma" => 0.003,
         "budget_penalty_plus" => 100,
         "budget_penalty_minus" => 100,
         "financial_status_list" => financial_status_list,
@@ -181,7 +181,7 @@ end
     data_structures = generate_data_case_mode_shift()
     model, data_structures = create_model(data_structures, case_name, HiGHS.Optimizer)
     constraint_demand_coverage(model, data_structures)
-
+    constraint_mode_infrastructure(model, data_structures)
     objective(model, data_structures)
 
     # -------- model solution and saving of results --------
@@ -224,13 +224,17 @@ end
     @test (
         sum(
             f_dict[(Y_end, (prk), mv, g)] for prk ∈ p_r_k_pairs for mv ∈ m_tv_pairs for
-            g ∈ g_init:Y_end if mv[1] == 1
+            g ∈ g_init:Y_end if mv[1] == 2
         ) == 100.0
     )
     @test (
         sum(
             f_dict[(Y_end, (prk), mv, g)] for prk ∈ p_r_k_pairs for mv ∈ m_tv_pairs for
-            g ∈ g_init:Y_end if mv[1] == 2
+            g ∈ g_init:Y_end if mv[1] == 1
         ) == 0
+    )
+
+    @test (
+        round(sum(q_mode_infr_plus_dict[y, m.id, geo.id] for m in data_structures["mode_list"] for geo in data_structures["geographic_element_list"] for y in data_structures["y_init"]:Y_end), digits=2) == 0.3
     )
 end

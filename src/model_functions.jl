@@ -620,6 +620,7 @@ function constraint_mode_infrastructure(model::JuMP.Model, data_structures::Dict
     path_list = data_structures["path_list"]
     initialmodeinfr_list = data_structures["initialmodeinfr_list"]
     geographic_element_list = data_structures["geographic_element_list"]
+    
     @constraint(
         model,
         [
@@ -635,8 +636,8 @@ function constraint_mode_infrastructure(model::JuMP.Model, data_structures::Dict
         ) >=
         data_structures["gamma"] * sum(
             model[:f][y, p_r_k, m_tv, g] for p_r_k ∈ data_structures["p_r_k_pairs"] for
-            m_tv ∈ data_structures["m_tv_pairs"] if
-            geo.id in path_list[findfirst(p -> p.id == p_r_k[3], path_list)].sequence
+            m_tv ∈ data_structures["m_tv_pairs"] for g in data_structures["g_init"]:y if
+            geo in path_list[findfirst(p -> p.id == p_r_k[3], path_list)].sequence && m.id == m_tv[1]
         )
     )
 end
