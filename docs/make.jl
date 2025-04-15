@@ -2,8 +2,8 @@
 using Documenter
 using DocumenterInterLinks
 # Include your module files manually
-include("../src/TransComp.jl")  # Adjust the path based on where your TransComp module is located
-using .TransComp
+# include("../src/TransComp.jl")  # Adjust the path based on where your TransComp module is located
+using TransComp
 
 @info "Module TransComp loaded."
 @show TransComp

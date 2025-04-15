@@ -390,14 +390,14 @@ function parse_data(data_dict::Dict)
         market_share_list = []
     end
 
-    if haskey(data_dict, "Emission_constraints_by_mode")
+    if haskey(data_dict, "EmissionLimitbymode")
         emission_constraint_by_mode_list = [
             EmissionConstraintByYear(
                 emission_constraint["id"],
                 mode_list[findfirst(m -> m.id == emission_constraint["mode"], mode_list)],
                 emission_constraint["year"],
                 emission_constraint["emission_constraint"],
-            ) for emission_constraint ∈ data_dict["Emission_constraints_by_year"]
+            ) for emission_constraint ∈ data_dict["EmissionLimitbyyear"]
         ]
         @info "Emissions are defined by year"
 
@@ -424,7 +424,7 @@ function parse_data(data_dict::Dict)
         mode_shares_list = []
     end
 
-    if haskey(data_dict, "Mode_share_max_by_year")
+    if haskey(data_dict, "ModeSharemaxbyyear")
         max_mode_shares_list = [
             ModeShare(
                 mode_share["id"],
@@ -443,7 +443,7 @@ function parse_data(data_dict::Dict)
         max_mode_shares_list = []
     end
 
-    if haskey(data_dict, "Mode_share_min_by_year")
+    if haskey(data_dict, "ModeShareminbyyear")
         min_mode_shares_list = [
             ModeShare(
                 mode_share["id"],
