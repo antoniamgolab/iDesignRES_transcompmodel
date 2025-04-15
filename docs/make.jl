@@ -6,7 +6,8 @@ using DocumenterInterLinks
 using TransComp
 
 @info "Module TransComp loaded."
-@show TransComp
+
+
 # Define the documentation output directory
 makedocs(;
     sitename = "TransComp Documentation",  # Title of the docs site

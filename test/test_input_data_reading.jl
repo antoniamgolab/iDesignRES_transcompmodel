@@ -100,13 +100,13 @@ input_data_dic = Dict(
     "Odpair" => odpair_list,
     "Speed" => speed_list,
 )
-
+input_file = normpath(joinpath(@__DIR__, "data/test_input_data_reading.yaml"))
 yaml_str = YAML.write(input_data_dic)
-open("test/data/test_input_data_reading.yaml", "w") do file
+open(input_file, "w") do file
     write(file, yaml_str)
 end
 
-file = "test/data/test_input_data_reading.yaml"
+file = input_file
 data_dict = get_input_data(file)
 data_structures = parse_data(data_dict)
 
@@ -148,7 +148,8 @@ keys_list = [
 @testset "Input data reading" begin
     # testing if the data_structures dictionary is properly established
     @test all(key -> haskey(data_structures, key), keys_list)
-
+    
+    input_file = normpath(joinpath(@__DIR__, "data/test_input_data_reading.yaml"))
     # testing if values are different, if error is thrown 
 
 
@@ -189,11 +190,11 @@ keys_list = [
     )
 
     yaml_str = YAML.write(input_data_dic_2)
-    open("test/data/test_input_data_reading.yaml", "w") do file
+    open(input_file, "w") do file
         write(file, yaml_str)
     end
 
-    file = "test/data/test_input_data_reading.yaml"
+    file = input_file
     # data_dict = get_input_data(file)  # This should throw an error
     # end
     @test_throws AssertionError get_input_data(file)
@@ -226,11 +227,11 @@ keys_list = [
         "Speed" => speed_list,
     )
     yaml_str = YAML.write(input_data_dic_2)
-    open("test/data/test_input_data_reading.yaml", "w") do file
+    open(input_file, "w") do file
         write(file, yaml_str)
     end
 
-    file = "test/data/test_input_data_reading.yaml"
+    file = input_file
     @test_throws AssertionError get_input_data(file)  # This should throw an error
 
 
