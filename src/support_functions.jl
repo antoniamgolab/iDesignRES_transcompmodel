@@ -311,14 +311,7 @@ function parse_data(data_dict::Dict)
             initvehiclestock["stock"],
         ) for initvehiclestock ∈ data_dict["InitialVehicleStock"]
     ]
-    initalfuelinginfr_list = [
-        InitialFuelingInfr(
-            initalfuelinginfr["id"],
-            fuel_list[findfirst(f -> f.name == initalfuelinginfr["fuel"], fuel_list)],
-            initalfuelinginfr["allocation"],
-            initalfuelinginfr["installed_kW"],
-        ) for initalfuelinginfr ∈ data_dict["InitialFuelingInfr"]
-    ]
+    
     initialmodeinfr_list = [
         InitialModeInfr(
             initialmodeinfr["id"],
@@ -328,9 +321,46 @@ function parse_data(data_dict::Dict)
         ) for initialmodeinfr ∈ data_dict["InitialModeInfr"]
     ]
 
-    odpair_list = [
-        Odpair(
-            odpair["id"],
+    # odpair_list = [
+    #     Odpair(
+    #         odpair["id"],
+    #         geographic_element_list[findfirst(
+    #             nodes -> nodes.id == odpair["from"],
+    #             geographic_element_list,
+    #         )],
+    #         geographic_element_list[findfirst(
+    #             nodes -> nodes.id == odpair["to"],
+    #             geographic_element_list,
+    #         )],
+    #         [path_list[findfirst(p -> p.id == odpair["path_id"], path_list)]],
+    #         odpair["F"],
+    #         product_list[findfirst(p -> p.name == odpair["product"], product_list)],
+    #         [
+    #             initvehiclestock_list[findfirst(
+    #                 ivs -> ivs.id == vsi,
+    #                 initvehiclestock_list,
+    #             )] for vsi ∈ odpair["vehicle_stock_init"]
+    #         ],
+    #         financial_status_list[findfirst(
+    #             fs -> fs.name == odpair["financial_status"],
+    #             financial_status_list,
+    #         )],
+    #         regiontype_list[findfirst(
+    #             rt -> rt.name == odpair["region_type"],
+    #             regiontype_list,
+    #         )],
+    #         odpair["travel_time_budget"]
+    #     ) for odpair ∈ data_dict["Odpair"]
+    # ]
+    odpair_list = []
+    for odpair ∈ data_dict["Odpair"]
+        if "purpose" in keys(odpair)
+            purpose = odpair["purpose"]
+        else
+            purpose = "none"
+        end
+        
+        push!(odpair_list, Odpair(odpair["id"],
             geographic_element_list[findfirst(
                 nodes -> nodes.id == odpair["from"],
                 geographic_element_list,
@@ -356,9 +386,11 @@ function parse_data(data_dict::Dict)
                 rt -> rt.name == odpair["region_type"],
                 regiontype_list,
             )],
-            odpair["travel_time_budget"]
-        ) for odpair ∈ data_dict["Odpair"]
-    ]
+            odpair["travel_time_budget"],
+            purpose
+        ))
+    end
+    odpair_list = Vector{Odpair}(odpair_list)
 
     # odpair_list = odpair_list[1:20]
     speed_list = [
@@ -408,6 +440,22 @@ function parse_data(data_dict::Dict)
 
     else
         emission_constraint_by_mode_list = []
+    end
+
+    if haskey(data_dict, "TripRatio")
+        tripratio_list = [
+            TripRatio(
+                tripratio["id"],
+                geographic_element_list[findfirst(
+                    ge -> ge.id == tripratio["origin"],
+                    geographic_element_list,
+                )],
+                tripratio["purpose"],
+                tripratio["share"],
+            ) for tripratio ∈ data_dict["TripRatio"]
+        ]
+    else
+        tripratio_list = []
     end
 
     if haskey(data_dict, "Mode_shares")
@@ -484,44 +532,9 @@ function parse_data(data_dict::Dict)
         vehicle_subsidy_list = []
     end
 
-    if haskey(data_dict, "InitDetourTime")
-        init_detour_times_list = [
-            InitDetourTime(
-                init_detour_time["id"],
-                fuel_list[findfirst(f -> f.name == init_detour_time["fuel"], fuel_list)],
-                geographic_element_list[findfirst(
-                    ge -> ge.name == init_detour_time["location"],
-                    geographic_element_list,
-                )],
-                init_detour_time["detour_time"],
-            ) for init_detour_time ∈ data_dict["InitDetourTime"]
-        ]
-    else
-        init_detour_times_list = []
-    end
+    
 
-    if haskey(data_dict, "DetourTimeReduction")
-        @info "has detour reduction specified"
-        detour_time_reduction_list = [
-            DetourTimeReduction(
-                detour_time_reduction["id"],
-                fuel_list[findfirst(
-                    f -> f.name == detour_time_reduction["fuel"],
-                    fuel_list,
-                )],
-                geographic_element_list[findfirst(
-                    ge -> ge.name == detour_time_reduction["location"],
-                    geographic_element_list,
-                )],
-                detour_time_reduction["reduction_id"],
-                detour_time_reduction["detour_time_reduction"],
-                detour_time_reduction["fueling_cap_lb"],
-                detour_time_reduction["fueling_cap_ub"],
-            ) for detour_time_reduction ∈ data_dict["DetourTimeReduction"]
-        ]
-    else
-        detour_time_reduction_list = []
-    end
+
 
 
 
@@ -568,6 +581,198 @@ function parse_data(data_dict::Dict)
         initialsupplyinfr_list = []
     end
 
+    if haskey(data_dict, "FuelingInfrastructureExpansion")
+        fueling_infr_expansion_list = [
+            FuelingInfrastructureExpansion(
+                item["id"],
+                fuel_list[findfirst(
+                    f -> f.name == item["fuel"],
+                    fuel_list,
+                )],
+                geographic_element_list[findfirst(
+                    ge -> ge.name == item["location"],
+                    geographic_element_list,
+                )],
+                item["alpha"],
+                item["beta"],
+            ) for item ∈ data_dict["FuelingInfrastructureExpansion"]
+        ]
+    else
+        fueling_infr_expansion_list = []
+    end
+
+    if haskey(data_dict, "Tripratio")
+        tripratio_list = [
+            TripRatio(
+                item["id"],
+                geographic_element_list[findfirst(
+                    ge -> ge.name == item["from"],
+                    geographic_element_list,
+                )],
+                item["purpose"],
+                item["share"],
+            ) for item ∈ data_dict["Tripratio"]
+        ]
+    else
+        tripratio_list = []
+    end
+
+    if haskey(data_dict, "FuelingInfrTypes")
+        fueling_infr_types = [
+            FuelingInfrTypes(
+                item["id"],
+                fuel_list[findfirst(
+                    f -> f.name == item["fuel"],
+                    fuel_list,
+                )],
+                item["fueling_type"],
+                item["fueling_power"],
+                item["additional_fueling_time"],
+                item["max_occupancy_rate_veh_per_year"],
+                item["by_route"],
+                item["track_detour_time"],
+            ) for item ∈ data_dict["FuelingInfrTypes"]
+        ]
+    else
+        fueling_infr_types = []
+    end
+    if haskey(data_dict, "InitDetourTime")
+        if haskey(data_dict, "FuelingInfrTypes")
+            init_detour_times_list = [
+                InitDetourTime(
+                    init_detour_time["id"],
+                    fuel_list[findfirst(f -> f.name == init_detour_time["fuel"], fuel_list)],
+                    geographic_element_list[findfirst(
+                        ge -> ge.name == init_detour_time["location"],
+                        geographic_element_list,
+                    )],
+                    init_detour_time["detour_time"],
+                    fueling_infr_types[findfirst(
+                        f -> f.fueling_type == init_detour_time["fuel_infr_type"],
+                        fueling_infr_types,
+                    )],
+                ) for init_detour_time ∈ data_dict["InitDetourTime"]
+            ]
+        else
+            init_detour_times_list = [
+                InitDetourTime(
+                    init_detour_time["id"],
+                    fuel_list[findfirst(f -> f.name == init_detour_time["fuel"], fuel_list)],
+                    geographic_element_list[findfirst(
+                        ge -> ge.name == init_detour_time["location"],
+                        geographic_element_list,
+                    )],
+                    init_detour_time["detour_time"],
+                    FuelingInfrTypes(0, fuel_list[1], "none", 0, 0, 0, false),
+                ) for init_detour_time ∈ data_dict["InitDetourTime"]
+            ]
+        end
+    else
+        init_detour_times_list = []
+    end
+    if haskey(data_dict, "FuelingInfrTypes")
+        initalfuelinginfr_list = [
+            InitialFuelingInfr(
+                initalfuelinginfr["id"],
+                fuel_list[findfirst(f -> f.name == initalfuelinginfr["fuel"], fuel_list)],
+                initalfuelinginfr["allocation"],
+                initalfuelinginfr["installed_kW"],
+                fueling_infr_types[findfirst(
+                    f -> f.fueling_type == initalfuelinginfr["type"],
+                    fueling_infr_types,
+                )],
+            ) for initalfuelinginfr ∈ data_dict["InitialFuelingInfr"]
+        ]
+    else 
+        initalfuelinginfr_list = [
+            InitialFuelingInfr(
+                initalfuelinginfr["id"],
+                fuel_list[findfirst(f -> f.name == initalfuelinginfr["fuel"], fuel_list)],
+                initalfuelinginfr["allocation"],
+                initalfuelinginfr["installed_kW"],
+                FuelingInfrTypes(0, fuel_list[1], "none", 0, 0, 0, false),
+            ) for initalfuelinginfr ∈ data_dict["InitialFuelingInfr"]
+        ]
+    end
+
+    if haskey(data_dict, "MaximumFuelingCapacityByFuel")
+        maximum_fueling_capacity_by_fuel = [
+            MaximumFuelingCapacityByFuel(
+                item["id"],
+                fuel_list[findfirst(
+                    f -> f.name == item["fuel"],
+                    fuel_list,
+                )],
+                geographic_element_list[findfirst(
+                    ge -> ge.name == item["location"],
+                    geographic_element_list,
+                )],
+                financial_status_list[findfirst(
+                    fs -> fs.name == item["financial_status"],
+                    financial_status_list,
+                )],
+                item["max_fueling_capacity"],
+                fueling_infr_types[findfirst(
+                    f -> f.id == item["fueling_type"],
+                    fueling_infr_types,
+                )],
+                item["by_income_class"]
+            ) for item ∈ data_dict["MaximumFuelingCapacityByFuel"]
+        ]
+    else
+        maximum_fueling_capacity_by_fuel = []
+    
+    end
+
+    if haskey(data_dict, "DetourTimeReduction")
+        @info "has detour reduction specified"
+        if !haskey(data_dict, "FuelingInfrTypes")
+            detour_time_reduction_list = [
+                DetourTimeReduction(
+                    detour_time_reduction["id"],
+                    fuel_list[findfirst(
+                        f -> f.name == detour_time_reduction["fuel"],
+                        fuel_list,
+                    )],
+                    geographic_element_list[findfirst(
+                        ge -> ge.name == detour_time_reduction["location"],
+                        geographic_element_list,
+                    )],
+                    detour_time_reduction["reduction_id"],
+                    detour_time_reduction["detour_time_reduction"],
+                    detour_time_reduction["fueling_cap_lb"],
+                    detour_time_reduction["fueling_cap_ub"],
+                    FuelingInfrTypes(0, fuel_list[1], "none", 0, 0, 0, false),
+                ) for detour_time_reduction ∈ data_dict["DetourTimeReduction"]
+            ]
+        else
+            detour_time_reduction_list = [
+                DetourTimeReduction(
+                    detour_time_reduction["id"],
+                    fuel_list[findfirst(
+                        f -> f.name == detour_time_reduction["fuel"],
+                        fuel_list,
+                    )],
+                    geographic_element_list[findfirst(
+                        ge -> ge.name == detour_time_reduction["location"],
+                        geographic_element_list,
+                    )],
+                    detour_time_reduction["reduction_id"],
+                    detour_time_reduction["detour_time_reduction"],
+                    detour_time_reduction["fueling_cap_lb"],
+                    detour_time_reduction["fueling_cap_ub"],
+                    fueling_infr_types[findfirst(
+                        f -> f.fueling_type == detour_time_reduction["fueling_type"],
+                        fueling_infr_types,
+                    )],
+                ) for detour_time_reduction ∈ data_dict["DetourTimeReduction"]
+            ]
+        end
+        
+    else
+        detour_time_reduction_list = []
+    end
+
     # TODO: extend here the list of possible data_dict structures
     data_structures = Dict(
         "Y" => data_dict["Model"]["Y"],
@@ -605,7 +810,12 @@ function parse_data(data_dict::Dict)
         "detour_time_reduction_list" => detour_time_reduction_list,
         "supplytype_list" => supplytype_list,
         "investment_period"=> investment_period,
+        "fueling_infr_expansion_list" => fueling_infr_expansion_list,
+        "tripratio_list" => tripratio_list,
+        "fueling_infr_types_list" => fueling_infr_types,
+        "maximum_fueling_capacity_by_fuel_list" => maximum_fueling_capacity_by_fuel,
     )
+
 
     for key ∈ keys(default_data)
         if haskey(data_dict["Model"], key)
@@ -674,6 +884,26 @@ function create_m_tv_pairs(techvehicle_list::Vector{TechVehicle}, mode_list::Vec
     return m_tv_pairs
 end
 
+
+"""
+    create_f_l_set(fuel_infr_list::Vector{FuelingInfrTypes})
+
+Creates a set of pairs of fuel and fueling infrastructure IDs.
+
+# Arguments
+- fuel_infr_list::Vector{FuelingInfrTypes}: list of fueling infrastructures
+- fuel_list::Vector{Fuel}: list of fuels
+
+# Returns
+- f_l_pairs::Set: set of pairs of fuel and fueling infrastructure IDs
+"""
+function create_f_l_set(fuel_infr_list::Vector{FuelingInfrTypes})
+    f_l_pairs = Set()
+    for item ∈ fuel_infr_list
+        push!(f_l_pairs, (item.fuel.id, item.id))
+    end
+    return f_l_pairs
+end
 """
 	create_tv_id_set(techvehicle_list::Vector{TechVehicle}, mode_list::Vector{Mode})
 
@@ -848,6 +1078,19 @@ function create_geo_i_f_pairs(
     end
     return geo_i_f_pairs
 end
+
+
+function create_geo_i_f_l_pairs(
+    detour_time_reduction_list::Vector{DetourTimeReduction},
+)
+    geo_i_f_l_pairs = Set()
+    for item ∈ detour_time_reduction_list
+        push!(geo_i_f_l_pairs, (item.location.id, item.reduction_id, item.fuel.id, item.fueling_type.id))
+    end
+    return geo_i_f_l_pairs
+end
+
+
 """
     depreciation_factor(y, g)
 
@@ -897,6 +1140,36 @@ function create_emission_price_along_path(k::Path, y::Int64, data_structures::Di
     average_carbon_price = total_carbon_price / n
     # println(average_carbon_price)
     return average_carbon_price
+end
+
+function create_q_by_route(data_structures::Dict)
+    maximum_fueling_capacity_by_fuel_list = data_structures["fueling_infr_types_list"]
+    q_by_route = Set()
+    q_not_by_route = Set()
+    for item ∈ maximum_fueling_capacity_by_fuel_list
+        if item.by_route
+            push!(q_by_route, (item.fuel.id, item.id))
+        else 
+            push!(q_not_by_route, (item.fuel.id, item.id))
+        end 
+    end
+    return q_by_route, q_not_by_route
+end 
+
+function create_detour_time_reduction_for_relevant(fuelinfr_type_list)
+    detour_time_for_fueling_type = Set()
+    for item ∈ fuelinfr_type_list
+        if item.track_detour_time
+            push!(detour_time_for_fueling_type, (item.fuel.id, item.id))
+        end
+    end
+    return detour_time_for_fueling_type
+end
+
+function stringify_keys(dict::Dict)
+    return Dict(
+        string(k) => (v isa Float64 ? @sprintf("%.6f", v) : string(v)) for (k, v) ∈ dict
+    )
 end
 
 """
@@ -955,13 +1228,21 @@ function save_results(
     for y ∈ y_init:Y_end, (p, r, k) ∈ p_r_k_pairs, mv ∈ m_tv_pairs, g ∈ g_init:y
         f_dict[(y, (p, r, k), mv, g)] = value(model[:f][y, (p, r, k), mv, g])
     end
-
-    s_dict = Dict()
-    for y ∈ y_init:Y_end, (p, r, k, g) ∈ p_r_k_g_pairs, tv_id ∈ tech_vehicle_ids
-        s_dict[(y, (p, r, k, g), tv_id)] = value(model[:s][y, (p, r, k, g), tv_id])
+    
+    if data_structures["fueling_infr_types_list"] != []
+        f_l_pairs = data_structures["f_l_pairs"]
+        s_dict = Dict()
+        for y ∈ y_init:Y_end, (p, r, k, g) ∈ p_r_k_g_pairs, tv_id ∈ tech_vehicle_ids, f_l in f_l_pairs, gen ∈ g_init:y
+            s_dict[(y, (p, r, k, g), tv_id, f_l, gen)] = value(model[:s][y, (p, r, k, g), tv_id, f_l, gen])
+        end
+    else
+        s_dict = Dict()
+        for y ∈ y_init:Y_end, (p, r, k, g) ∈ p_r_k_g_pairs, tv_id ∈ tech_vehicle_ids, gen ∈ g_init:y
+            s_dict[(y, (p, r, k, g), tv_id, gen)] = value(model[:s][y, (p, r, k, g), tv_id, gen])
+        end
     end
-
     # Dictionary for 'h' variable
+
     h_dict = Dict()
     for y ∈ y_init:Y_end, r ∈ odpairs, tv ∈ techvehicles, g ∈ g_init:y
         h_dict[(y, r.id, tv.id, g)] = value(model[:h][y, r.id, tv.id, g])
@@ -992,12 +1273,39 @@ function save_results(
             value(model[:q_mode_infr_plus][y, m.id, geo.id])
     end
 
-    # Dictionary for 'q_fuel_infr_plus_n' variable
-    q_fuel_infr_plus_dict = Dict()
-    for y ∈ y_init:investment_period:Y_end, f ∈ fuel_list, geo ∈ geographic_element_list
-        q_fuel_infr_plus_dict[(y, f.id, geo.id)] =
-            value(model[:q_fuel_infr_plus][y, f.id, geo.id])
+
+    if data_structures["fueling_infr_types_list"] != []
+
+        q_fuel_infr_plus_dict = Dict()
+        f_l_not_by_route = data_structures["f_l_not_by_route"]
+        
+        f_l_by_route = data_structures["f_l_by_route"]
+        for y ∈ y_init:investment_period:Y_end, f_l ∈ f_l_not_by_route, geo ∈ geographic_element_list
+            q_fuel_infr_plus_dict[(y, f_l, geo.id)] =
+                value(model[:q_fuel_infr_plus][y, f_l, geo.id])
+        end
+        q_fuel_infr_plus_by_route_dict = Dict()
+        if length(f_l_by_route) > 0
+            for y ∈ y_init:investment_period:Y_end, r in odpairs, f_l ∈ f_l_by_route, geo ∈ geographic_element_list
+                q_fuel_infr_plus_by_route_dict[(y, r.id, f_l, geo.id)] =
+                    value(model[:q_fuel_infr_plus_by_route][y, r.id, f_l, geo.id])
+            end
+        end
+
+    else 
+        q_supply_infr_plus_dict = Dict()
+        for y ∈ y_init:investment_period:Y_end, st ∈ data_structures["supplytype_list"], geo ∈ geographic_element_list
+            q_supply_infr_plus_dict[(y, st.id, geo.id)] =
+                value(model[:q_supply_infr_plus][y, st.id, geo.id])
+        end
+
+        q_fuel_infr_plus_dict = Dict()
+        for y ∈ y_init:investment_period:Y_end, f ∈ fuel_list, geo ∈ geographic_element_list
+            q_fuel_infr_plus_dict[(y, f.id, geo.id)] =
+                value(model[:q_fuel_infr_plus][y, f.id, geo.id])
+        end 
     end
+
 
     # Dictionary for 'budget_penalty' variable
     budget_penalty_plus_dict = Dict()
@@ -1021,11 +1329,6 @@ function save_results(
         budget_penalty_minus_yearly_dict[(y, r.id)] = value(model[:budget_penalty_yearly_minus][y, r.id])
     end
 
-    function stringify_keys(dict::Dict)
-        return Dict(
-            string(k) => (v isa Float64 ? @sprintf("%.6f", v) : string(v)) for (k, v) ∈ dict
-        )
-    end
 
     @info "Saving results..."
     # Convert the keys of each dictionary to strings
@@ -1046,39 +1349,65 @@ function save_results(
 
     if data_structures["detour_time_reduction_list"] != []
         # Dictionary for 'detour_times' variable
-        detour_time_dict = Dict()
-        for y ∈ y_init:Y_end, p_r_k ∈ p_r_k_g_pairs, f ∈ fuel_list
-            detour_time_dict[(y, p_r_k, f.id)] = value(model[:detour_time][y, p_r_k, f.id])
-        end
 
-        detour_time_dict_str = stringify_keys(detour_time_dict)
-        # x_a_dict = Dict()
-        # for y ∈ y_init:Y_end, g ∈ geo_i_f
-        #     x_a_dict[(y, g)] = value(model[:x_a][y, g])
-        # end
-        # x_a_dict_str = stringify_keys(x_a_dict)
+        if data_structures["fueling_infr_types_list"] == []
+            n_fueling_dict = Dict()
+            for y ∈ y_init:Y_end, (p, r, k, g) ∈ p_r_k_g_pairs, f ∈ fuel_list, g ∈ g_init:y
+                n_fueling_dict[(y, (p, r, k, g), f.id, g)] =
+                    value(model[:n_fueling][y, (p, r, k, g), f.id, g])
+            end
 
-        # x_b_dict = Dict()
-        # for y ∈ y_init:Y_end, g ∈ geo_i_f
-        #     x_b_dict[(y, g)] = value(model[:x_b][y, g])
-        # end
-        # x_b_dict_str = stringify_keys(x_b_dict)
-        x_c_dict = Dict()
-        for y ∈ y_init:investment_period:Y_end, g ∈ geo_i_f
-            x_c_dict[(y, g)] = value(model[:x_c][y, g])
-        end
-        x_c_dict_str = stringify_keys(x_c_dict)
-        n_fueling_dict = Dict()
-        for y ∈ y_init:Y_end, (p, r, k, g) ∈ p_r_k_g_pairs, f ∈ fuel_list
-            n_fueling_dict[(y, (p, r, k, g), f.id)] =
-                value(model[:n_fueling][y, (p, r, k, g), f.id])
-        end
+            detour_time_dict = Dict()
+            for y ∈ y_init:Y_end, p_r_k ∈ p_r_k_g_pairs, f ∈ fuel_list
+                detour_time_dict[(y, p_r_k, f.id)] = value(model[:detour_time][y, p_r_k, f.id])
+            end
 
-        z_str = Dict()
-        for y ∈ y_init:Y_end, (p, r, k, g) ∈ p_r_k_g_pairs, geo ∈ geo_i_f
-            z_str[(y, geo, (p, r, k, g))] = value(model[:z][y, geo, (p, r, k, g)])
-        end
-        z_str = stringify_keys(z_str)
+            detour_time_dict_str = stringify_keys(detour_time_dict)
+
+            x_c_dict = Dict()
+            for y ∈ y_init:investment_period:Y_end, g ∈ geo_i_f
+                x_c_dict[(y, g)] = value(model[:x_c][y, g])
+            end
+            x_c_dict_str = stringify_keys(x_c_dict)
+            
+
+            z_str = Dict()
+            for y ∈ y_init:Y_end, (p, r, k, g) ∈ p_r_k_g_pairs, geo ∈ geo_i_f
+                z_str[(y, geo, (p, r, k, g))] = value(model[:z][y, geo, (p, r, k, g)])
+            end
+            z_str = stringify_keys(z_str)
+        else
+            n_fueling_dict = Dict()
+            f_l_pairs = data_structures["f_l_pairs"]
+            for y ∈ y_init:Y_end, (p, r, k, g) ∈ p_r_k_g_pairs, f_l ∈ f_l_pairs, gen ∈ g_init:y
+                n_fueling_dict[(y, (p, r, k, g), f_l, gen)] =
+                    value(model[:n_fueling][y, (p, r, k, g), f_l, gen])
+            end
+
+            f_l_for_dt = data_structures["f_l_for_dt"]
+            detour_time_dict = Dict()
+            for y ∈ y_init:Y_end, p_r_k ∈ p_r_k_g_pairs, f_l ∈ f_l_for_dt
+                detour_time_dict[(y, p_r_k, f_l)] = value(model[:detour_time][y, p_r_k, f_l])
+            end
+            detour_time_dict_str = stringify_keys(detour_time_dict)
+            
+            geo_i_f_l_pairs = data_structures["geo_i_f_l"]
+            x_c_dict = Dict()
+            for y ∈ y_init:investment_period:Y_end, g ∈ geo_i_f_l_pairs
+                x_c_dict[(y, g)] = value(model[:x_c][y, g])
+            end
+            x_c_dict_str = stringify_keys(x_c_dict)
+            
+            z_str = Dict()
+            for y ∈ y_init:Y_end, (p, r, k, g) ∈ p_r_k_g_pairs, geo ∈ geo_i_f_l_pairs, f_l in f_l_for_dt
+                if geo[3] == f_l[1] && geo[4] == f_l[2]
+                    z_str[(y, geo, (p, r, k, g), f_l)] = value(model[:z][y, geo, (p, r, k, g), f_l])
+                end
+            end
+            z_str = stringify_keys(z_str)
+            q_fuel_infr_plus_by_route_dict_str = stringify_keys(q_fuel_infr_plus_by_route_dict)
+        end 
+        
     end
 
     if data_structures["supplytype_list"] != []
@@ -1157,16 +1486,6 @@ function save_results(
             )
             @info "detour_time_dict.yaml written successfully"
 
-            # @info "x_dict.yaml written successfully"
-            # YAML.write_file(
-            #     joinpath(folder_for_results, case * "_x_a_dict.yaml"),
-            #     x_a_dict_str,
-            # )
-            # @info "x_a_dict.yaml written successfully"
-            # YAML.write_file(
-            #     joinpath(folder_for_results, case * "_x_b_dict.yaml"),
-            #     x_b_dict_str,
-            # )
             @info "x_b_dict.yaml written successfully"
             YAML.write_file(
                 joinpath(folder_for_results, case * "_x_c_dict.yaml"),
@@ -1184,6 +1503,15 @@ function save_results(
                 q_supply_infr_dict_str,
             )
             @info "q_supply_infr_dict.yaml written successfully"
+        end
+        if data_structures["fueling_infr_types_list"] != []
+            if length(data_structures["f_l_by_route"]) != 0 
+                YAML.write_file(
+                    joinpath(folder_for_results, case * "_q_fuel_infr_plus_by_route_dict.yaml"),
+                    q_fuel_infr_plus_by_route_dict_str,
+                )
+                @info "q_fuel_infr_plus_by_route_dict.yaml written successfully"
+            end
         end
     end
 

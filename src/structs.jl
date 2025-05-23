@@ -254,6 +254,32 @@ struct InitialVehicleStock
     stock::Float64
 end
 
+
+"""
+    struct FuelingInfrTypes
+
+A 'FuelingInfrTypes' represents the fueling infrastructure types that are used for transportation. This includes the fuel type, the supply type, the allocation, and the installed capacity.
+
+# Fields
+- `id::Int`: unique identifier of the fueling infrastructure type
+- `fuel::Fuel`: fuel type of the fueling infrastructure
+- `fueling_type::String`: type of the fueling infrastructure (e.g. battery charging, hydrogen refueling, etc.)
+- `fueling_power::Array{Float64}`: fueling power in kW
+- `additional_fueling_time::Bool`: if additional fueling time is considered
+- `max_occupancy_rate_veh_per_year::Float64`: maximum occupancy rate of the vehicle per year
+
+"""
+struct FuelingInfrTypes
+    id::Int
+    fuel::Fuel
+    fueling_type::String
+    fueling_power::Array{Float64}
+    additional_fueling_time::Bool
+    max_occupancy_rate_veh_per_year::Float64
+    by_route::Bool
+    track_detour_time::Bool
+end
+
 """
     InitialFuelingInfr
 
@@ -270,9 +296,36 @@ struct InitialFuelingInfr
     fuel::Fuel
     allocation::Any
     installed_kW::Float64
+    type::FuelingInfrTypes
 end
 
+
 """
+
+    FuelingInfrastructureExpansion
+
+A 'FuelingInfrastructureExpansion' holds restrictions on the expansion of the fueling infrastructure that is planned for the future.
+
+# Fields
+- `id::Int`: unique identifier of the fueling infrastructure expansion
+- `location::GeographicElement`: location of the fueling station
+- `fuel::Fuel`: fuel type of the fueling station
+- `alpha::Float64`: alpha parameter of the fueling infrastructure expansion
+- `beta::Float64`: beta parameter of the fueling infrastructure expansion
+    """
+struct FuelingInfrastructureExpansion
+    id::Int
+    location::GeographicElement
+    fuel::Fuel
+    alpha::Float64
+    beta::Float64
+end
+
+
+
+"""
+
+
     InitialModeInfr
 
 An 'InitialModeInfr' represents the mode infrastructure that exists at the initial year of the optimization horizon.
@@ -328,6 +381,7 @@ struct InitDetourTime
     fuel::Fuel
     location::GeographicElement
     detour_time::Float64
+    fuel_infr_type::FuelingInfrTypes
 end
 
 """
@@ -353,6 +407,7 @@ struct DetourTimeReduction
     detour_time_reduction::Float64
     fueling_cap_lb::Float64
     fueling_cap_ub::Float64
+    fueling_type::FuelingInfrTypes
 end
 
 """
@@ -428,6 +483,7 @@ struct Odpair
     financial_status::FinancialStatus
     region_type::Regiontype
     travel_time_budget::Float64
+    purpose::Int
 end
 
 """
@@ -448,6 +504,41 @@ struct Speed
     vehicle_type::Vehicletype
     travel_speed::Float64
 end
+
+
+"""
+    Tripratio
+
+This indicates a ratio between trip purposes to ensure that the technology share is consistent among the different trip purposes.
+
+# Fields
+- `id::Int`: unique identifier of the trip ratio
+- `from::GeographicElement`: origin of the trip ratio
+- `purpose::String`: purpose of the trip ratio
+- `share::Float64`: share of the trip ratio
+
+"""
+struct TripRatio
+    id::Int
+    origin::GeographicElement
+    purpose::Int
+    share::Float64
+end
+
+
+
+
+
+struct MaximumFuelingCapacityByFuel
+    id::Int
+    fuel::Fuel
+    location::GeographicElement
+    income_class::FinancialStatus
+    maximum_fueling_capacity::Float64
+    type::FuelingInfrTypes
+    by_income_class::Bool
+end
+
 
 """
     Market_shares
@@ -489,6 +580,8 @@ struct Mode_shares
     year::Int
     region_type::Array{Regiontype,1}
 end
+
+
 
 """
     Mode_share_max_by_year
@@ -951,4 +1044,4 @@ global struct_names_extended = [
 ]
 
 global default_data =
-    Dict("alpha_f" => 0.01, "beta_f" => 0.01, "alpha_h" => 0.1, "beta_h" => 0.1, "alpha_h_t" => 0.05, "beta_h_t" => 0.05)
+    Dict("alpha_f" => 0.3, "beta_f" => 0.3, "alpha_h" => 0.1, "beta_h" => 0.1, "alpha_h_t" => 0.1, "beta_h_t" => 0.1)

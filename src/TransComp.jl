@@ -18,6 +18,8 @@ export Mode
 export Product
 export Path
 export Fuel
+export FuelingInfrTypes
+export MaximumFuelingCapacityByFuel
 export Technology
 export Vehicletype
 export TechVehicle
@@ -38,6 +40,7 @@ export Technology_share_max_by_year
 export Technology_share_min_by_year
 export Technology_share_max
 export Technology_share_min
+export Tripratio
 export VehicleType_share_max_by_year
 export VehicleType_share_min_by_year
 export VehicleType_share_max
@@ -76,6 +79,7 @@ export constraint_sum_x
 export constraint_constant_fueling_since_yinit
 export constraint_fueling_infrastructure_init
 export constraint_fueling_cap_constant
+export constraint_fueling_demand_to_origin
 export objective
 
 # exporting supporting functions

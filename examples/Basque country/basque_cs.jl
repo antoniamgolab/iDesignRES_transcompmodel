@@ -8,7 +8,7 @@ include(joinpath(@__DIR__, "../../src/TransComp.jl"))
 using .TransComp
 
 script_dir = @__DIR__   # Directory of the current script
-yaml_file_path = normpath(joinpath(@__DIR__, "data/transport_data_years_v84_densification_focused.yaml"))
+yaml_file_path = normpath(joinpath(@__DIR__, "data/transport_data_years_v89_expandedtest.yaml"))
 println("Constructed file path: $yaml_file_path")
 
 using Dates
@@ -29,6 +29,9 @@ model, data_structures = create_model(data_structures, case)
 # -------- constraints --------
 constraint_monetary_budget(model, data_structures)
 @info "Policy related constraints created successfully"
+
+constraint_fueling_infrastructure(model, data_structures)
+@info "Constraint for fueling infrastructure created successfully"
 
 constraint_demand_coverage(model, data_structures)
 @info "Constraint for demand coverage created successfully"
@@ -51,18 +54,15 @@ constraint_vehicle_stock_shift_vehicle_type(model, data_structures)
 constraint_mode_shift(model, data_structures)
 @info "Constraint for mode shift created successfully"
 
-constraint_fueling_infrastructure(model, data_structures)
-@info "Constraint for fueling infrastructure created successfully"
-
 constraint_mode_infrastructure(model, data_structures)
 @info "Constraint for mode infrastructure created successfully"
 
 constraint_market_share(model, data_structures)
 @info "Constraint for market share created successfully"
 
-@info "Constraints created successfully"
+@info "Constraints created successfully"                
 
-# -------- constraints (alternative) --------
+# # -------- constraints (alternative) --------
 if data_structures["detour_time_reduction_list"] != []
     constraint_detour_time(model, data_structures)
     constraint_lin_z_nalpha(model, data_structures)
@@ -89,7 +89,7 @@ solution_summary(model)
 
 results_file_path = normpath(joinpath(@__DIR__, "results/"))
 save_results(model, case, data_structures, true, results_file_path)
-output_ = disagreggate(model, data_structures, 2, 2040)
-println(output_)
+# output_ = disagreggate(model, data_structures, 2, 2040)
+# println(output_)
 @info "Results saved successfully"
 
