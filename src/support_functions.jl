@@ -6,6 +6,7 @@ This file contains the functions that are used in the model but are not directly
 include("structs.jl")
 include("checks.jl")
 using YAML, JuMP, Gurobi, Printf
+using MathOptInterface
 
 """
 	get_input_data(path_to_source_file::String)
@@ -243,9 +244,9 @@ function parse_data(data_dict::Dict)
         Fuel(
             fuel["id"],
             fuel["name"],
+            fuel["emission_factor"],
             fuel["cost_per_kWh"],
             fuel["cost_per_kW"],
-            fuel["emission_factor"],
             fuel["fueling_infrastructure_om_costs"],
         ) for fuel ∈ data_dict["Fuel"]
     ]
@@ -392,7 +393,9 @@ function parse_data(data_dict::Dict)
     end
     odpair_list = Vector{Odpair}(odpair_list)
 
-    # odpair_list = odpair_list[1:20]
+    
+    #odpair_list = odpair_list[1:40]
+    println("Number of Odpairs: ", length(odpair_list))
     speed_list = [
         Speed(
             speed["id"],
@@ -631,6 +634,7 @@ function parse_data(data_dict::Dict)
                 item["max_occupancy_rate_veh_per_year"],
                 item["by_route"],
                 item["track_detour_time"],
+                item["gamma"],
             ) for item ∈ data_dict["FuelingInfrTypes"]
         ]
     else
@@ -663,7 +667,7 @@ function parse_data(data_dict::Dict)
                         geographic_element_list,
                     )],
                     init_detour_time["detour_time"],
-                    FuelingInfrTypes(0, fuel_list[1], "none", 0, 0, 0, false),
+                    FuelingInfrTypes(0, fuel_list[1], "none", 0, 0, 0, false, 0),
                 ) for init_detour_time ∈ data_dict["InitDetourTime"]
             ]
         end
@@ -690,12 +694,30 @@ function parse_data(data_dict::Dict)
                 fuel_list[findfirst(f -> f.name == initalfuelinginfr["fuel"], fuel_list)],
                 initalfuelinginfr["allocation"],
                 initalfuelinginfr["installed_kW"],
-                FuelingInfrTypes(0, fuel_list[1], "none", 0, 0, 0, false),
+                FuelingInfrTypes(0, fuel_list[1], "none", 0, 0, 0, false, 0),
             ) for initalfuelinginfr ∈ data_dict["InitialFuelingInfr"]
         ]
     end
-
-    if haskey(data_dict, "MaximumFuelingCapacityByFuel")
+    if haskey(data_dict, "MaximumFuelingCapacityByTypeByYear")
+        maximum_fueling_capacity_by_fuel_by_year = [
+            MaximumFuelingCapacityByTypeByYear(
+                item["id"],
+                item["year"],
+                geographic_element_list[findfirst(
+                    ge -> ge.name == item["location"],
+                    geographic_element_list,
+                )],
+                item["maximum_capacity"],
+                fueling_infr_types[findfirst(
+                    f -> f.fueling_type == item["fueling_type"],
+                    fueling_infr_types,
+                )],
+            ) for item ∈ data_dict["MaximumFuelingCapacityByTypeByYear"]
+        ]
+    else
+        maximum_fueling_capacity_by_fuel_by_year = []
+    end
+    if haskey(data_dict, "MaximumFuelingCapacityByType")
         maximum_fueling_capacity_by_fuel = [
             MaximumFuelingCapacityByFuel(
                 item["id"],
@@ -708,16 +730,16 @@ function parse_data(data_dict::Dict)
                     geographic_element_list,
                 )],
                 financial_status_list[findfirst(
-                    fs -> fs.name == item["financial_status"],
+                    fs -> fs.name == item["income_class"],
                     financial_status_list,
                 )],
-                item["max_fueling_capacity"],
+                item["maximum_fueling_capacity"],
                 fueling_infr_types[findfirst(
-                    f -> f.id == item["fueling_type"],
+                    f -> f.fueling_type == item["type"],
                     fueling_infr_types,
                 )],
                 item["by_income_class"]
-            ) for item ∈ data_dict["MaximumFuelingCapacityByFuel"]
+            ) for item ∈ data_dict["MaximumFuelingCapacityByType"]
         ]
     else
         maximum_fueling_capacity_by_fuel = []
@@ -742,7 +764,7 @@ function parse_data(data_dict::Dict)
                     detour_time_reduction["detour_time_reduction"],
                     detour_time_reduction["fueling_cap_lb"],
                     detour_time_reduction["fueling_cap_ub"],
-                    FuelingInfrTypes(0, fuel_list[1], "none", 0, 0, 0, false),
+                    FuelingInfrTypes(0, fuel_list[1], "none", 0, 0, 0, false, 0),
                 ) for detour_time_reduction ∈ data_dict["DetourTimeReduction"]
             ]
         else
@@ -814,6 +836,7 @@ function parse_data(data_dict::Dict)
         "tripratio_list" => tripratio_list,
         "fueling_infr_types_list" => fueling_infr_types,
         "maximum_fueling_capacity_by_fuel_list" => maximum_fueling_capacity_by_fuel,
+        "maximum_fueling_capacity_by_fuel_by_year_list" => maximum_fueling_capacity_by_fuel_by_year,
     )
 
 
@@ -1238,7 +1261,10 @@ function save_results(
     else
         s_dict = Dict()
         for y ∈ y_init:Y_end, (p, r, k, g) ∈ p_r_k_g_pairs, tv_id ∈ tech_vehicle_ids, gen ∈ g_init:y
-            s_dict[(y, (p, r, k, g), tv_id, gen)] = value(model[:s][y, (p, r, k, g), tv_id, gen])
+            val = value(model[:s][y, (p, r, k, g), tv_id, gen])
+            if round(val, digits=6) != 0.0
+                s_dict[(y, (p, r, k, g), tv_id, gen)] = val
+            end
         end
     end
     # Dictionary for 'h' variable
@@ -1352,9 +1378,12 @@ function save_results(
 
         if data_structures["fueling_infr_types_list"] == []
             n_fueling_dict = Dict()
-            for y ∈ y_init:Y_end, (p, r, k, g) ∈ p_r_k_g_pairs, f ∈ fuel_list, g ∈ g_init:y
-                n_fueling_dict[(y, (p, r, k, g), f.id, g)] =
-                    value(model[:n_fueling][y, (p, r, k, g), f.id, g])
+            for y ∈ y_init:Y_end, (p, r, k, g) ∈ p_r_k_g_pairs, f ∈ fuel_list, gen ∈ g_init:y
+                val = value(model[:n_fueling][y, (p, r, k, g), f.id, gen])
+                if round(val, digits=6) != 0.0
+                    n_fueling_dict[(y, (p, r, k, g), f.id, gen)] = val
+                end
+                
             end
 
             detour_time_dict = Dict()
@@ -1380,8 +1409,10 @@ function save_results(
             n_fueling_dict = Dict()
             f_l_pairs = data_structures["f_l_pairs"]
             for y ∈ y_init:Y_end, (p, r, k, g) ∈ p_r_k_g_pairs, f_l ∈ f_l_pairs, gen ∈ g_init:y
-                n_fueling_dict[(y, (p, r, k, g), f_l, gen)] =
-                    value(model[:n_fueling][y, (p, r, k, g), f_l, gen])
+                val = value(model[:n_fueling][y, (p, r, k, g), f_l, gen])
+                if round(val, digits=6) != 0.0
+                    n_fueling_dict[(y, (p, r, k, g), f_l, gen)] = val
+                end
             end
 
             f_l_for_dt = data_structures["f_l_for_dt"]
@@ -1397,12 +1428,14 @@ function save_results(
                 x_c_dict[(y, g)] = value(model[:x_c][y, g])
             end
             x_c_dict_str = stringify_keys(x_c_dict)
-            
+            vot_dt_dict = Dict()
+            for y ∈ y_init:Y_end, geo ∈ geo_i_f_l_pairs
+                vot_dt_dict[(y, geo)] = value(model[:vot_dt][y, geo])
+            end
             z_str = Dict()
-            for y ∈ y_init:Y_end, (p, r, k, g) ∈ p_r_k_g_pairs, geo ∈ geo_i_f_l_pairs, f_l in f_l_for_dt
-                if geo[3] == f_l[1] && geo[4] == f_l[2]
-                    z_str[(y, geo, (p, r, k, g), f_l)] = value(model[:z][y, geo, (p, r, k, g), f_l])
-                end
+            for y ∈ y_init:Y_end, (p, r, k, g) ∈ p_r_k_g_pairs, geo ∈ geo_i_f_l_pairs
+                
+                z_str[(y, geo, (p, r, k, g))] = value(model[:z][y, geo, (p, r, k, g)])
             end
             z_str = stringify_keys(z_str)
             q_fuel_infr_plus_by_route_dict_str = stringify_keys(q_fuel_infr_plus_by_route_dict)
@@ -1491,6 +1524,12 @@ function save_results(
                 joinpath(folder_for_results, case * "_x_c_dict.yaml"),
                 x_c_dict_str,
             )
+            @info "x_c_dict.yaml written successfully"
+            YAML.write_file(
+                joinpath(folder_for_results, case * "_vot_dt_dict.yaml"),
+                vot_dt_dict,
+            )
+            @info "vot_dt_dict.yaml written successfully"
             YAML.write_file(
                 joinpath(folder_for_results, case * "_n_fueling_dict.yaml"),
                 n_fueling_dict,
@@ -1505,7 +1544,10 @@ function save_results(
             @info "q_supply_infr_dict.yaml written successfully"
         end
         if data_structures["fueling_infr_types_list"] != []
+
             if length(data_structures["f_l_by_route"]) != 0 
+                q_fuel_infr_plus_by_route_dict_str = stringify_keys(q_fuel_infr_plus_by_route_dict)
+
                 YAML.write_file(
                     joinpath(folder_for_results, case * "_q_fuel_infr_plus_by_route_dict.yaml"),
                     q_fuel_infr_plus_by_route_dict_str,
@@ -1592,4 +1634,33 @@ function disagreggate(model::JuMP.Model, data_structures::Dict, fuel_id::Int=2, 
 
     return yearly_load_dict
 
+end
+
+
+function find_large_rhs(model::JuMP.Model)
+    # Thresholds (adjust as needed)
+    LOW_THRESHOLD = 1e-2
+    HIGH_THRESHOLD = 1e3
+
+    for (func_type, set_type) in list_of_constraint_types(model)
+        if func_type == MOI.ScalarAffineFunction{Float64} &&
+        (set_type == MOI.LessThan || set_type == MOI.GreaterThan || set_type == MOI.EqualTo)
+
+            for con_ref in all_constraints(model, func_type, set_type; include_variable_in_set_constraints=false)
+                # Extract RHS based on the set type
+                rhs = nothing
+                if set_type == MOI.LessThan
+                    rhs = JuMP.constraint_set(con_ref).upper
+                elseif set_type == MOI.GreaterThan
+                    rhs = JuMP.constraint_set(con_ref).lower
+                elseif set_type == MOI.EqualTo
+                    rhs = JuMP.constraint_set(con_ref).value
+                end
+
+                if rhs !== nothing && (abs(rhs) < LOW_THRESHOLD || abs(rhs) > HIGH_THRESHOLD)
+                    println("Constraint $(name(con_ref)) has extreme RHS: $rhs")
+                end
+            end
+        end
+    end
 end

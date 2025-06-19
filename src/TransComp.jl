@@ -80,6 +80,10 @@ export constraint_constant_fueling_since_yinit
 export constraint_fueling_infrastructure_init
 export constraint_fueling_cap_constant
 export constraint_fueling_demand_to_origin
+export constraint_maximum_fueling_infrastructure
+export constraint_maximum_fueling_infrastructure_by_year
+export constraint_trip_ratio
+export constraint_vot_dt
 export objective
 
 # exporting supporting functions
@@ -98,5 +102,6 @@ export depreciation_factor
 export create_emission_price_along_path
 export disagreggate
 export save_results
+export find_large_rhs
 
 end

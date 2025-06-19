@@ -267,6 +267,9 @@ A 'FuelingInfrTypes' represents the fueling infrastructure types that are used f
 - `fueling_power::Array{Float64}`: fueling power in kW
 - `additional_fueling_time::Bool`: if additional fueling time is considered
 - `max_occupancy_rate_veh_per_year::Float64`: maximum occupancy rate of the vehicle per year
+- `by_route::Bool`: if the fueling infrastructure is considered by route
+- `track_detour_time::Bool`: if the detour time to reach the fueling station is tracked
+- `gamma::Float64`: ratio between peak demand and annual demandfor fueling 
 
 """
 struct FuelingInfrTypes
@@ -278,6 +281,7 @@ struct FuelingInfrTypes
     max_occupancy_rate_veh_per_year::Float64
     by_route::Bool
     track_detour_time::Bool
+    gamma 
 end
 
 """
@@ -539,6 +543,13 @@ struct MaximumFuelingCapacityByFuel
     by_income_class::Bool
 end
 
+struct MaximumFuelingCapacityByTypeByYear
+    id::Int
+    year::Int
+    location::GeographicElement
+    maximum_capacity::Float64
+    fueling_type::FuelingInfrTypes
+end
 
 """
     Market_shares

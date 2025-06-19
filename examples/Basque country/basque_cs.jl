@@ -8,7 +8,7 @@ include(joinpath(@__DIR__, "../../src/TransComp.jl"))
 using .TransComp
 
 script_dir = @__DIR__   # Directory of the current script
-yaml_file_path = normpath(joinpath(@__DIR__, "data/transport_data_years_v89_expandedtest.yaml"))
+yaml_file_path = normpath(joinpath(@__DIR__, "data/transport_data_v1_ONENODE_distributed_cut_demand.yaml"))
 println("Constructed file path: $yaml_file_path")
 
 using Dates
@@ -27,6 +27,17 @@ model, data_structures = create_model(data_structures, case)
 @info "Model created successfully"
 
 # -------- constraints --------
+constraint_trip_ratio(model, data_structures)
+@info "Constraint for trip ratio created successfully"
+
+
+# constraint_mode_infrastructure(model, data_structures)
+# @info "Constraint for mode infrastructure created successfully"
+constraint_maximum_fueling_infrastructure_by_year(model, data_structures)
+@info "Constraint for maximum fueling infrastructure by year created successfully"
+constraint_maximum_fueling_infrastructure(model, data_structures)
+@info "Constraint for maximum fueling infrastructure created successfully"
+
 constraint_monetary_budget(model, data_structures)
 @info "Policy related constraints created successfully"
 
@@ -35,6 +46,7 @@ constraint_fueling_infrastructure(model, data_structures)
 
 constraint_demand_coverage(model, data_structures)
 @info "Constraint for demand coverage created successfully"
+
 
 constraint_vehicle_sizing(model, data_structures)
 @info "Constraint for vehicle stock sizing created successfully"
@@ -45,44 +57,63 @@ constraint_vehicle_aging(model, data_structures)
 constraint_fueling_demand(model, data_structures)
 @info "Constraint for fueling demand created successfully"
 
+
 constraint_vehicle_stock_shift(model, data_structures)
 @info "Constraint for vehicle stock shift created successfully"
 
 constraint_vehicle_stock_shift_vehicle_type(model, data_structures)
 @info "Constraint for vehicle stock shift by vehicle type created successfully"
 
-constraint_mode_shift(model, data_structures)
-@info "Constraint for mode shift created successfully"
+# constraint_mode_shift(model, data_structures)
+# @info "Constraint for mode shift created successfully"
 
-constraint_mode_infrastructure(model, data_structures)
-@info "Constraint for mode infrastructure created successfully"
 
 constraint_market_share(model, data_structures)
 @info "Constraint for market share created successfully"
 
-@info "Constraints created successfully"                
+
+# optimize!(model)
 
 # # -------- constraints (alternative) --------
 if data_structures["detour_time_reduction_list"] != []
+
     constraint_detour_time(model, data_structures)
-    constraint_lin_z_nalpha(model, data_structures)
+#     constraint_lin_z_nalpha(model, data_structures)
     constraint_detour_time_capacity_reduction(model, data_structures)
     constraint_def_n_fueling(model, data_structures)
     constraint_sum_x(model, data_structures) 
-    @info "Detour time reduction constraint is added"
+
+    constraint_vot_dt(model, data_structures)
+    @info "Constraint for VOT and detour time created successfully"
+
+#     # constraint_def_n_fueling(model, data_structures)
+#     @info "Detour time reduction constraint is added"
 end 
+# find_large_rhs(model)
+@info "Constraints created successfully"                
 
 # -------- objective --------
 objective(model, data_structures)
+@info "Objective function added successfully"
 
 # -------- model solution and saving of results --------
 # set_optimizer_attribute(model, "ScaleFlag", 2)
 set_optimizer_attribute(model, "Presolve", 2)
-set_optimizer_attribute(model, "Cuts", 0)
-set_optimizer_attribute(model, "MIPFocus", 3)
-set_optimizer_attribute(model, "MIPGap", 10^(-6))
+set_optimizer_attribute(model, "Method", 1)
+set_optimizer_attribute(model, "Crossover", 0)
+set_optimizer_attribute(model, "MIPFocus", 1) 
+set_optimizer_attribute(model, "Cuts", 2) 
+set_optimizer_attribute(model, "MIPGap", 0.0002)
 set_optimizer_attribute(model, "NumericFocus", 1)
-set_optimizer_attribute(model, "Heuristics", 0.9)
+set_optimizer_attribute(model, "NoRelHeurWork", 200)
+set_optimizer_attribute(model, "Heuristics", 0.8)
+set_optimizer_attribute(model, "PreSparsify", 0)
+set_optimizer_attribute(model, "FeasibilityTol", 1e-4)  # or 1e-4
+set_optimizer_attribute(model, "Threads", 25)
+set_optimizer_attribute(model, "NodefileStart", 50) # 0.5 GB node file size
+set_optimizer_attribute(model, "TimeLimit", 3600 * 7) # 1 hour time limit
+set_optimizer_attribute(model, "PreSOS1BigM", 0)
+set_optimizer_attribute(model, "ScaleFlag", 2)
 println("Solution .... ")
 optimize!(model)
 solution_summary(model)
