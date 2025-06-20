@@ -2,6 +2,7 @@ name = "TransComp"
 uuid = "3fb1ea32-fe1d-487b-b926-6db75a8950b6"
 license = "Apache License 2.0"
 authors = ["Antonia Golab <antonia.golab@tuwien.ac.at>"]
+version = "0.1.0"
 
 [deps]
 Coverage = "a2441757-f6aa-5fb2-8edb-039e3f45d037"
