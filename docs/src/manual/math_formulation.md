@@ -58,5 +58,5 @@ In the following, the mathematical description of the optimization model is expl
 ```
 
 ```math
-{C}^{infrastructure, total} = \sum_{t} \sum_{y} \left( \sum_{e} C^{fuel\_infr}_{yte} q^{+, fuel\_infr}_{yte} + \sum_{y' \in \mathcal{Y}^y} C_{yte}^{fuel\_infr, OM, fix}\left( Q^{fuel\_infr}_{te} + q^{+, fuel\_infr}_{y'te}\right) \right) \\ + \sum_{m} \sum_{y} \left( \sum_{e} C^{mode\_infr}_{yme} q^{+, mode\_infr}_{yme} + \sum_{y' \in \mathcal{Y}^y} C_{yme}^{mode\_infr, OM, fix}\left( Q^{fuel\_infr}_{me} + q^{+, fuel\_infr}_{y'me}\right) \right) \\ + \sum_{l} \sum_{y} \left( \sum_{e} C^{supply\_infr}_{yle} q^{+, supply\_infr}_{yle} + \sum_{y' \in \mathcal{Y}^y} C_{yle}^{supply\_infr, OM, fix, supply}\left( Q^{supply\_infr}_{te} + q^{+, supply\_infr}_{y'te}\right) \right) \\ 
+{C}^{infrastructure, total} = \sum_{t} \sum_{y} \left( \sum_{e} C^{fuel\_infr}_{yte} q^{+, fuel\_infr}_{yte} + \sum_{y' \in \mathcal{Y}^y} C_{yte}^{fuel\_infr, OM, fix}\left( Q^{fuel\_infr}_{te} + q^{+, fuel\_infr}_{y'te}\right) \right)
 ```
