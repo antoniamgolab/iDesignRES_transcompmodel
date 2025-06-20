@@ -53,4 +53,6 @@ In the following, the mathematical description of the optimization model is expl
 
 ### Objective function
 
-$$ \minimize_x \textsc{Z} $$
+```math
+\minimize_x \textsc{Z}
+```
