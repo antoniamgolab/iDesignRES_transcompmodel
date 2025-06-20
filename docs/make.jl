@@ -38,6 +38,7 @@ makedocs(;
 )
 deploydocs(
     repo = "github.com/antoniamgolab/iDesignRES_transcompmodel.git",
+    branch = "gh-pages",
     push_preview = true,
     deploy_config = Documenter.GitHubActions()
 )

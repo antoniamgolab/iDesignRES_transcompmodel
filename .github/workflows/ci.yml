@@ -21,9 +21,6 @@ jobs:
           - version: '1'  # The latest point-release (Windows)
             os: windows-latest
             arch: x64
-          - version: 'lts'  # lts 
-            os: ubuntu-latest
-            arch: x64
           - version: 'lts'  # lts
             os: windows-latest
             arch: x64
