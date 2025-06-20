@@ -8,7 +8,7 @@ In the following, the mathematical description of the optimization model is expl
 | Notation | Description | Unit |
 |----------|-------------|------|
 | $$y \in \mathcal{Y}$$ | year | |
-| $$p \in \mathcal{M}$$ | product type (incl. passengers) | p/T |
+| $$p \in \mathcal{M}$$ | product type (incl. passengers) |  |
 | $$m \in \mathcal{M}$$ | mode | |
 | $$r \in \mathcal{R}$$ | O-D pair | |
 | $$k \in \mathcal{K}$$ | route | |
@@ -53,6 +53,4 @@ In the following, the mathematical description of the optimization model is expl
 
 ### Objective function
 
-$$
-\minimize_x \textsc{Z}
-$$
+$$ \minimize_x \textsc{Z} $$
