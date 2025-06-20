@@ -54,5 +54,5 @@ In the following, the mathematical description of the optimization model is expl
 ### Objective function
 
 ```math
-\minimize_x \textsc{Z}
+\min_{x} \textsc{Z}
 ```
