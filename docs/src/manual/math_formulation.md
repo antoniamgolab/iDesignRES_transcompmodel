@@ -51,7 +51,7 @@ In the following, the mathematical description of the optimization model is expl
 | $$L_k$$ | length of path $$k$$ | km |
 
 
-### Objective function
+## Objective function
 
 ```math
 \min_{x} Z
@@ -71,4 +71,86 @@ In the following, the mathematical description of the optimization model is expl
 
 ```math
 {C}^{intangiblecosts, total} = \sum_y \sum_m \sum_r \sum_{kvt} VoT_{ykvt, ic} * LoS^{f}_{ykvt} * f_{yprkmvtg} 
+```
+
+```math
+LoS^f_{yk} = \frac{L_k}{Speed_yvmt} + Fueling\_time_{ykvmt} + Waiting\_time_{ykm}
+```
+
+```math
+{C}^{paneltycosts, total} = \sum_y \sum_p \sum_r penalty^{budget}_{pry} 
+```
+
+```math
+\sum_{kmvtg} f_{yprkmvtg} = F_{yrp} \quad :  \forall y \in \mathcal{Y},  r \in \mathcal{R}, p \in \mathcal{P}
+
+```
+
+## Constraints
+### Vehicle stock modelling
+```math
+h_{yprmvtg} = h^{exist}_{yprmvt(g-1)} + h^{+}_{yprmvtg} - h^{-}_{yprmvtg} : \forall y \in \mathcal{Y}\setminus \{y_0\}, r \in \mathcal{R}, p \in \mathcal{P}, m \in \mathcal{M}, v \in \mathcal{V}, t \in \mathcal{T}, g \in \mathcal{G}
+```
+
+```math
+h^{exist}_{yprmvt(g-1)} = h_{(y-1)prmvtg} \quad : y = y_0, r \in \mathcal{R}, p \in \mathcal{P}, m \in \mathcal{M}, v \in \mathcal{V}, t \in \mathcal{T}, g \in \mathcal{G}
+```
+
+### Fueling demand
+```math
+\sum_{l \in \mathcal{L}_t} \sum_{e \in \mathcal{E}_{k}} s_{ypkmvtle} = \sum_{g \in \mathcal{G}} \sum_{a \in \mathcal{A}^p}  \sum_{e \in \mathcal{E}_{k}} \sum_{n \in \mathcal{N}_{k}} \gamma \frac{D^{spec}_{yt} L_{ke}}{W_{ymvt}} f_{ypakmvtg}  : \forall y \in \mathcal{Y}, p \in \mathcal{P}, k \in \mathcal{K},  m \in \mathcal{M}, t \in \mathcal{T}_m
+``` 
+
+```math
+\sum_{l \in \mathcal{L}_t} \sum_{e \in \mathcal{U}_{ke}} s_{ypkmvtle} \leq \gamma \sum_{g \in \mathcal{G}} \frac{1}{W_{gmvt}} f_{ypkmvtg} * Q^{tank}_{gmvt} :\forall y, p, k, m, t
+```
+
+### Vehicle stock shift
+
+```math
+\pm \left( \sum_g h_{yprmvt} - \sum_g h_{(y-1)prmvt} \right) \leq \alpha \sum_{gvt} h_{yprmvt} + \beta \sum_g h_{(y-1)prmvtg} : \forall y \in \mathcal{Y}\setminus \{ y_0\}, r \in \mathcal{R}, m \in \mathcal{M}, v \in \mathcal{V}, t \in \mathcal{T}_m
+```
+```math
+\pm \left( \sum_g h_{yprmvtg} - \sum_g h^{exist}_{yprmvtg} \right) \leq \alpha \sum_{gvt} h_{yprmvt} + \beta \sum_g h^{exist}_{yprmvtg} : \forall y \in \{y_0\}, r \in \mathcal{R}, m \in \mathcal{M}, v \in \mathcal{V}, t \in \mathcal{T}_m
+```
+
+### Mode shift
+
+```math
+\left( \sum_{kg} f_{yprkmvtg} - \sum_{kg}  f_{(y-1)prkmvtg} \right) \leq \alpha F_{yrp} + sum_{kg} f_{(y-1)prkmvtg } : \forall y \in \mathcal{Y}\setminus \{ y_0\}, r \in \mathcal{R}, m \in \mathcal{M}
+```
+```math
+\left( \sum_g h_{yprmvtg} - \sum_g h^{exist}_{yprmvtg} \right) \leq \alpha \sum_{gvt} h_{yprmvt} + \beta \sum_g h^{exist}_{yprmvtg} : \forall y \in \{y_0\}, r \in \mathcal{R}, m \in \mathcal{M}, v \in \mathcal{V}, t \in \mathcal{T}_m
+```
+### Mode infrastructure expansion
+
+```math
+Q^{mode\_infr}_{me}  +  \sum_{y \in \mathcal{Y}_y} q^{+, mode\_infr}_{yme} \geq  \gamma \sum_{e \in \mathcal{K}_e} \sum_{p \in \mathcal{P}} \sum_{t \in T_{m}} f_{ypkmtg} : \forall y \in \mathcal{Y}, m \in \mathcal{M}, e \in \mathcal{E}
+```
+
+### Fueling Infrastructure expansion
+```math
+Q^{fuel\_infr}_{te} + \sum_{y \in \mathcal{Y}_y} q^{+, fuel\_infr}_{yte} \geq \sum_{k \in \mathcal{K}_e} \sum_{p \in \mathcal{P}} \sum_{m \in \mathcal{M}} \sum_{l \in \mathcal{L}_t} s_{ypkmtle} : \forall y \in \mathcal{Y}, t \in \mathcal{T}, e \in \mathcal{E}
+        \end{split}
+```
+
+```math
+ Q^{supply\_infr}_{le}  +  \sum_{y \in \mathcal{Y}_y} q^{+, supply\_infr}_{yle} \geq \sum_{e \in \mathcal{K}_e} \sum_{p \in \mathcal{P}} \sum_{m \in M} \sum_{t \in \mathcal{T}_l} s_{ypkmtle} : \forall y \in \mathcal{Y}, l \in \mathcal{L}, e \in \mathcal{E}
+```
+
+### Monetary budget
+```math
+\sum_y C^{CAPEX}_{yvtg} * h^{+}_{yr} \leq Budget_{ic} * f * |Y| + penalty^{+, invbudget}
+```
+
+```math
+\sum_y C^{CAPEX}_{yvtg} * h^{+}_{yr} \geq Budget_{ic} * f * |Y|- penalty^{-, invbudget}
+```
+
+```math
+\sum_{y'\in Y_i} C^{CAPEX}_{y'vtg} * h^{+}_{y'r} \leq Budget_{ic} * f * \tau^i + penalty^{+, invbudget} 
+```
+
+```math
+\sum_{y'\in Y_i} C^{CAPEX}_{y'vtg} * h^{+}_{y'r} \geq Budget_{ic} * f *  \tau^i - penalty^{+, invbudget}
 ```
