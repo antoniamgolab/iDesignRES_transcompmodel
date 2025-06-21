@@ -131,7 +131,6 @@ Q^{mode\_infr}_{me}  +  \sum_{y \in \mathcal{Y}_y} q^{+, mode\_infr}_{yme} \geq 
 ### Fueling Infrastructure expansion
 ```math
 Q^{fuel\_infr}_{te} + \sum_{y \in \mathcal{Y}_y} q^{+, fuel\_infr}_{yte} \geq \sum_{k \in \mathcal{K}_e} \sum_{p \in \mathcal{P}} \sum_{m \in \mathcal{M}} \sum_{l \in \mathcal{L}_t} s_{ypkmtle} : \forall y \in \mathcal{Y}, t \in \mathcal{T}, e \in \mathcal{E}
-        \end{split}
 ```
 
 ```math
