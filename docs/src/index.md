@@ -12,9 +12,4 @@ The *Transcomp* model is aimed at modeling developments in subsectors of the tra
 
 ## Examples of application
 
-- [Quick Start](@ref) — Introduction to the model
-- [How to use](@ref) — Deep dive into structure
-- [Preparation of input data](@ref) — Data and parameters used
-- [Output data](@ref) — How to run or integrate the model
-- [Mathematical model](@ref) — Input/output and demos
-- [Types and functions](@ref) — Desc
+- [Quick Start](manual/how-to-use.md)
