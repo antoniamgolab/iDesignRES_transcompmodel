@@ -1,0 +1,1156 @@
+        - """
+        - This file contains the functions that are used in the model but are not directly related to the optimization problem but are supporting functions for this.
+        - 
+        - """
+        - 
+        - # include("structs.jl")
+        - using YAML, JuMP, Printf
+        - 
+        - """
+        - 	get_input_data(path_to_source_file::String)
+        - 
+        - This function reads the input data and checks requirements for the content of the file.
+        - 
+        - # Arguments
+        - - path_to_source_file::String: path to the source file
+        - 
+        - # Returns
+        - - data_dict::Dict: dictionary with the input data
+        - """
+        3 function get_input_data(path_to_source_file::String)
+        3     check_input_file(path_to_source_file)
+        3     data_dict = YAML.load_file(path_to_source_file)
+        3     check_required_keys(data_dict, struct_names_base)
+        -     # checking completion of model parametrization 
+       18     check_model_parametrization(
+        -         data_dict,
+        -         ["Y", "y_init", "pre_y", "gamma", "budget_penalty_plus", "budget_penalty_minus"],
+        -     )
+        -     # check each of the required keys 
+       21     check_required_sub_keys(
+        -         data_dict,
+        -         ["id", "type", "name", "carbon_price", "from", "to", "length"],
+        -         "GeographicElement",
+        -     )
+       18     check_required_sub_keys(
+        -         data_dict,
+        -         [
+        -             "id",
+        -             "name",
+        -             "VoT",
+        -             "monetary_budget_purchase",
+        -             "monetary_budget_purchase_lb",
+        -             "monetary_budget_purchase_ub",
+        -         ],
+        -         "FinancialStatus",
+        -     )
+       24     check_required_sub_keys(
+        -         data_dict,
+        -         [
+        -             "id",
+        -             "name",
+        -             "quantify_by_vehs",
+        -             "costs_per_ukm",
+        -             "emission_factor",
+        -             "infrastructure_expansion_costs",
+        -             "infrastructure_om_costs",
+        -             "waiting_time",
+        -         ],
+        -         "Mode",
+        -     )
+        6     check_required_sub_keys(data_dict, ["id", "name"], "Product")
+       12     check_required_sub_keys(data_dict, ["id", "name", "sequence", "length"], "Path")
+       18     check_required_sub_keys(
+        -         data_dict,
+        -         [
+        -             "id",
+        -             "name",
+        -             "cost_per_kWh",
+        -             "cost_per_kW",
+        -             "emission_factor",
+        -             "fueling_infrastructure_om_costs",
+        -         ],
+        -         "Fuel",
+        -     )
+        9     check_required_sub_keys(data_dict, ["id", "name", "fuel"], "Technology")
+        9     check_required_sub_keys(data_dict, ["id", "name", "mode"], "Vehicletype")
+       12     check_required_sub_keys(
+        -         data_dict,
+        -         ["id", "name", "costs_var", "costs_fix"],
+        -         "Regiontype",
+        -     )
+       45     check_required_sub_keys(
+        -         data_dict,
+        -         [
+        -             "id",
+        -             "name",
+        -             "vehicle_type",
+        -             "technology",
+        -             "capital_cost",
+        -             "maintenance_cost_annual",
+        -             "maintenance_cost_distance",
+        -             "W",
+        -             "spec_cons",
+        -             "Lifetime",
+        -             "AnnualRange",
+        -             "products",
+        -             "tank_capacity",
+        -             "peak_fueling",
+        -             "fueling_time",
+        -         ],
+        -         "TechVehicle",
+        -     )
+       12     check_required_sub_keys(
+        -         data_dict,
+        -         ["id", "techvehicle", "year_of_purchase", "stock"],
+        -         "InitialVehicleStock",
+        -     )
+       12     check_required_sub_keys(
+        -         data_dict,
+        -         ["id", "fuel", "allocation", "installed_kW"],
+        -         "InitialFuelingInfr",
+        -     )
+       12     check_required_sub_keys(
+        -         data_dict,
+        -         ["id", "mode", "allocation", "installed_ukm"],
+        -         "InitialModeInfr",
+        -     )
+       27     check_required_sub_keys(
+        -         data_dict,
+        -         [
+        -             "id",
+        -             "from",
+        -             "to",
+        -             "path_id",
+        -             "F",
+        -             "product",
+        -             "vehicle_stock_init",
+        -             "financial_status",
+        -             "region_type",
+        -         ],
+        -         "Odpair",
+        -     )
+        4     check_required_sub_keys(
+        -         data_dict,
+        -         ["id", "region_type", "vehicle_type", "travel_speed"],
+        -         "Speed",
+        -     )
+        - 
+        1     check_validity_of_model_parametrization(data_dict)
+        1     check_uniquness_of_ids(data_dict, struct_names_base)
+        - 
+        1     res = data_dict["Model"]["Y"] + data_dict["Model"]["y_init"]
+        2     @info "The optimization horizon is $(data_dict["Model"]["y_init"]) - $res."
+        1     first_gen = data_dict["Model"]["y_init"] - data_dict["Model"]["pre_y"]
+        1     @info "Vehicle generations since $first_gen are considered."
+        - 
+        -     # checking formats
+        1     println(data_dict["Model"]["Y"])
+        1     check_correct_formats_GeographicElement(data_dict, data_dict["Model"]["Y"])
+        1     check_correct_formats_FinancialStatus(data_dict)
+        1     check_correct_format_Mode(data_dict, data_dict["Model"]["Y"])
+        1     check_correct_format_Product(data_dict)
+        1     check_correct_format_Path(data_dict)
+        1     check_correct_format_Fuel(data_dict, data_dict["Model"]["Y"])
+        1     check_correct_format_Technology(data_dict)
+        1     check_correct_format_Vehicletype(data_dict)
+        1     check_correct_format_Regiontype(data_dict, data_dict["Model"]["Y"])
+        1     check_correct_format_TechVehicle(
+        -         data_dict,
+        -         data_dict["Model"]["Y"],
+        -         data_dict["Model"]["Y"] + data_dict["Model"]["pre_y"],
+        -     )
+        1     check_correct_format_InitialVehicleStock(
+        -         data_dict,
+        -         data_dict["Model"]["y_init"],
+        -         first_gen,
+        -     )
+        1     check_correct_format_InitialFuelingInfr(data_dict)
+        1     check_correct_format_InitialModeInfr(data_dict)
+        1     check_correct_format_Odpair(data_dict, data_dict["Model"]["Y"])
+        1     check_correct_format_Speed(data_dict)
+        - 
+        -     # printing key information for the user 
+        - 
+        1     @info "Input data checks successfully completed."
+        - 
+        1     return data_dict
+        - end
+        - 
+        - """
+        - 	parse_data(data_dict::Dict)
+        - 
+        - Parses the input data into the corresponding parameters in struct format from structs.jl.
+        - 
+        - # Arguments
+        - - data_dict::Dict: dictionary with the input data
+        - 
+        - # Returns
+        - - data_structures::Dict: dictionary with the parsed data
+        - """
+        1 function parse_data(data_dict::Dict)
+        1     geographic_element_list = [
+        -         GeographicElement(
+        -             geographic_element["id"],
+        -             geographic_element["type"],
+        -             geographic_element["name"],
+        -             geographic_element["carbon_price"],
+        -             geographic_element["from"],
+        -             geographic_element["to"],
+        -             geographic_element["length"],
+        -         ) for geographic_element ∈ data_dict["GeographicElement"]
+        -     ]
+        1     financial_status_list = [
+        -         FinancialStatus(
+        -             financial_stat["id"],
+        -             financial_stat["name"],
+        -             financial_stat["VoT"],
+        -             financial_stat["monetary_budget_purchase"],
+        -             financial_stat["monetary_budget_purchase_lb"],
+        -             financial_stat["monetary_budget_purchase_ub"],
+        -             financial_stat["monetary_budget_purchase_time_horizon"],
+        -         ) for financial_stat ∈ data_dict["FinancialStatus"]
+        -     ]
+        1     mode_list = [
+        -         Mode(
+        -             mode["id"],
+        -             mode["name"],
+        -             mode["quantify_by_vehs"],
+        -             mode["costs_per_ukm"],
+        -             mode["emission_factor"],
+        -             mode["infrastructure_expansion_costs"],
+        -             mode["infrastructure_om_costs"],
+        -             mode["waiting_time"],
+        -         ) for mode ∈ data_dict["Mode"]
+        -     ]
+        - 
+        1     product_list =
+        -         [Product(product["id"], product["name"]) for product ∈ data_dict["Product"]]
+        1     path_list = [
+        -         Path(
+        -             path["id"],
+        -             path["name"],
+        -             path["length"],
+        -             [
+        -                 geographic_element_list[findfirst(
+        1                     geo -> geo.id == el,
+        -                     geographic_element_list,
+        -                 )] for el ∈ path["sequence"]
+        -             ],
+        -         ) for path ∈ data_dict["Path"]
+        -     ]
+        1     fuel_list = [
+        -         Fuel(
+        -             fuel["id"],
+        -             fuel["name"],
+        -             fuel["cost_per_kWh"],
+        -             fuel["cost_per_kW"],
+        -             fuel["emission_factor"],
+        -             fuel["fueling_infrastructure_om_costs"],
+        -         ) for fuel ∈ data_dict["Fuel"]
+        -     ]
+        1     technology_list = [
+        -         Technology(
+        -             technology["id"],
+        -             technology["name"],
+        3             fuel_list[findfirst(f -> f.name == technology["fuel"], fuel_list)],
+        -         ) for technology ∈ data_dict["Technology"]
+        -     ]
+        1     vehicle_type_list = [
+        -         Vehicletype(
+        -             vehicletype["id"],
+        -             vehicletype["name"],
+        3             mode_list[findfirst(m -> m.id == vehicletype["mode"], mode_list)],
+        2             [product_list[findfirst(p -> p.name == vehicletype["product"], product_list)]],
+        -         ) for vehicletype ∈ data_dict["Vehicletype"]
+        -     ]
+        1     regiontype_list = [
+        -         Regiontype(
+        -             regiontype["id"],
+        -             regiontype["name"],
+        -             regiontype["costs_var"],
+        -             regiontype["costs_fix"],
+        -         ) for regiontype ∈ data_dict["Regiontype"]
+        -     ]
+        1     techvehicle_list = [
+        -         TechVehicle(
+        -             techvehicle["id"],
+        -             techvehicle["name"],
+        -             vehicle_type_list[findfirst(
+        2                 v -> v.name == techvehicle["vehicle_type"],
+        -                 vehicle_type_list,
+        -             )],
+        -             technology_list[findfirst(
+        3                 t -> t.id == techvehicle["technology"],
+        -                 technology_list,
+        -             )],
+        -             techvehicle["capital_cost"],
+        -             techvehicle["maintenance_cost_annual"],
+        -             techvehicle["maintenance_cost_distance"],
+        -             techvehicle["W"],
+        -             techvehicle["spec_cons"],
+        -             techvehicle["Lifetime"],
+        -             techvehicle["AnnualRange"],
+        -             [
+        2                 product_list[findfirst(p -> p.name == prod, product_list)] for
+        -                 prod ∈ techvehicle["products"]
+        -             ],
+        -             techvehicle["tank_capacity"],
+        -             techvehicle["peak_fueling"],
+        -             techvehicle["fueling_time"],
+        -         ) for techvehicle ∈ data_dict["TechVehicle"]
+        -     ]
+        1     initvehiclestock_list = [
+        -         InitialVehicleStock(
+        -             initvehiclestock["id"],
+        -             techvehicle_list[findfirst(
+       15                 tv -> tv.id == initvehiclestock["techvehicle"],
+        -                 techvehicle_list,
+        -             )],
+        -             initvehiclestock["year_of_purchase"],
+        -             initvehiclestock["stock"],
+        -         ) for initvehiclestock ∈ data_dict["InitialVehicleStock"]
+        -     ]
+        1     initalfuelinginfr_list = [
+        -         InitialFuelingInfr(
+        -             initalfuelinginfr["id"],
+        3             fuel_list[findfirst(f -> f.name == initalfuelinginfr["fuel"], fuel_list)],
+        -             initalfuelinginfr["allocation"],
+        -             initalfuelinginfr["installed_kW"],
+        -         ) for initalfuelinginfr ∈ data_dict["InitialFuelingInfr"]
+        -     ]
+        1     initialmodeinfr_list = [
+        -         InitialModeInfr(
+        -             initialmodeinfr["id"],
+        3             mode_list[findfirst(m -> m.id == initialmodeinfr["mode"], mode_list)],
+        -             initialmodeinfr["allocation"],
+        -             initialmodeinfr["installed_ukm"],
+        -         ) for initialmodeinfr ∈ data_dict["InitialModeInfr"]
+        -     ]
+        - 
+        1     odpair_list = [
+        -         Odpair(
+        -             odpair["id"],
+        -             geographic_element_list[findfirst(
+        1                 nodes -> nodes.id == odpair["from"],
+        -                 geographic_element_list,
+        -             )],
+        -             geographic_element_list[findfirst(
+        1                 nodes -> nodes.id == odpair["to"],
+        -                 geographic_element_list,
+        -             )],
+        1             [path_list[findfirst(p -> p.id == odpair["path_id"], path_list)]],
+        -             odpair["F"],
+        1             product_list[findfirst(p -> p.name == odpair["product"], product_list)],
+        -             [
+        -                 initvehiclestock_list[findfirst(
+       55                     ivs -> ivs.id == vsi,
+        -                     initvehiclestock_list,
+        -                 )] for vsi ∈ odpair["vehicle_stock_init"]
+        -             ],
+        -             financial_status_list[findfirst(
+        1                 fs -> fs.name == odpair["financial_status"],
+        -                 financial_status_list,
+        -             )],
+        -             regiontype_list[findfirst(
+        1                 rt -> rt.name == odpair["region_type"],
+        -                 regiontype_list,
+        -             )],
+        -             odpair["travel_time_budget"],
+        -         ) for odpair ∈ data_dict["Odpair"]
+        -     ]
+        - 
+        -     # odpair_list = odpair_list[1:20]
+        1     @info "The number of OD pairs is $(length(odpair_list))."
+        1     speed_list = [
+        -         Speed(
+        -             speed["id"],
+        -             regiontype_list[findfirst(
+        1                 rt -> rt.name == speed["region_type"],
+        -                 regiontype_list,
+        -             )],
+        -             vehicle_type_list[findfirst(
+        1                 vt -> vt.name == speed["vehicle_type"],
+        -                 vehicle_type_list,
+        -             )],
+        -             speed["travel_speed"],
+        -         ) for speed ∈ data_dict["Speed"]
+        -     ]
+        - 
+        1     if haskey(data_dict, "MarketShares")
+        0         market_share_list = [
+        -             MarketShare(
+        -                 market_share["id"],
+        -                 techvehicle_list[findfirst(tv -> tv.id, techvehicle_list)],
+        -                 market_share["share"],
+        -                 market_share["financial_status"],
+        -             ) for market_share ∈ data_dict["MarketShares"]
+        -         ]
+        0         @info "Market shares are defined"
+        -     else
+        1         market_share_list = []
+        -     end
+        - 
+        1     if haskey(data_dict, "EmissionLimitbymode")
+        0         emission_constraint_by_mode_list = [
+        -             EmissionConstraintByYear(
+        -                 emission_constraint["id"],
+        -                 mode_list[findfirst(m -> m.id == emission_constraint["mode"], mode_list)],
+        -                 emission_constraint["year"],
+        -                 emission_constraint["emission_constraint"],
+        -             ) for emission_constraint ∈ data_dict["EmissionLimitbyyear"]
+        -         ]
+        0         @info "Emissions are defined by year"
+        - 
+        -     else
+        1         emission_constraint_by_mode_list = []
+        -     end
+        - 
+        1     if haskey(data_dict, "ModeShares")
+        0         mode_shares_list = [
+        -             ModeShare(
+        -                 mode_share["id"],
+        -                 mode_list[findfirst(m -> m.id == mode_share["mode"], mode_list)],
+        -                 mode_share["share"],
+        -                 mode_share["year"],
+        -                 [
+        -                     regiontype_list[findfirst(rt -> rt.id == rt_id, regiontype_list)]
+        -                     for rt_id ∈ mode_share["regiontype_list"]
+        -                 ],
+        -             ) for mode_share ∈ data_dict["ModeShares"]
+        -         ]
+        0         @info "Mode shares are defined by year"
+        - 
+        -     else
+        1         mode_shares_list = []
+        -     end
+        - 
+        1     if haskey(data_dict, "ModeSharemaxbyyear")
+        0         max_mode_shares_list = [
+        -             ModeShare(
+        -                 mode_share["id"],
+        -                 mode_list[findfirst(m -> m.id == mode_share["mode"], mode_list)],
+        -                 mode_share["share"],
+        -                 mode_share["year"],
+        -                 [
+        -                     regiontype_list[findfirst(rt -> rt.id == rt_id, regiontype_list)]
+        -                     for rt_id ∈ mode_share["regiontype_list"]
+        -                 ],
+        -             ) for mode_share ∈ data_dict["ModeShares"]
+        -         ]
+        0         @info "Max Mode shares are defined by year"
+        - 
+        -     else
+        1         max_mode_shares_list = []
+        -     end
+        - 
+        1     if haskey(data_dict, "ModeShareminbyyear")
+        0         min_mode_shares_list = [
+        -             ModeShare(
+        -                 mode_share["id"],
+        -                 mode_list[findfirst(m -> m.id == mode_share["mode"], mode_list)],
+        -                 mode_share["share"],
+        -                 mode_share["year"],
+        -                 [
+        -                     regiontype_list[findfirst(rt -> rt.id == rt_id, regiontype_list)]
+        -                     for rt_id ∈ mode_share["regiontype_list"]
+        -                 ],
+        -             ) for mode_share ∈ data_dict["ModeShares"]
+        -         ]
+        0         @info "Min Mode shares are defined by year"
+        - 
+        -     else
+        1         min_mode_shares_list = []
+        -     end
+        - 
+        1     if haskey(data_dict, "VehicleSubsidy")
+        0         vehicle_subsidy_list = [
+        -             VehicleSubsidy(
+        -                 vehicle_subsidy["id"],
+        -                 vehicle_subsidy["name"],
+        -                 vehicle_subsidy["years"],
+        -                 techvehicle_list[findfirst(
+        -                     tv -> tv.id == vehicle_subsidy["techvehicle"],
+        -                     techvehicle_list,
+        -                 )],
+        -                 vehicle_subsidy["subsidy"],
+        -             ) for vehicle_subsidy ∈ data_dict["VehicleSubsidy"]
+        -         ]
+        -     else
+        1         vehicle_subsidy_list = []
+        -     end
+        - 
+        1     if haskey(data_dict, "InitDetourTime")
+        0         init_detour_times_list = [
+        -             InitDetourTime(
+        -                 init_detour_time["id"],
+        -                 fuel_list[findfirst(f -> f.name == init_detour_time["fuel"], fuel_list)],
+        -                 geographic_element_list[findfirst(
+        -                     ge -> ge.name == init_detour_time["location"],
+        -                     geographic_element_list,
+        -                 )],
+        -                 init_detour_time["detour_time"],
+        -             ) for init_detour_time ∈ data_dict["InitDetourTime"]
+        -         ]
+        -     else
+        1         init_detour_times_list = []
+        -     end
+        - 
+        1     if haskey(data_dict, "DetourTimeReduction")
+        0         @info "has detour reduction specified"
+        0         detour_time_reduction_list = [
+        -             DetourTimeReduction(
+        -                 detour_time_reduction["id"],
+        -                 fuel_list[findfirst(
+        -                     f -> f.name == detour_time_reduction["fuel"],
+        -                     fuel_list,
+        -                 )],
+        -                 geographic_element_list[findfirst(
+        -                     ge -> ge.name == detour_time_reduction["location"],
+        -                     geographic_element_list,
+        -                 )],
+        -                 detour_time_reduction["reduction_id"],
+        -                 detour_time_reduction["detour_time_reduction"],
+        -                 detour_time_reduction["fueling_cap_lb"],
+        -                 detour_time_reduction["fueling_cap_ub"],
+        -             ) for detour_time_reduction ∈ data_dict["DetourTimeReduction"]
+        -         ]
+        -     else
+        1         detour_time_reduction_list = []
+        -     end
+        - 
+        - 
+        - 
+        1     if haskey(data_dict, "SupplyType")
+        0         supplytype_list = [
+        -             SupplyType(
+        -                 item["id"],
+        -                 fuel_list[findfirst(f -> f.name == item["fuel"], fuel_list)],
+        -                 geographic_element_list[findfirst(
+        -                     ge -> ge.name == item["location"],
+        -                     geographic_element_list,
+        -                 )],
+        -                 item["install_costs"],
+        -                 item["om_costs"],
+        -             ) for item ∈ data_dict["SupplyType"]
+        -         ]
+        -     else
+        1         supplytype_list = []
+        -     end
+        - 
+        1     if haskey(data_dict, "InitialSupplyInfr")
+        0         initialsupplyinfr_list = [
+        -             EmissionConstraintByYear(
+        -                 item["id"],
+        -                 fuel_list[findfirst(f -> f.name == item["fuel"], fuel_list)],
+        -                 supplytype_list[findfirst(
+        -                     st -> st.id == item["supplytype"],
+        -                     supplytype_list,
+        -                 )],
+        -                 geographic_element_list[findfirst(
+        -                     ge -> ge.name == item["location"],
+        -                     geographic_element_list,
+        -                 )],
+        -                 item["installed_kW"],
+        -             ) for item ∈ data_dict["InitialSupplyInfr"]
+        -         ]
+        -     else
+        1         initialsupplyinfr_list = []
+        -     end
+        - 
+        -     # TODO: extend here the list of possible data_dict structures
+        1     data_structures = Dict(
+        -         "Y" => data_dict["Model"]["Y"],
+        -         "y_init" => data_dict["Model"]["y_init"],
+        -         "pre_y" => data_dict["Model"]["pre_y"],
+        -         "gamma" => data_dict["Model"]["gamma"],
+        -         "discount_rate" => data_dict["Model"]["discount_rate"],
+        -         "budget_penalty_plus" => data_dict["Model"]["budget_penalty_plus"],
+        -         "budget_penalty_minus" => data_dict["Model"]["budget_penalty_minus"],
+        -         "financial_status_list" => financial_status_list,
+        -         "mode_list" => mode_list,
+        -         "product_list" => product_list,
+        -         "path_list" => path_list,
+        -         "fuel_list" => fuel_list,
+        -         "technology_list" => technology_list,
+        -         "vehicletype_list" => vehicle_type_list,
+        -         "regiontype_list" => regiontype_list,
+        -         "techvehicle_list" => techvehicle_list,
+        -         "initvehiclestock_list" => initvehiclestock_list,
+        -         "odpair_list" => odpair_list,
+        -         "speed_list" => speed_list,
+        -         "market_share_list" => market_share_list,
+        -         "emission_constraints_by_mode_list" => emission_constraint_by_mode_list,
+        -         "mode_shares_list" => mode_shares_list,
+        -         "max_mode_shares_list" => max_mode_shares_list,
+        -         "min_mode_shares_list" => min_mode_shares_list,
+        -         "initialfuelinginfr_list" => initalfuelinginfr_list,
+        -         "initialmodeinfr_list" => initialmodeinfr_list,
+        -         "initialsupplyinfr_list" => initialsupplyinfr_list,
+        -         "vehicle_subsidy_list" => vehicle_subsidy_list,
+        -         "geographic_element_list" => geographic_element_list,
+        -         "init_detour_times_list" => init_detour_times_list,
+        -         "detour_time_reduction_list" => detour_time_reduction_list,
+        -         "supplytype_list" => supplytype_list,
+        -     )
+        - 
+        1     for key ∈ keys(default_data)
+        4         if haskey(data_dict["Model"], key)
+        0             data_structures[key] = data_dict["Model"][key]
+        -         else
+        4             data_structures[key] = default_data[key]
+        -         end
+        4     end
+        - 
+        1     data_structures["G"] = data_dict["Model"]["pre_y"] + data_dict["Model"]["Y"]
+        1     data_structures["g_init"] = data_dict["Model"]["y_init"] - data_dict["Model"]["pre_y"]
+        1     data_structures["Y_end"] = data_dict["Model"]["y_init"] + data_dict["Model"]["Y"] - 1
+        - 
+        1     return data_structures
+        - end
+        - """
+        -     generate_exact_length_subsets(start_year::Int, end_year::Int, delta_y::Int)
+        - 
+        - Generates a list of subsets of years with a fixed length.
+        - 
+        - # Arguments
+        - - `start_year::Int`: The first year.
+        - - `end_year::Int`: The last year.
+        - - `delta_y::Int`: The length of the subsets.
+        - """
+        - function generate_exact_length_subsets(start_year::Int, end_year::Int, delta_y::Int)
+        -     all_years = start_year:end_year
+        -     subsets = []
+        - 
+        -     for i ∈ 1:(length(all_years)-delta_y+1)
+        -         push!(subsets, collect(all_years[i:(i+delta_y-1)]))
+        -     end
+        - 
+        -     return subsets
+        - end
+        - 
+        - """
+        - 	create_m_tv_pairs(techvehicle_list::Vector{TechVehicle}, mode_list::Vector{Mode})
+        - 
+        - Creates a set of pairs of mode and techvehicle IDs.
+        - 
+        - # Arguments
+        - - techvehicle_list::Vector{TechVehicle}: list of techvehicles
+        - - mode_list::Vector{Mode}: list of modes
+        - 
+        - # Returns
+        - - m_tv_pairs::Set: set of pairs of mode and techvehicle IDs
+        - 
+        - """
+       20 function create_m_tv_pairs(techvehicle_list::Vector{TechVehicle}, mode_list::Vector{Mode})
+       20     m_tv_pairs = Set((tv.vehicle_type.mode.id, tv.id) for tv ∈ techvehicle_list)
+       20     techvehicle_ids = [tv.id for tv ∈ techvehicle_list]
+       20     global counter_additional_vehs = length(techvehicle_list)
+       20     for m ∈ mode_list
+       34         for v ∈ techvehicle_list
+       68             if v.vehicle_type.mode.id == m.id
+       40                 push!(m_tv_pairs, (m.id, v.id))
+        -             end
+       68         end
+       34         if !m.quantify_by_vehs
+       18             push!(m_tv_pairs, (m.id, counter_additional_vehs + 1))
+       18             push!(techvehicle_ids, counter_additional_vehs + 1)
+       18             global counter_additional_vehs += 1
+        -         end
+       34     end
+       20     return m_tv_pairs
+        - end
+        - 
+        - """
+        - 	create_tv_id_set(techvehicle_list::Vector{TechVehicle}, mode_list::Vector{Mode})
+        - 
+        - Creates a list of techvehicle IDs.
+        - 
+        - # Arguments
+        - - techvehicle_list::Vector{TechVehicle}: list of techvehicles
+        - - mode_list::Vector{Mode}: list of modes
+        - 
+        - # Returns
+        - - techvehicle_ids_2::Set: set of techvehicle IDs
+        - """
+       10 function create_tv_id_set(techvehicle_list_2::Vector{TechVehicle}, mode_list::Vector{Mode})
+       10     m_tv_pairs = Set((tv.vehicle_type.mode.id, tv.id) for tv ∈ techvehicle_list_2)
+       10     techvehicle_ids_2 = Set([tv.id for tv ∈ techvehicle_list_2])
+       10     global counter_additional_vehs_2 = length(techvehicle_list_2)
+        - 
+       10     for m ∈ mode_list
+       17         if !m.quantify_by_vehs
+        9             push!(techvehicle_ids_2, counter_additional_vehs_2 + 1)
+        9             global counter_additional_vehs_2 += 1
+        -         end
+       17     end
+       10     return techvehicle_ids_2
+        - end
+        - 
+        - """
+        - 	create_v_t_set(techvehicle_list::Vector{TechVehicle})
+        - 
+        - Creates a set of pairs of techvehicle IDs.
+        - 
+        - # Arguments
+        - - techvehicle_list::Vector{TechVehicle}: list of techvehicles
+        - 
+        - # Returns
+        - - t_v_pairs::Set: set of pairs of techvehicle IDs
+        - """
+       10 function create_v_t_set(techvehicle_list::Vector{TechVehicle})
+       10     t_v_pairs = Set((tv.id, tv.id) for tv ∈ techvehicle_list)
+       10     return t_v_pairs
+        - end
+        - 
+        - """
+        - 	create_p_r_k_set(odpairs::Vector{Odpair})
+        - 
+        - Creates a set of pairs of product, odpair, and path IDs.
+        - 
+        - # Arguments
+        - - odpairs::Vector{Odpair}: list of odpairs
+        - 
+        - # Returns
+        - - p_r_k_pairs::Set: set of pairs of product, odpair, and path IDs
+        - """
+       20 function create_p_r_k_set(odpairs::Vector{Odpair})
+       20     p_r_k_pairs = Set((r.product.id, r.id, k.id) for r ∈ odpairs for k ∈ r.paths)
+       20     return p_r_k_pairs
+        - end
+        - 
+        - """
+        - 	create_p_r_k_e_set(odpairs::Vector{Odpair})
+        - 
+        - Creates a set of pairs of product, odpair, path, and element IDs.
+        - 
+        - # Arguments
+        - - odpairs::Vector{Odpair}: list of odpairs
+        - 
+        - # Returns
+        - - p_r_k_e_pairs::Set: set of pairs of product, odpair, path, and element IDs
+        - """
+       10 function create_p_r_k_e_set(odpairs::Vector{Odpair})
+       10     p_r_k_e_pairs = Set(
+        -         (r.product.id, r.id, k.id, el) for r ∈ odpairs for k ∈ r.paths for
+        -         el ∈ k.sequence if el.type == "edge"
+        -     )
+       10     return p_r_k_e_pairs
+        - end
+        - 
+        - """
+        - 	create_p_r_k_g_set(odpairs::Vector{Odpair})
+        - 
+        - Creates a set of pairs of product, odpair, path, and element IDs.
+        - 
+        - # Arguments
+        - - odpairs::Vector{Odpair}: list of odpairs
+        - 
+        - # Returns
+        - - p_r_k_g_pairs::Set: set of pairs of product, odpair, path, and element IDs
+        - """
+       10 function create_p_r_k_g_set(odpairs::Vector{Odpair})
+       10     p_r_k_g_pairs = Set(
+        -         (r.product.id, r.id, k.id, el.id) for r ∈ odpairs for k ∈ r.paths for
+        -         el ∈ k.sequence
+        -     )
+       10     return p_r_k_g_pairs
+        - end
+        - 
+        - """
+        - 	create_p_r_k_n_set(odpairs::Vector{Odpair})
+        - 
+        - Creates a set of pairs of product, odpair, path, and element IDs.
+        - 
+        - # Arguments
+        - - odpairs::Vector{Odpair}: list of odpairs
+        - 
+        - # Returns
+        - - p_r_k_n_pairs::Set: set of pairs of product, odpair, path, and element IDs
+        - """
+       10 function create_p_r_k_n_set(odpairs::Vector{Odpair})
+       10     p_r_k_n_pairs = Set(
+        -         (r.product.id, r.id, k.id, el) for r ∈ odpairs for k ∈ r.paths for
+        -         el ∈ k.sequence if el.type == "node"
+        -     )
+       10     return p_r_k_n_pairs
+        - end
+        - 
+        - """
+        - 	create_r_k_set(odpairs::Vector{Odpair})
+        - 
+        - Creates a set of pairs of odpair and path IDs.
+        - 
+        - # Arguments
+        - - odpairs::Vector{Odpair}: list of odpairs
+        - 
+        - # Returns
+        - - r_k_pairs::Set: set of pairs of odpair and path IDs
+        - """
+       10 function create_r_k_set(odpairs::Vector{Odpair})
+       10     r_k_pairs = Set((r.id, k.id) for r ∈ odpairs for k ∈ r.paths)
+       10     return r_k_pairs
+        - end
+        - 
+        - """
+        - 	create_model(model::JuMP.Model, data_structures::Dict)
+        - 
+        - Definition of JuMP.model and adding of variables.
+        - 
+        - # Arguments
+        - - model::JuMP.Model: JuMP model
+        - - data_structures::Dict: dictionary with the input data and parsing of the input parameters
+        - 
+        - # Returns
+        - - model::JuMP.Model: JuMP model with the variables added
+        - - data_structures::Dict: dictionary with the input data
+        - """
+       10 function create_model(data_structures, case_name::String, optimizer)
+       10     model = Model(optimizer)
+       10     base_define_variables(model, data_structures)
+       10     return model, data_structures
+        - end
+        - 
+        - """
+        -     create_emission_price_along_path(k::Path, y::Int64, data_structures::Dict)
+        - 
+        - Calculating the carbon price along a given route based on the regions that the path lies in.
+        - (currently simple calculation by averaging over all geometric items among the path).
+        - 
+        - # Arguments
+        - - k::Path: path
+        - - data_structures::Dict: dictionary with the input data 
+        - """
+     1670 function create_emission_price_along_path(k::Path, y::Int64, data_structures::Dict)
+     1670     n = length(k.sequence)
+     1670     geographic_element_list = data_structures["geographic_element_list"]
+     1670     global total_carbon_price = 0.0
+     1670     for el ∈ k.sequence
+     1670         current_carbon_price =
+        -             geographic_element_list[findfirst(
+     1670                 e -> e.id == el.id,
+        -                 geographic_element_list,
+        -             )].carbon_price
+        -         # println(current_carbon_price, total_carbon_price)
+     1670         global total_carbon_price = total_carbon_price + current_carbon_price[y]
+     1670     end
+     1670     average_carbon_price = total_carbon_price / n
+        -     # println(average_carbon_price)
+     1670     return average_carbon_price
+        - end
+        - 
+        - """
+        - 	save_results(model::Model, case_name::String)
+        - 
+        - Saves the results of the optimization model to YAML files.
+        - 
+        - # Arguments
+        - - model::Model: JuMP model
+        - - case_name::String: name of the case
+        - - file_for_results::String: name of the file to save the results
+        - - data_structures::Dict: dictionary with the input data
+        - """
+       10 function save_results(
+        -     model::Model,
+        -     case::String,
+        -     data_structures::Dict,
+        -     write_to_file::Bool = true,
+        -     folder_for_results::String = "results",
+        - )
+       10     if write_to_file
+        0         check_folder_writable(folder_for_results)
+        -     end 
+       10     y_init = data_structures["y_init"]
+       10     Y_end = data_structures["Y_end"]
+       10     odpairs = data_structures["odpair_list"]
+       10     techvehicles = data_structures["techvehicle_list"]
+       10     m_tv_pairs = data_structures["m_tv_pairs"]
+       10     p_r_k_pairs = data_structures["p_r_k_pairs"]
+       10     p_r_k_g_pairs = data_structures["p_r_k_g_pairs"]
+       10     technologies = data_structures["technology_list"]
+       10     fuel_list = data_structures["fuel_list"]
+       10     mode_list = data_structures["mode_list"]
+       10     geographic_element_list = data_structures["geographic_element_list"]
+       10     tech_vehicle_ids = data_structures["techvehicle_ids"]
+       10     g_init = data_structures["g_init"]
+       10     if data_structures["detour_time_reduction_list"] != []
+        0         geo_i_pairs = data_structures["geo_i_pairs"]
+        0         geo_i_f = data_structures["geo_i_f_pairs"]
+        -     end
+        - 
+        -     # Writing the solved decision variables to YAML
+       10     solved_data = Dict()
+       10     solved_data["h"] = value.(model[:h])
+       10     solved_data["h_plus"] = value.(model[:h_plus])
+       10     solved_data["h_minus"] = value.(model[:h_minus])
+       10     solved_data["h_exist"] = value.(model[:h_exist])
+       10     solved_data["f"] = value.(model[:f])
+       10     solved_data["budget_penalty_plus"] = value.(model[:budget_penalty_plus])
+       10     solved_data["budget_penalty_minus"] = value.(model[:budget_penalty_minus])
+       10     solved_data["s"] = value.(model[:s])
+       10     solved_data["q_fuel_infr_plus"] = value.(model[:q_fuel_infr_plus])
+       10     solved_data["q_mode_infr_plus"] = value.(model[:q_fuel_infr_plus])
+        - 
+       10     f_dict = Dict()
+       10     for y ∈ y_init:Y_end, (p, r, k) ∈ p_r_k_pairs, mv ∈ m_tv_pairs, g ∈ g_init:y
+     5040         f_dict[(y, (p, r, k), mv, g)] = value(model[:f][y, (p, r, k), mv, g])
+     5040     end
+        - 
+       10     s_dict = Dict()
+       10     for y ∈ y_init:Y_end, (p, r, k, g) ∈ p_r_k_g_pairs, tv_id ∈ tech_vehicle_ids
+      370         s_dict[(y, (p, r, k, g), tv_id)] = value(model[:s][y, (p, r, k, g), tv_id])
+      370     end
+        - 
+        -     # Dictionary for 'h' variable
+       10     h_dict = Dict()
+       10     for y ∈ y_init:Y_end, r ∈ odpairs, tv ∈ techvehicles, g ∈ g_init:y
+     3430         h_dict[(y, r.id, tv.id, g)] = value(model[:h][y, r.id, tv.id, g])
+     3430     end
+        - 
+        -     # Dictionary for 'h_exist' variable
+       10     h_exist_dict = Dict()
+       10     for y ∈ y_init:Y_end, r ∈ odpairs, tv ∈ techvehicles, g ∈ g_init:y
+     3430         h_exist_dict[(y, r.id, tv.id, g)] = value(model[:h_exist][y, r.id, tv.id, g])
+     3430     end
+        - 
+        -     # Dictionary for 'h_plus' variable
+       10     h_plus_dict = Dict()
+       10     for y ∈ y_init:Y_end, r ∈ odpairs, tv ∈ techvehicles, g ∈ g_init:y
+     3430         h_plus_dict[(y, r.id, tv.id, g)] = value(model[:h_plus][y, r.id, tv.id, g])
+     3430     end
+        - 
+        -     # Dictionary for 'h_minus' variable
+       10     h_minus_dict = Dict()
+       10     for y ∈ y_init:Y_end, r ∈ odpairs, tv ∈ techvehicles, g ∈ g_init:y
+     3430         h_minus_dict[(y, r.id, tv.id, g)] = value(model[:h_minus][y, r.id, tv.id, g])
+     3430     end
+        - 
+        -     # Dictionary for 'q_fuel_infr_plus_e' variable
+       10     q_mode_infr_plus_dict = Dict()
+       10     for y ∈ y_init:Y_end, m ∈ mode_list, geo ∈ geographic_element_list
+      225         q_mode_infr_plus_dict[(y, m.id, geo.id)] =
+        -             value(model[:q_mode_infr_plus][y, m.id, geo.id])
+      225     end
+        - 
+        -     # Dictionary for 'q_fuel_infr_plus_n' variable
+       10     q_fuel_infr_plus_dict = Dict()
+       10     for y ∈ y_init:Y_end, f ∈ fuel_list, geo ∈ geographic_element_list
+      230         q_fuel_infr_plus_dict[(y, f.id, geo.id)] =
+        -             value(model[:q_fuel_infr_plus][y, f.id, geo.id])
+      230     end
+        - 
+        -     # Dictionary for 'budget_penalty' variable
+       10     budget_penalty_plus_dict = Dict()
+       10     for y ∈ y_init:Y_end, r ∈ odpairs
+      125         budget_penalty_plus_dict[(y, r.id)] = value(model[:budget_penalty_plus][y, r.id])
+      125     end
+        - 
+        -     # Dictionary for 'budget_penalty' variable
+       10     budget_penalty_minus_dict = Dict()
+       10     for y ∈ y_init:Y_end, r ∈ odpairs
+      125         budget_penalty_minus_dict[(y, r.id)] = value(model[:budget_penalty_minus][y, r.id])
+      125     end
+        - 
+      111     function stringify_keys(dict::Dict)
+      101         return Dict(
+        -             string(k) => (v isa Float64 ? @sprintf("%.6f", v) : string(v)) for (k, v) ∈ dict
+        -         )
+        -     end
+        - 
+       10     @info "Saving results..."
+        -     # Convert the keys of each dictionary to strings
+       10     f_dict_str = stringify_keys(f_dict)
+       10     h_dict_str = stringify_keys(h_dict)
+       10     h_exist_dict_str = stringify_keys(h_exist_dict)
+       10     h_plus_dict_str = stringify_keys(h_plus_dict)
+       10     h_minus_dict_str = stringify_keys(h_minus_dict)
+       10     s_dict_str = stringify_keys(s_dict)
+       10     q_fuel_infr_plus_dict_str = stringify_keys(q_fuel_infr_plus_dict)
+       10     q_mode_infr_plus_dict_str = stringify_keys(q_mode_infr_plus_dict)
+        - 
+       10     budget_penalty_plus_dict_str = stringify_keys(budget_penalty_plus_dict)
+       10     budget_penalty_minus_dict_str = stringify_keys(budget_penalty_minus_dict)
+        - 
+       10     if data_structures["detour_time_reduction_list"] != []
+        -         # Dictionary for 'detour_times' variable
+        0         detour_time_dict = Dict()
+        0         for y ∈ y_init:Y_end, p_r_k ∈ p_r_k_g_pairs, f ∈ fuel_list
+        0             detour_time_dict[(y, p_r_k, f.id)] = value(model[:detour_time][y, p_r_k, f.id])
+        0         end
+        - 
+        0         detour_time_dict_str = stringify_keys(detour_time_dict)
+        0         x_a_dict = Dict()
+        0         for y ∈ y_init:Y_end, g ∈ geo_i_f
+        0             x_a_dict[(y, g)] = value(model[:x_a][y, g])
+        0         end
+        0         x_a_dict_str = stringify_keys(x_a_dict)
+        - 
+        0         x_b_dict = Dict()
+        0         for y ∈ y_init:Y_end, g ∈ geo_i_f
+        0             x_b_dict[(y, g)] = value(model[:x_b][y, g])
+        0         end
+        0         x_b_dict_str = stringify_keys(x_b_dict)
+        0         x_c_dict = Dict()
+        0         for y ∈ y_init:Y_end, g ∈ geo_i_f
+        0             x_c_dict[(y, g)] = value(model[:x_c][y, g])
+        0         end
+        0         x_c_dict_str = stringify_keys(x_c_dict)
+        0         n_fueling_dict = Dict()
+        0         for y ∈ y_init:Y_end, (p, r, k, g) ∈ p_r_k_g_pairs, f ∈ fuel_list
+        0             n_fueling_dict[(y, (p, r, k, g), f.id)] =
+        -                 value(model[:n_fueling][y, (p, r, k, g), f.id])
+        0         end
+        - 
+        0         z_str = Dict()
+        0         for y ∈ y_init:Y_end, (p, r, k, g) ∈ p_r_k_g_pairs, geo ∈ geo_i_f
+        0             z_str[(y, geo, (p, r, k, g))] = value(model[:z][y, geo, (p, r, k, g)])
+        0         end
+        0         z_str = stringify_keys(z_str)
+        -     end
+        - 
+       10     if data_structures["supplytype_list"] != []
+        1         supplytype_list = data_structures["supplytype_list"]
+        1         q_supply_infr_plus_dict = Dict()
+        1         for y ∈ y_init:Y_end, st ∈ supplytype_list, geo ∈ geographic_element_list
+       10             q_supply_infr_plus_dict[(y, st.id, geo.id)] =
+        -                 value(model[:q_supply_infr_plus][y, st.id, geo.id])
+       10         end
+        1         q_supply_infr_plus_dict_str = stringify_keys(q_supply_infr_plus_dict)
+        -     end
+       10     if write_to_file
+        0         YAML.write_file(joinpath(folder_for_results, case * "_f_dict.yaml"), f_dict_str)
+        0         @info "f_dict.yaml written successfully"
+        - 
+        0         YAML.write_file(joinpath(folder_for_results, case * "_h_dict.yaml"), h_dict_str)
+        0         @info "h_dict.yaml written successfully"
+        - 
+        0         YAML.write_file(
+        -             joinpath(folder_for_results, case * "_h_exist_dict.yaml"),
+        -             h_exist_dict_str,
+        -         )
+        0         @info case * "_h_exist_dict.yaml written successfully"
+        - 
+        0         YAML.write_file(
+        -             joinpath(folder_for_results, case * "_h_plus_dict.yaml"),
+        -             h_plus_dict_str,
+        -         )
+        0         @info case * "_h_plus_dict.yaml written successfully"
+        - 
+        0         YAML.write_file(
+        -             joinpath(folder_for_results, case * "_h_minus_dict.yaml"),
+        -             h_minus_dict_str,
+        -         )
+        0         @info "h_minus_dict.yaml written successfully"
+        - 
+        0         YAML.write_file(
+        -             joinpath(folder_for_results, case * "_q_fuel_infr_plus_dict.yaml"),
+        -             q_fuel_infr_plus_dict_str,
+        -         )
+        0         @info "q_fuel_infr_plus_dict.yaml written successfully"
+        - 
+        0         YAML.write_file(
+        -             joinpath(folder_for_results, case * "_q_mode_infr_plus_dict.yaml"),
+        -             q_mode_infr_plus_dict_str,
+        -         )
+        0         @info "q_mode_infr_dict.yaml written successfully"
+        - 
+        0         YAML.write_file(
+        -             joinpath(folder_for_results, case * "_budget_penalty_plus_dict.yaml"),
+        -             budget_penalty_plus_dict_str,
+        -         )
+        0         @info "budget_penalty_plus_dict.yaml written successfully"
+        - 
+        0         YAML.write_file(
+        -             joinpath(folder_for_results, case * "_budget_penalty_minus_dict.yaml"),
+        -             budget_penalty_minus_dict_str,
+        -         )
+        0         YAML.write_file(joinpath(folder_for_results, case * "_s.yaml"), s_dict_str)
+        0         @info "s.yaml written successfully"
+        0         if data_structures["supplytype_list"] != []
+        0             YAML.write_file(
+        -                 joinpath(folder_for_results, case * "_q_supply_infr_plus_dict.yaml"),
+        -                 q_supply_infr_plus_dict_str,
+        -             )
+        0             @info "q_supply_infr_plus_dict.yaml written successfully"
+        -         end
+        -     end
+       10     if data_structures["supplytype_list"] == []
+        9         return f_dict,
+        -         h_dict,
+        -         h_exist_dict,
+        -         h_plus_dict,
+        -         h_minus_dict,
+        -         s_dict,
+        -         q_fuel_infr_plus_dict,
+        -         q_mode_infr_plus_dict,
+        -         budget_penalty_plus_dict,
+        -         budget_penalty_minus_dict
+        -     else
+        1         return f_dict,
+        -         h_dict,
+        -         h_exist_dict,
+        -         h_plus_dict,
+        -         h_minus_dict,
+        -         s_dict,
+        -         q_fuel_infr_plus_dict,
+        -         q_mode_infr_plus_dict,
+        -         budget_penalty_plus_dict,
+        -         budget_penalty_minus_dict,
+        -         q_supply_infr_plus_dict
+        -     end
+        - end
+        - 
+        - 
+        - """
+        -     Function to disaggregate the total electricity load into hourly load profiles for a specific fuel type.
+        - 
+        -     # Arguments
+        -     - `model::JuMP.Model`: The optimization model.
+        -     - `data_structures::Dict`: The data structures.
+        -     - `fuel_id::Int`: The fuel ID.
+        -     - `year::Int`: The year.
+        - 
+        -     # Returns
+        -     - `yearly_load_dict::Dict`: Demand distribution among different vehicle types.
+        - """
+        - 
+        - function disagreggate(model::JuMP.Model, data_structures::Dict, fuel_id::Int=2, year::Int=2020)
+        -     # creating hourly load profile for each year
+        -     y_init = data_structures["y_init"]
+        -     g_init = data_structures["g_init"]
+        -     Y_end = data_structures["Y_end"]
+        -     p_r_k_g_pairs = data_structures["p_r_k_g_pairs"]
+        -     techvehicle_list = data_structures["techvehicle_list"]
+        -     technology_list = data_structures["technology_list"]
+        - 
+        -     s = value.(model[:s])
+        -     h = value.(model[:h])
+        -     yearly_load_dict = Dict()
+        -     y = year 
+        -     for tv in techvehicle_list
+        - 
+        -         if tv.technology.fuel.id == fuel_id
+        -             total_h = sum(h[y, r.id, tv.id, g] for r in data_structures["odpair_list"] for g in data_structures["g_init"]:y)
+        -             
+        -             # i need for each year the total electricity load
+        -             total_load = sum(s[y, p_r_k_g, tv.id] for p_r_k_g in p_r_k_g_pairs for tv in techvehicle_list if tv.technology.fuel.id == fuel_id)
+        -     
+        -             # i need amount of vehicles driving this year  
+        -             load_dict_h_g = Dict()
+        - 
+        -             for g in data_structures["g_init"]:y
+        -                 h_g = sum(h[y, r.id, tv.id, g] for r in data_structures["odpair_list"])
+        -                 share_load = h_g / total_h
+        -                 if share_load > 0
+        -                     load_dict_h_g[g] = (h_g, share_load * total_load, tv.tank_capacity[g-g_init+1])
+        -                     
+        -                 end
+        -             end
+        -             yearly_load_dict[tv.id] = load_dict_h_g
+        - 
+        -         end
+        -     end
+        - 
+        -     return yearly_load_dict
+        - 
+        - end
