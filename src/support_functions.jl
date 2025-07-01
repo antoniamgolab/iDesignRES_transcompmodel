@@ -394,7 +394,7 @@ function parse_data(data_dict::Dict)
     odpair_list = Vector{Odpair}(odpair_list)
 
     
-    #odpair_list = odpair_list[1:40]
+    # odpair_list = odpair_list[1:40]
     println("Number of Odpairs: ", length(odpair_list))
     speed_list = [
         Speed(
@@ -1317,6 +1317,13 @@ function save_results(
                     value(model[:q_fuel_infr_plus_by_route][y, r.id, f_l, geo.id])
             end
         end
+        q_fuel_infr_plus_diff_dict = Dict()
+        f_l_for_dt = data_structures["f_l_for_dt"]
+
+        for y ∈ y_init:investment_period:Y_end, f_l ∈ f_l_for_dt, geo ∈ geographic_element_list
+            q_fuel_infr_plus_diff_dict[(y, f_l, geo.id)] =
+                value(model[:q_fuel_infr_plus_diff][y, f_l, geo.id])
+        end
 
     else 
         q_supply_infr_plus_dict = Dict()
@@ -1439,6 +1446,8 @@ function save_results(
             end
             z_str = stringify_keys(z_str)
             q_fuel_infr_plus_by_route_dict_str = stringify_keys(q_fuel_infr_plus_by_route_dict)
+            q_fuel_infr_plus_diff_dict_str = stringify_keys(q_fuel_infr_plus_diff_dict)
+            
         end 
         
     end
@@ -1553,6 +1562,11 @@ function save_results(
                     q_fuel_infr_plus_by_route_dict_str,
                 )
                 @info "q_fuel_infr_plus_by_route_dict.yaml written successfully"
+                YAML.write_file(
+                    joinpath(folder_for_results, case * "_q_fuel_infr_plus_diff_dict.yaml"),
+                    q_fuel_infr_plus_diff_dict_str,
+                )
+                @info "q_fuel_infr_plus_diff_dict.yaml written successfully"
             end
         end
     end
@@ -1664,3 +1678,148 @@ function find_large_rhs(model::JuMP.Model)
         end
     end
 end
+
+import Pkg
+Pkg.add("ProgressMeter")
+import ProgressMeter
+
+
+"""
+    apply_start_values_from_model(source_model::Model, target_model::Model; exclude=Set())
+
+Copies solution values from `source_model` to `target_model` as start values,
+excluding any variable names in the `exclude` set.
+
+Arguments:
+- `exclude`: a `Set{String}` of variable base names to skip (e.g., Set(["y", "z"]))
+
+Returns: nothing; modifies `target_model` in place.
+"""
+
+
+function apply_start_values_fast_skip_progress(source_model::Model, target_model::Model; exclude=Set{String}(), copy_continuous=true)
+    var_dict = Dict{String, VariableRef}(name(v) => v for v in all_variables(target_model))
+
+    vars = all_variables(source_model)
+    p = Progress(length(vars), desc="Applying start values")
+
+    for var in vars
+        varname = name(var)
+        basename = split(varname, "[")[1]
+
+        if basename in exclude
+            next!(p)
+            continue
+        end
+
+        val = value(var)
+        if isnothing(val)
+            next!(p)
+            continue
+        end
+
+        if !copy_continuous && is_continuous(var)
+            next!(p)
+            continue
+        end
+
+        if haskey(var_dict, varname)
+            set_start_value(var_dict[varname], val)
+        end
+
+        next!(p)
+    end
+end
+
+
+# Helper: find variable by full name (e.g., "x[3]")
+function find_variable_by_name(model::Model, fullname::String)
+    for var in all_variables(model)
+        if name(var) == fullname
+            return var
+        end
+    end
+    return nothing
+end
+# Helper functions
+function has_variable(model::Model, var_name::String)
+    return any(v -> v.name == var_name, all_variables(model))
+end
+
+function set_binary_start_x_c_from_relaxed!(
+    model::JuMP.Model,
+    relaxed_model::JuMP.Model,
+    data_structures::Dict,
+    q_fuel_infr_plus_sym::Symbol,
+    x_c_sym::Symbol;
+    ε::Float64 = 1e-5  # small tolerance to prevent tight-bound violations
+)
+    y_init = data_structures["y_init"]
+    Y_end = data_structures["Y_end"]
+    investment_period = data_structures["investment_period"]
+    investment_years = collect(y_init:investment_period:Y_end)
+
+    geographic_element_list = data_structures["geographic_element_list"]
+    initialfuelinginfr_list = data_structures["initialfuelinginfr_list"]
+    detour_time_reduction_list = data_structures["detour_time_reduction_list"]
+    fueling_infr_types_list = data_structures["fueling_infr_types_list"]
+
+    geo_i_f_pairs = data_structures["geo_i_f_pairs"]
+    geo_i_f_l_pairs = data_structures["geo_i_f_l"]
+    pairs_to_use = isempty(fueling_infr_types_list) ? geo_i_f_pairs : geo_i_f_l_pairs
+
+    for geo_i_f in pairs_to_use
+        # Find matching detour item
+        match_idx = findfirst(item ->
+            item.reduction_id == geo_i_f[2] &&
+            item.location.id == geo_i_f[1] &&
+            (isempty(fueling_infr_types_list) || item.fueling_type.id == geo_i_f[4]),
+            detour_time_reduction_list
+        )
+        match_idx === nothing && continue
+        match = detour_time_reduction_list[match_idx]
+
+        lb = match.fueling_cap_lb * 1e-3 + 1e-4  # kW to MW with safety offset
+        ub = match.fueling_cap_ub * 1e-3
+        fuel = match.fuel
+        f_l = isempty(fueling_infr_types_list) ? fuel.id : (fuel.id, match.fueling_type.id)
+
+        for y in investment_years
+            # Get initial installed kW
+            installed_kW = begin
+                idx = findfirst(i ->
+                    i.fuel.id == (isempty(fueling_infr_types_list) ? f_l : f_l[1]) &&
+                    (isempty(fueling_infr_types_list) || i.type.id == f_l[2]) &&
+                    i.allocation == geo_i_f[1],
+                    initialfuelinginfr_list
+                )
+                idx !== nothing ? initialfuelinginfr_list[idx].installed_kW : 0.0
+            end
+
+            # Compute total kW added from relaxed solution
+            added_kW = sum(
+                begin
+                    val = try
+                        value(relaxed_model[q_fuel_infr_plus_sym][y0, f_l, geo_i_f[1]])
+                    catch
+                        NaN
+                    end
+                    isnan(val) ? 0.0 : val
+                end for y0 in y_init:investment_period:y
+            )
+
+            total_MW = (installed_kW + added_kW) / 1000
+
+            # Only set x_c to 1 if we're clearly inside the feasible bounds
+            x_c_val = (total_MW >= lb + ε && total_MW <= ub - ε) ? 1 : 0
+
+            try
+                set_start_value(model[x_c_sym][y, geo_i_f], x_c_val)
+                println("Set start value for $x_c_sym[$y, $geo_i_f] = $x_c_val (total = $(round(total_MW, digits=5)) MW)")
+            catch err
+                @warn "Couldn't set start value for x_c[$y, $geo_i_f]: $err"
+            end
+        end
+    end
+end
+

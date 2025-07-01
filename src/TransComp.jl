@@ -5,7 +5,7 @@ This module contains the main functions and structures for the TransComp package
 """
 
 module TransComp
-using YAML, JuMP, Gurobi, Printf
+using YAML, JuMP, Gurobi, Printf, ProgressMeter
 # export data types
 
 include("structs.jl")
@@ -74,6 +74,7 @@ export constraint_emissions_by_mode
 export constraint_detour_time_capacity_reduction
 export constraint_lin_z_nalpha
 export constraint_detour_time
+export constraint_detour_time_2
 export constraint_def_n_fueling
 export constraint_sum_x
 export constraint_constant_fueling_since_yinit
@@ -82,8 +83,14 @@ export constraint_fueling_cap_constant
 export constraint_fueling_demand_to_origin
 export constraint_maximum_fueling_infrastructure
 export constraint_maximum_fueling_infrastructure_by_year
+export constraint_fueling_infrastructure_expansion_shift
 export constraint_trip_ratio
+export constraint_q_fuel_fossil
 export constraint_vot_dt
+export constraint_policy_goal
+export constraint_slow_fast_expansion
+export constraint_q_fuel_abs
+export constraint_n_fueling_upper_bound
 export objective
 
 # exporting supporting functions
@@ -103,5 +110,8 @@ export create_emission_price_along_path
 export disagreggate
 export save_results
 export find_large_rhs
+export apply_start_values_from_model
+export apply_start_values_fast_skip_progress
+export set_binary_start_x_c_from_relaxed!
 
 end
