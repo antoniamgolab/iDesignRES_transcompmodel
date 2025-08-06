@@ -8,7 +8,7 @@ include(joinpath(@__DIR__, "../../src/TransComp.jl"))
 using .TransComp
 
 script_dir = @__DIR__   # Directory of the current script
-yaml_file_path = normpath(joinpath(@__DIR__, "data/transport_data_v1_ONENODE_distributed_cut_demand.yaml"))
+yaml_file_path = normpath(joinpath(@__DIR__, "data/transport_data_v1_ONENODE_balanced_cut_demand.yaml.yaml"))
 println("Constructed file path: $yaml_file_path")
 
 using Dates
@@ -29,13 +29,13 @@ model, data_structures = create_model(data_structures, case)
 # -------- constraints --------
 # constraint_q_fuel_fossil(model, data_structures) # this makes the model infeasible
 # @info "Constraint for fossil fuel created successfully"
-
+# constraint_to_fast_charging(model, data_structures)
 constraint_fueling_infrastructure_expansion_shift(model, data_structures)
 @info "Constraint for fueling infrastructure expansion and shift created successfully"
 constraint_q_fuel_abs(model, data_structures)
 
 constraint_slow_fast_expansion(model, data_structures)
-@info "Constraint for slow and fast expansion created successfully"
+# @info "Constraint for slow and fast expansion created successfully"
 
 constraint_trip_ratio(model, data_structures)
 @info "Constraint for trip ratio created successfully"
@@ -89,7 +89,7 @@ constraint_market_share(model, data_structures)
 if data_structures["detour_time_reduction_list"] != []
 
     constraint_detour_time(model, data_structures)
-    constraint_n_fueling_upper_bound(model, data_structures)
+    # constraint_n_fueling_upper_bound(model, data_structures)
     # constraint_detour_time_capacity_reduction(model, data_structures)
 
     constraint_def_n_fueling(model, data_structures)
@@ -115,20 +115,20 @@ set_optimizer_attribute(model, "Presolve", 2)
 # set_optimizer_attribute(model, "Crossover", 0)
 set_optimizer_attribute(model, "MIPFocus", 1) 
 set_optimizer_attribute(model, "Cuts", 3) 
-set_optimizer_attribute(model, "MIPGap", 0.0002)
+set_optimizer_attribute(model, "MIPGap", 0.002)
 set_optimizer_attribute(model, "NumericFocus", 1)
-set_optimizer_attribute(model, "NoRelHeurWork", 5000)
-set_optimizer_attribute(model, "NoRelHeurTime", 3600 * 5)
+set_optimizer_attribute(model, "NoRelHeurWork", 8000)
+# set_optimizer_attribute(model, "NoRelHeurTime", 3600 * 1)
 
 set_optimizer_attribute(model, "Heuristics", 1)
 set_optimizer_attribute(model, "PreSparsify", 0)
 set_optimizer_attribute(model, "FeasibilityTol", 1e-4) # or 1e-4
-set_optimizer_attribute(model, "Threads", 12)
+set_optimizer_attribute(model, "Threads", 11)
 set_optimizer_attribute(model, "NodefileStart", 50) # 0.5 GB node file size
 set_optimizer_attribute(model, "TimeLimit", 3600 * 30) # 1 hour time limit
 set_optimizer_attribute(model, "PreSOS1BigM", 0)
 set_optimizer_attribute(model, "ScaleFlag", 2)
-set_optimizer_attribute(model, "ImproveStartGap", 0.1)    # Only after <10% gap
+#set_optimizer_attribute(model, "ImproveStartGap", 0.1)    # Only after <10% gap
 
 println("Solution .... ")
 optimize!(model)

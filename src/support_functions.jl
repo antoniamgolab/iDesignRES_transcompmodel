@@ -1199,7 +1199,6 @@ end
 	save_results(model::Model, case_name::String)
 
 Saves the results of the optimization model to YAML files.
-
 # Arguments
 - model::Model: JuMP model
 - case_name::String: name of the case
@@ -1234,71 +1233,88 @@ function save_results(
         geo_i_f = data_structures["geo_i_f_pairs"]
     end
 
-    # Writing the solved decision variables to YAML
-    solved_data = Dict()
-    solved_data["h"] = value.(model[:h])
-    solved_data["h_plus"] = value.(model[:h_plus])
-    solved_data["h_minus"] = value.(model[:h_minus])
-    solved_data["h_exist"] = value.(model[:h_exist])
-    solved_data["f"] = value.(model[:f])
-    solved_data["budget_penalty_plus"] = value.(model[:budget_penalty_plus])
-    solved_data["budget_penalty_minus"] = value.(model[:budget_penalty_minus])
-    solved_data["s"] = value.(model[:s])
-    solved_data["q_fuel_infr_plus"] = value.(model[:q_fuel_infr_plus])
-    solved_data["q_mode_infr_plus"] = value.(model[:q_fuel_infr_plus])
-
     f_dict = Dict()
     for y ∈ y_init:Y_end, (p, r, k) ∈ p_r_k_pairs, mv ∈ m_tv_pairs, g ∈ g_init:y
-        f_dict[(y, (p, r, k), mv, g)] = value(model[:f][y, (p, r, k), mv, g])
+        if haskey(object_dictionary(model), :f)
+            val = value(model[:f][y, (p, r, k), mv, g])
+            if !isnan(val)
+                f_dict[(y, (p, r, k), mv, g)] = val
+            end
+        end
     end
     
     if data_structures["fueling_infr_types_list"] != []
         f_l_pairs = data_structures["f_l_pairs"]
         s_dict = Dict()
         for y ∈ y_init:Y_end, (p, r, k, g) ∈ p_r_k_g_pairs, tv_id ∈ tech_vehicle_ids, f_l in f_l_pairs, gen ∈ g_init:y
-            s_dict[(y, (p, r, k, g), tv_id, f_l, gen)] = value(model[:s][y, (p, r, k, g), tv_id, f_l, gen])
+            if haskey(object_dictionary(model), :s)
+                val = value(model[:s][y, (p, r, k, g), tv_id, f_l, gen])
+                if !isnan(val)
+                    s_dict[(y, (p, r, k, g), tv_id, f_l, gen)] = val
+                end
+            end
         end
     else
         s_dict = Dict()
         for y ∈ y_init:Y_end, (p, r, k, g) ∈ p_r_k_g_pairs, tv_id ∈ tech_vehicle_ids, gen ∈ g_init:y
-            val = value(model[:s][y, (p, r, k, g), tv_id, gen])
-            if round(val, digits=6) != 0.0
-                s_dict[(y, (p, r, k, g), tv_id, gen)] = val
+            if haskey(object_dictionary(model), :s)
+                val = value(model[:s][y, (p, r, k, g), tv_id, gen])
+                if !isnan(val) && round(val, digits=6) != 0.0
+                    s_dict[(y, (p, r, k, g), tv_id, gen)] = val
+                end
             end
         end
     end
-    # Dictionary for 'h' variable
 
     h_dict = Dict()
     for y ∈ y_init:Y_end, r ∈ odpairs, tv ∈ techvehicles, g ∈ g_init:y
-        h_dict[(y, r.id, tv.id, g)] = value(model[:h][y, r.id, tv.id, g])
+        if haskey(object_dictionary(model), :h)
+            val = value(model[:h][y, r.id, tv.id, g])
+            if !isnan(val)
+                h_dict[(y, r.id, tv.id, g)] = val
+            end
+        end
     end
 
-    # Dictionary for 'h_exist' variable
     h_exist_dict = Dict()
     for y ∈ y_init:Y_end, r ∈ odpairs, tv ∈ techvehicles, g ∈ g_init:y
-        h_exist_dict[(y, r.id, tv.id, g)] = value(model[:h_exist][y, r.id, tv.id, g])
+        if haskey(object_dictionary(model), :h_exist)
+            val = value(model[:h_exist][y, r.id, tv.id, g])
+            if !isnan(val)
+                h_exist_dict[(y, r.id, tv.id, g)] = val
+            end
+        end
     end
 
-    # Dictionary for 'h_plus' variable
     h_plus_dict = Dict()
     for y ∈ y_init:Y_end, r ∈ odpairs, tv ∈ techvehicles, g ∈ g_init:y
-        h_plus_dict[(y, r.id, tv.id, g)] = value(model[:h_plus][y, r.id, tv.id, g])
+        if haskey(object_dictionary(model), :h_plus)
+            val = value(model[:h_plus][y, r.id, tv.id, g])
+            if !isnan(val)
+                h_plus_dict[(y, r.id, tv.id, g)] = val
+            end
+        end
     end
 
-    # Dictionary for 'h_minus' variable
     h_minus_dict = Dict()
     for y ∈ y_init:Y_end, r ∈ odpairs, tv ∈ techvehicles, g ∈ g_init:y
-        h_minus_dict[(y, r.id, tv.id, g)] = value(model[:h_minus][y, r.id, tv.id, g])
+        if haskey(object_dictionary(model), :h_minus)
+            val = value(model[:h_minus][y, r.id, tv.id, g])
+            if !isnan(val)
+                h_minus_dict[(y, r.id, tv.id, g)] = val
+            end
+        end
     end
 
-    # Dictionary for 'q_fuel_infr_plus_e' variable
     q_mode_infr_plus_dict = Dict()
     for y ∈ y_init:investment_period:Y_end, m ∈ mode_list, geo ∈ geographic_element_list
-        q_mode_infr_plus_dict[(y, m.id, geo.id)] =
-            value(model[:q_mode_infr_plus][y, m.id, geo.id])
+        if haskey(object_dictionary(model), :q_mode_infr_plus)
+            val = value(model[:q_mode_infr_plus][y, m.id, geo.id])
+            if !isnan(val)
+                q_mode_infr_plus_dict[(y, m.id, geo.id)] = val
+            end
+        end
     end
-
 
     if data_structures["fueling_infr_types_list"] != []
 
@@ -1307,64 +1323,99 @@ function save_results(
         
         f_l_by_route = data_structures["f_l_by_route"]
         for y ∈ y_init:investment_period:Y_end, f_l ∈ f_l_not_by_route, geo ∈ geographic_element_list
-            q_fuel_infr_plus_dict[(y, f_l, geo.id)] =
-                value(model[:q_fuel_infr_plus][y, f_l, geo.id])
+            if haskey(object_dictionary(model), :q_fuel_infr_plus)
+                val = value(model[:q_fuel_infr_plus][y, f_l, geo.id])
+                if !isnan(val)
+                    q_fuel_infr_plus_dict[(y, f_l, geo.id)] = val
+                end
+            end
         end
         q_fuel_infr_plus_by_route_dict = Dict()
         if length(f_l_by_route) > 0
             for y ∈ y_init:investment_period:Y_end, r in odpairs, f_l ∈ f_l_by_route, geo ∈ geographic_element_list
-                q_fuel_infr_plus_by_route_dict[(y, r.id, f_l, geo.id)] =
-                    value(model[:q_fuel_infr_plus_by_route][y, r.id, f_l, geo.id])
+                if haskey(object_dictionary(model), :q_fuel_infr_plus_by_route)
+                    val = value(model[:q_fuel_infr_plus_by_route][y, r.id, f_l, geo.id])
+                    if !isnan(val)
+                        q_fuel_infr_plus_by_route_dict[(y, r.id, f_l, geo.id)] = val
+                    end
+                end
             end
         end
         q_fuel_infr_plus_diff_dict = Dict()
         f_l_for_dt = data_structures["f_l_for_dt"]
 
         for y ∈ y_init:investment_period:Y_end, f_l ∈ f_l_for_dt, geo ∈ geographic_element_list
-            q_fuel_infr_plus_diff_dict[(y, f_l, geo.id)] =
-                value(model[:q_fuel_infr_plus_diff][y, f_l, geo.id])
+            if haskey(object_dictionary(model), :q_fuel_infr_plus_diff)
+                val = value(model[:q_fuel_infr_plus_diff][y, f_l, geo.id])
+                if !isnan(val)
+                    q_fuel_infr_plus_diff_dict[(y, f_l, geo.id)] = val
+                end
+            end
         end
 
     else 
         q_supply_infr_plus_dict = Dict()
         for y ∈ y_init:investment_period:Y_end, st ∈ data_structures["supplytype_list"], geo ∈ geographic_element_list
-            q_supply_infr_plus_dict[(y, st.id, geo.id)] =
-                value(model[:q_supply_infr_plus][y, st.id, geo.id])
+            if haskey(object_dictionary(model), :q_supply_infr_plus)
+                val = value(model[:q_supply_infr_plus][y, st.id, geo.id])
+                if !isnan(val)
+                    q_supply_infr_plus_dict[(y, st.id, geo.id)] = val
+                end
+            end
         end
 
         q_fuel_infr_plus_dict = Dict()
         for y ∈ y_init:investment_period:Y_end, f ∈ fuel_list, geo ∈ geographic_element_list
-            q_fuel_infr_plus_dict[(y, f.id, geo.id)] =
-                value(model[:q_fuel_infr_plus][y, f.id, geo.id])
+            if haskey(object_dictionary(model), :q_fuel_infr_plus)
+                val = value(model[:q_fuel_infr_plus][y, f.id, geo.id])
+                if !isnan(val)
+                    q_fuel_infr_plus_dict[(y, f.id, geo.id)] = val
+                end
+            end
         end 
     end
 
-
-    # Dictionary for 'budget_penalty' variable
     budget_penalty_plus_dict = Dict()
     for y ∈ y_init:Y_end, r ∈ odpairs
-        budget_penalty_plus_dict[(y, r.id)] = value(model[:budget_penalty_plus][y, r.id])
+        if haskey(object_dictionary(model), :budget_penalty_plus)
+            val = value(model[:budget_penalty_plus][y, r.id])
+            if !isnan(val)
+                budget_penalty_plus_dict[(y, r.id)] = val
+            end
+        end
     end
 
-    # Dictionary for 'budget_penalty' variable
     budget_penalty_minus_dict = Dict()
     for y ∈ y_init:Y_end, r ∈ odpairs
-        budget_penalty_minus_dict[(y, r.id)] = value(model[:budget_penalty_minus][y, r.id])
+        if haskey(object_dictionary(model), :budget_penalty_minus)
+            val = value(model[:budget_penalty_minus][y, r.id])
+            if !isnan(val)
+                budget_penalty_minus_dict[(y, r.id)] = val
+            end
+        end
     end
 
     budget_penalty_plus_yearly_dict = Dict()
     for y ∈ y_init:Y_end, r ∈ odpairs
-        budget_penalty_plus_yearly_dict[(y, r.id)] = value(model[:budget_penalty_yearly_plus][y, r.id])
+        if haskey(object_dictionary(model), :budget_penalty_yearly_plus)
+            val = value(model[:budget_penalty_yearly_plus][y, r.id])
+            if !isnan(val)
+                budget_penalty_plus_yearly_dict[(y, r.id)] = val
+            end
+        end
     end
 
     budget_penalty_minus_yearly_dict = Dict()
     for y ∈ y_init:Y_end, r ∈ odpairs
-        budget_penalty_minus_yearly_dict[(y, r.id)] = value(model[:budget_penalty_yearly_minus][y, r.id])
+        if haskey(object_dictionary(model), :budget_penalty_yearly_minus)
+            val = value(model[:budget_penalty_yearly_minus][y, r.id])
+            if !isnan(val)
+                budget_penalty_minus_yearly_dict[(y, r.id)] = val
+            end
+        end
     end
 
-
     @info "Saving results..."
-    # Convert the keys of each dictionary to strings
     f_dict_str = stringify_keys(f_dict)
     h_dict_str = stringify_keys(h_dict)
     h_exist_dict_str = stringify_keys(h_exist_dict)
@@ -1381,8 +1432,6 @@ function save_results(
     budget_penalty_minus_yearly_dict_str = stringify_keys(budget_penalty_minus_yearly_dict)
 
     if data_structures["detour_time_reduction_list"] != []
-        # Dictionary for 'detour_times' variable
-
         if data_structures["fueling_infr_types_list"] == []
             n_fueling_dict = Dict()
             for y ∈ y_init:Y_end, (p, r, k, g) ∈ p_r_k_g_pairs, f ∈ fuel_list, gen ∈ g_init:y
@@ -1390,7 +1439,6 @@ function save_results(
                 if round(val, digits=6) != 0.0
                     n_fueling_dict[(y, (p, r, k, g), f.id, gen)] = val
                 end
-                
             end
 
             detour_time_dict = Dict()
@@ -1406,7 +1454,6 @@ function save_results(
             end
             x_c_dict_str = stringify_keys(x_c_dict)
             
-
             z_str = Dict()
             for y ∈ y_init:Y_end, (p, r, k, g) ∈ p_r_k_g_pairs, geo ∈ geo_i_f
                 z_str[(y, geo, (p, r, k, g))] = value(model[:z][y, geo, (p, r, k, g)])
@@ -1441,7 +1488,6 @@ function save_results(
             end
             z_str = Dict()
             for y ∈ y_init:Y_end, (p, r, k, g) ∈ p_r_k_g_pairs, geo ∈ geo_i_f_l_pairs
-                
                 z_str[(y, geo, (p, r, k, g))] = value(model[:z][y, geo, (p, r, k, g)])
             end
             z_str = stringify_keys(z_str)

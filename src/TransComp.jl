@@ -91,6 +91,7 @@ export constraint_policy_goal
 export constraint_slow_fast_expansion
 export constraint_q_fuel_abs
 export constraint_n_fueling_upper_bound
+export constraint_to_fast_charging
 export objective
 
 # exporting supporting functions

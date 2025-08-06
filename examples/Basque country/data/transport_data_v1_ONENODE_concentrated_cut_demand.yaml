@@ -1,148 +1,52 @@
 DetourTimeReduction:
-- detour_time_reduction: 0.05
+- detour_time_reduction: 0.39
   fuel: electricity
   fueling_cap_lb: 0
-  fueling_cap_ub: 30000
+  fueling_cap_ub: 40000
   fueling_type: public_fast
   id: 0
   location: ES21
   reduction_id: 0
-- detour_time_reduction: 0.05
+- detour_time_reduction: 0.8
   fuel: electricity
-  fueling_cap_lb: 30000
-  fueling_cap_ub: 40000
+  fueling_cap_lb: 40000
+  fueling_cap_ub: 80000
   fueling_type: public_fast
   id: 1
   location: ES21
   reduction_id: 1
-- detour_time_reduction: 0.19
-  fuel: electricity
-  fueling_cap_lb: 40000
-  fueling_cap_ub: 60000
-  fueling_type: public_fast
-  id: 2
-  location: ES21
-  reduction_id: 2
-- detour_time_reduction: 0.32
-  fuel: electricity
-  fueling_cap_lb: 60000
-  fueling_cap_ub: 80000
-  fueling_type: public_fast
-  id: 3
-  location: ES21
-  reduction_id: 3
-- detour_time_reduction: 0.4
+- detour_time_reduction: 0.85
   fuel: electricity
   fueling_cap_lb: 80000
   fueling_cap_ub: 100000
   fueling_type: public_fast
-  id: 4
+  id: 2
   location: ES21
-  reduction_id: 4
-- detour_time_reduction: 0.46
+  reduction_id: 2
+- detour_time_reduction: 0.87
   fuel: electricity
   fueling_cap_lb: 100000
-  fueling_cap_ub: 120000
-  fueling_type: public_fast
-  id: 5
-  location: ES21
-  reduction_id: 5
-- detour_time_reduction: 0.51
-  fuel: electricity
-  fueling_cap_lb: 120000
-  fueling_cap_ub: 140000
-  fueling_type: public_fast
-  id: 6
-  location: ES21
-  reduction_id: 6
-- detour_time_reduction: 0.54
-  fuel: electricity
-  fueling_cap_lb: 140000
-  fueling_cap_ub: 1600000
-  fueling_type: public_fast
-  id: 7
-  location: ES21
-  reduction_id: 7
-- detour_time_reduction: 0.9
-  fuel: electricity
-  fueling_cap_lb: 1600000
   fueling_cap_ub: 500000000
   fueling_type: public_fast
-  id: 8
+  id: 3
   location: ES21
-  reduction_id: 8
-- detour_time_reduction: 0.06
+  reduction_id: 3
+- detour_time_reduction: 0.36
   fuel: electricity
   fueling_cap_lb: 0
   fueling_cap_ub: 40000
   fueling_type: public_slow
-  id: 9
+  id: 4
   location: ES21
   reduction_id: 0
-- detour_time_reduction: 0.06
+- detour_time_reduction: 0.76
   fuel: electricity
   fueling_cap_lb: 40000
-  fueling_cap_ub: 60000
-  fueling_type: public_slow
-  id: 10
-  location: ES21
-  reduction_id: 1
-- detour_time_reduction: 0.06
-  fuel: electricity
-  fueling_cap_lb: 40000
-  fueling_cap_ub: 60000
-  fueling_type: public_slow
-  id: 11
-  location: ES21
-  reduction_id: 2
-- detour_time_reduction: 0.18
-  fuel: electricity
-  fueling_cap_lb: 60000
-  fueling_cap_ub: 80000
-  fueling_type: public_slow
-  id: 12
-  location: ES21
-  reduction_id: 3
-- detour_time_reduction: 0.28
-  fuel: electricity
-  fueling_cap_lb: 80000
-  fueling_cap_ub: 10000
-  fueling_type: public_slow
-  id: 13
-  location: ES21
-  reduction_id: 4
-- detour_time_reduction: 0.35
-  fuel: electricity
-  fueling_cap_lb: 100000
-  fueling_cap_ub: 120000
-  fueling_type: public_slow
-  id: 14
-  location: ES21
-  reduction_id: 5
-- detour_time_reduction: 0.4
-  fuel: electricity
-  fueling_cap_lb: 120000
-  fueling_cap_ub: 140000
-  fueling_type: public_slow
-  id: 15
-  location: ES21
-  reduction_id: 6
-- detour_time_reduction: 0.44
-  fuel: electricity
-  fueling_cap_lb: 140000
-  fueling_cap_ub: 1600000
-  fueling_type: public_slow
-  id: 16
-  location: ES21
-  reduction_id: 7
-- detour_time_reduction: 0.8
-  fuel: electricity
-  fueling_cap_lb: 1600000
   fueling_cap_ub: 500000000
   fueling_type: public_slow
-  id: 17
+  id: 5
   location: ES21
-  reduction_id: 8
+  reduction_id: 1
 Edge:
 - from: ES130
   id: 0
@@ -131137,20 +131041,20 @@ MaximumFuelingCapacityByType:
   location: ES21
   maximum_fueling_capacity: 90923.06000000001
   type: home
-- by_income_class: false
+- by_income_class: true
   fuel: electricity
   id: 5
-  income_class: First quintile
+  income_class: Commercial
   location: ES21
-  maximum_fueling_capacity: 1372270.113753878
-  type: work
-- by_income_class: true
+  maximum_fueling_capacity: 90923.06000000001
+  type: home
+- by_income_class: false
   fuel: electricity
   id: 6
   income_class: Commercial
   location: ES21
-  maximum_fueling_capacity: 90923.06
-  type: home
+  maximum_fueling_capacity: 1372270.113753878
+  type: work
 Mode:
 - costs_per_ukm:
   - 999
