@@ -619,6 +619,18 @@ version = "1.21.3"
     [deps.TimeZones.weakdeps]
     RecipesBase = "3cdcf5f2-1ef4-517c-9805-6587b60abb01"
 
+# Documentation dependencies (template)
+[[deps.Documenter]]
+uuid = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+
+[[deps.DocumenterInterLinks]]
+uuid = "b4b8a2f3-6a4a-4c7b-8e2a-2e6e2e6e2e6e"
+
+[[deps.TransComp]]
+uuid = "3fb1ea32-fe1d-487b-b926-6db75a8950b6"
+path = ".."
+version = "0.0.0"
+
 [[deps.TransComp]]
 deps = ["Coverage", "JuMP", "Printf", "Statistics", "YAML"]
 path = ".."
