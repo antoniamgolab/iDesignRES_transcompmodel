@@ -3,7 +3,6 @@ This file contains the functions that are used in the model but are not directly
 
 """
 
-# include("structs.jl")
 using YAML, JuMP, Printf
 
 """

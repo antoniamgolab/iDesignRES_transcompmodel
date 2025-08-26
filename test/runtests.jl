@@ -54,3 +54,6 @@ using YAML
     end
 
 end
+    @testset "Checks functions" begin
+        include("test_checks.jl")
+    end

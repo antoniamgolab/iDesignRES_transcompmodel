@@ -5,73 +5,26 @@ This module contains the main functions and structures for the TransComp package
 """
 
 module TransComp
-using YAML, JuMP, Printf
-# export data types
 
+using YAML, JuMP, Printf
+
+# Include all source files
 include("structs.jl")
 include("model_functions.jl")
 include("support_functions.jl")
-export Node
-export Edge
-export GeographicElement
-export Mode
-export Product
-export Path
-export Fuel
-export Technology
-export Vehicletype
-export TechVehicle
-export InitialVehicleStock
-export InitialFuelingInfr
-export InitialModeInfr
-export FinancialStatus
-export Regiontype
-export Odpair
-export Speed
-export MarketShares
-export ModeShares
-export ModeSharemaxbyyear
-export ModeShareminbyyear
-export EmissionLimitbymode
-export EmissionLimitbyyear
-export VehicleSubsidy
-export SupplyType
-export InitialSupplyInfr
+include("checks.jl")
 
-# exporting model functions
-export base_define_variables
-export constraint_demand_coverage
-export constraint_vehicle_sizing
-export constraint_vehicle_aging
-export constraint_monetary_budget
-export constraint_fueling_infrastructure
-export constraint_mode_infrastructure
-export constraint_fueling_demand
-export constraint_vehicle_stock_shift
-export constraint_mode_shift
-export constraint_mode_share
-export constraint_max_mode_share
-export constraint_min_mode_share
-export constraint_market_share
-export constraint_emissions_by_mode
-export constraint_supply_infrastructure
-export objective
+# Export types (from structs.jl)
+export Node, Edge, GeographicElement, Mode, Product, Path, Fuel, Technology, Vehicletype, TechVehicle, InitialVehicleStock, InitialFuelingInfr, InitialModeInfr, FinancialStatus, Regiontype, Odpair, Speed, MarketShares, ModeShares, ModeSharemaxbyyear, ModeShareminbyyear, EmissionLimitbymode, EmissionLimitbyyear, VehicleSubsidy, SupplyType, InitialSupplyInfr
 
-# exporting supporting functions
-export get_input_data
-export parse_data
-export create_m_tv_pairs
-export create_tv_id_set
-export create_v_t_set
-export create_p_r_k_set
-export create_p_r_k_e_set
-export create_p_r_k_g_set
-export create_p_r_k_n_set
-export create_r_k_set
-export create_model
-export depreciation_factor
-export create_emission_price_along_path
-export disagreggate
-export save_results
+# Export model functions (from model_functions.jl)
+export base_define_variables, constraint_demand_coverage, constraint_vehicle_sizing, constraint_vehicle_aging, constraint_monetary_budget, constraint_fueling_infrastructure, constraint_mode_infrastructure, constraint_fueling_demand, constraint_vehicle_stock_shift, constraint_mode_shift, constraint_mode_share, constraint_max_mode_share, constraint_min_mode_share, constraint_market_share, constraint_emissions_by_mode, constraint_supply_infrastructure, objective
+
+# Export supporting functions (from support_functions.jl)
+export get_input_data, parse_data, create_m_tv_pairs, create_tv_id_set, create_v_t_set, create_p_r_k_set, create_p_r_k_e_set, create_p_r_k_g_set, create_p_r_k_n_set, create_r_k_set, create_model, depreciation_factor, create_emission_price_along_path, disagreggate, save_results
+
+# Export checks (from checks.jl)
+export check_input_file, check_required_keys, check_model_parametrization, check_required_sub_keys, check_folder_writable, check_dimensions_of_input_parameters, check_validity_of_model_parametrization, check_uniquness_of_ids
+# Add more exports from checks.jl as needed
 
 end
