@@ -30,7 +30,9 @@ Check if the required keys are present in the input data.
 """
 function check_required_keys(data_dict::Dict, required_keys::Vector{String})
     for key ∈ required_keys
-        @assert haskey(data_dict, key) "The key $key is missing in the input file."
+        if !haskey(data_dict, key)
+            throw(ErrorException("The key $key is missing in the input file."))
+        end
     end
 end
 

@@ -8,12 +8,14 @@ end
 
 @testset "check_required_keys" begin
     d = Dict("a" => 1)
-    @test_throws AssertionError check_required_keys(d, ["a", "b"])
+    
+    # This must match the exception type thrown in your function
+    @test_throws ErrorException check_required_keys(d, ["a", "b"])
 end
 
 @testset "check_required_sub_keys" begin
     d = Dict("parent" => [Dict("a" => 1)])
-    @test_throws AssertionError check_required_sub_keys(d, ["b"], "parent")
+    @test_throws ErrorException check_required_sub_keys(d, ["b"], "parent")
 end
 
 @testset "check_folder_writable" begin
