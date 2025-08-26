@@ -1,5 +1,5 @@
 using Test
-using ..Checks
+using ..TransComp
 
 @testset "check_input_file" begin
     @test_throws ErrorException check_input_file("nonexistent.yaml")
