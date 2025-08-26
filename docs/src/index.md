@@ -21,4 +21,4 @@ Pages = [
 ```
 
 ## Examples of application
-- [Basque Country](examples/basque-case.md)
+- [`Basque Country`](@ref examples/basque-case)
