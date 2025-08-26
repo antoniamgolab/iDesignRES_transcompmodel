@@ -8,12 +8,17 @@ The *Transcomp* model is aimed at modeling developments in subsectors of the tra
 
 
 ## Manual outline
-- [Quick Start](manual/quick-start.md)
-- [How to use](manual/how-to-use.md)
-- [Preparation of input data](manual/input_data.md) 
-- [Output data](manual/output_data.md)
-- [Mathematical model](manual/math_formulation.md)
-- [Types and functions](manual/types_and_functions.md) 
+
+```@contents
+Pages = [
+	"manual/quick-start.md",
+	"manual/how-to-use.md",
+	"manual/input_data.md",
+	"manual/output_data.md",
+	"manual/math_formulation.md",
+	"manual/types_and_functions.md"
+]
+```
 
 ## Examples of application
-- [Basque Country](examples/basque-case.md) 
+- [Basque Country](examples/basque-case.md)
