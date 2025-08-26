@@ -30,7 +30,9 @@ Check if the required keys are present in the input data.
 """
 function check_required_keys(data_dict::Dict, required_keys::Vector{String})
     for key ∈ required_keys
-        @assert haskey(data_dict, key) "The key $key is missing in the input file."
+        if !haskey(data_dict, key)
+            throw(ErrorException("The key $key is missing in the input file."))
+        end
     end
 end
 
@@ -147,8 +149,17 @@ function check_correct_formats_GeographicElement(data_structures::Dict, years)
         d = data_structures["GeographicElement"][ij]
 
         # checking for the variable types
+        if !haskey(d, "id")
+            throw(ErrorException("The key 'id' in 'GeographicElement' is missing. Error at element $i."))
+        end
         @assert isa(d["id"], Int) "The key 'id' in 'GeographicElement' must be an integer value. Error at $(d["id"])."
+        if !haskey(d, "type")
+            throw(ErrorException("The key 'type' in 'GeographicElement' is missing. Error at $(d["id"])."))
+        end
         @assert isa(d["type"], String) "The key 'type' in 'GeographicElement' must be a string value. Error at $(d["id"])."
+        if !haskey(d, "name")
+            throw(ErrorException("The key 'name' in 'GeographicElement' is missing. Error at $(d["id"])."))
+        end
         @assert isa(d["name"], String) "The key 'name' in 'GeographicElement' must be a string value. Error at $(d["id"])."
         @assert (
             isa(d["carbon_price"], Array{Float64,1}) ||
@@ -175,7 +186,13 @@ function check_correct_formats_FinancialStatus(data_structures::Dict)
         fs = data_structures["FinancialStatus"][ij]
 
         # checking for the variable types
+        if !haskey(fs, "id")
+            throw(ErrorException("The key 'id' in 'FinancialStatus' is missing. Error at element $i."))
+        end
         @assert isa(fs["id"], Int) "The key 'id' in 'FinancialStatus' must be an integer value. Error at $(fs["id"])."
+        if !haskey(fs, "name")
+            throw(ErrorException("The key 'name' in 'FinancialStatus' is missing. Error at $(fs["id"])."))
+        end
         @assert isa(fs["name"], String) "The key 'name' in 'FinancialStatus' must be a string value. Error at $(fs["id"])."
         @assert (isa(fs["VoT"], Float64) || isa(fs["VoT"], Int)) "The key 'VoT' in 'FinancialStatus' must be a float or int value. Error at $(fs["id"])."
         @assert (
@@ -231,7 +248,13 @@ function check_correct_format_Mode(data_structures::Dict, years)
     for ij ∈ 1:length(data_structures["Mode"])
         m = data_structures["Mode"][ij]
 
+        if !haskey(m, "id")
+            throw(ErrorException("The key 'id' in 'Mode' is missing. Error at element $i."))
+        end
         @assert isa(m["id"], Int) "The key 'id' in 'Mode' must be an integer value. Error at $(m["id"])."
+        if !haskey(m, "name")
+            throw(ErrorException("The key 'name' in 'Mode' is missing. Error at $(m["id"])."))
+        end
         @assert isa(m["name"], String) "The key 'name' in 'Mode' must be a string value. Error at $(m["id"])."
         @assert isa(m["quantify_by_vehs"], Bool) "The key 'quantify_by_vehs' in 'Mode' must be a boolean value. Error at $(m["id"])."
         @assert (
@@ -276,7 +299,13 @@ function check_correct_format_Product(data_structures::Dict)
     for ij ∈ 1:length(data_structures["Product"])
         p = data_structures["Product"][ij]
 
+        if !haskey(p, "id")
+            throw(ErrorException("The key 'id' in 'Product' is missing. Error at element $i."))
+        end
         @assert isa(p["id"], Int) "The key 'id' in 'Product' must be an integer value. Error at $(p["id"])."
+        if !haskey(p, "name")
+            throw(ErrorException("The key 'name' in 'Product' is missing. Error at $(p["id"])."))
+        end
         @assert isa(p["name"], String) "The key 'name' in 'Product' must be a string value. Error at $(p["id"])."
     end
 end
@@ -293,7 +322,13 @@ function check_correct_format_Path(data_structures::Dict)
     for ij ∈ 1:length(data_structures["Path"])
         p = data_structures["Path"][ij]
 
+        if !haskey(p, "id")
+            throw(ErrorException("The key 'id' in 'Path' is missing. Error at element $i."))
+        end
         @assert isa(p["id"], Int) "The key 'id' in 'Path' must be an integer value. Error at $(p["id"])."
+        if !haskey(p, "name")
+            throw(ErrorException("The key 'name' in 'Path' is missing. Error at $(p["id"])."))
+        end
         @assert isa(p["name"], String) "The key 'name' in 'Path' must be a string value. Error at $(p["id"])."
         @assert (isa(p["length"], Float64) || isa(p["length"], Int)) "The key 'length' in 'Path' must be a float or integer value. Error at $(p["id"])."
         @assert isa(p["sequence"], Array{Int,1}) "The key 'sequence' in 'Path' must be an array of integer values. Error at $(p["id"])."
@@ -371,9 +406,21 @@ function check_correct_format_Vehicletype(data_structures::Dict)
     for ij ∈ 1:length(data_structures["Vehicletype"])
         vt = data_structures["Vehicletype"][ij]
 
+        if !haskey(vt, "id")
+            throw(ErrorException("The key 'id' in 'Vehicletype' is missing. Error at element $ij."))
+        end
         @assert isa(vt["id"], Int) "The key 'id' in 'VehicleType' must be an integer value. Error at $(vt["id"])."
+        if !haskey(vt, "name")
+            throw(ErrorException("The key 'name' in 'Vehicletype' is missing. Error at $(vt["id"])."))
+        end
         @assert isa(vt["name"], String) "The key 'name' in 'VehicleType' must be a string value. Error at $(vt["id"])."
+        if !haskey(vt, "mode")
+            throw(ErrorException("The key 'mode' in 'Vehicletype' is missing. Error at $(vt["id"])."))
+        end
         @assert isa(vt["mode"], Int) "The key 'mode' in 'VehicleType' must be an integer value. Error at $(vt["id"])."
+        if !haskey(vt, "product")
+            throw(ErrorException("The key 'product' in 'Vehicletype' is missing. Error at $(vt["id"])."))
+        end
         @assert isa(vt["product"], String) "The key 'product' in 'VehicleType' must be a string value. Error at $(vt["id"])."
     end
 end
@@ -393,7 +440,13 @@ function check_correct_format_Regiontype(data_structures::Dict, years::Int)
     for ij ∈ 1:length(data_structures["Regiontype"])
         rt = data_structures["Regiontype"][ij]
 
+        if !haskey(rt, "id")
+            throw(ErrorException("The key 'id' in 'Regiontype' is missing. Error at element $ij."))
+        end
         @assert isa(rt["id"], Int) "The key 'id' in 'Regiontype' must be an integer value. Error at $(rt["id"])."
+        if !haskey(rt, "name")
+            throw(ErrorException("The key 'name' in 'Regiontype' is missing. Error at $(rt["id"])."))
+        end
         @assert isa(rt["name"], String) "The key 'name' in 'Regiontype' must be a string value. Error at $(rt["id"])."
         @assert (
             isa(rt["costs_var"], Array{Float64,1}) || isa(rt["costs_var"], Array{Int,1})
