@@ -352,14 +352,12 @@ function constraint_vehicle_aging(model::JuMP.Model, data_structures::Dict)
         )
 
         @constraint(model, model[:h_plus][y, r.id, tv.id, g] == 0)
-        # @constraint(model, model[:h_minus][y, r.id, tv.id, g] == 0)
     end
 
     # case 2.1 : g < y && g > y
     valid_subset_case2 = filter(t -> t[2] < t[1], all_indices)
     for (y, g, r, tv) ∈ valid_subset_case2
         @constraint(model, model[:h_plus][y, r.id, tv.id, g] == 0)
-        # @constraint(model, model[:h_minus][y, r.id, tv.id, g] == 0)
     end
 
     # case 3: g == y && y - g <= Lifetime && y == y_init ( -> g == y_init)

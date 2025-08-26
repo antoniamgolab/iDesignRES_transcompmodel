@@ -41,7 +41,7 @@ end
 end
 
 @testset "check_correct_formats_GeographicElement" begin
-    d = Dict("GeographicElement" => [Dict("id" => "notint", "type" => "t", "name" => "n", "carbon_price" => [1.0], "length" => 1.0)])
+    d = Dict("GeographicElement" => [Dict("id" => "notint", "type" => "t", "name" => "n", "carbon_price" => [1.0, 1.0], "length" => 1.0)])
     @test_throws ErrorException check_correct_formats_GeographicElement(d, 1)
 end
 
@@ -51,7 +51,7 @@ end
 end
 
 @testset "check_correct_format_Mode" begin
-    d = Dict("Mode" => [Dict("id" => "notint", "name" => "n", "quantify_by_vehs" => true, "costs_per_ukm" => [1.0], "emission_factor" => [1.0], "infrastructure_expansion_costs" => [1.0], "infrastructure_om_costs" => [1.0], "waiting_time" => [1.0])])
+    d = Dict("Mode" => [Dict("id" => "notint", "name" => "n", "quantify_by_vehs" => true, "costs_per_ukm" => [1.0, 1.0], "emission_factor" => [1.0, 1.0], "infrastructure_expansion_costs" => [1.0, 1.0], "infrastructure_om_costs" => [1.0, 1.0], "waiting_time" => [1.0, 1.0])])
     @test_throws ErrorException check_correct_format_Mode(d, 1)
 end
 
@@ -66,7 +66,7 @@ end
 end
 
 @testset "check_correct_format_Fuel" begin
-    d = Dict("Fuel" => [Dict("id" => "notint", "name" => "n", "cost_per_kWh" => [1.0], "cost_per_kW" => [1.0], "emission_factor" => [1.0], "fueling_infrastructure_om_costs" => [1.0])])
+    d = Dict("Fuel" => [Dict("id" => "notint", "name" => "n", "cost_per_kWh" => [1.0, 1.0], "cost_per_kW" => [1.0, 1.0], "emission_factor" => [1.0, 1.0], "fueling_infrastructure_om_costs" => [1.0, 1.0])])
     @test_throws ErrorException check_correct_format_Fuel(d, 1)
 end
 
@@ -81,7 +81,7 @@ end
 end
 
 @testset "check_correct_format_Regiontype" begin
-    d = Dict("Regiontype" => [Dict("id" => "notint", "name" => "n", "costs_var" => [1.0], "costs_fix" => [1.0])])
+    d = Dict("Regiontype" => [Dict("id" => "notint", "name" => "n", "costs_var" => [1.0, 1.0], "costs_fix" => [1.0, 1.0])])
     @test_throws ErrorException check_correct_format_Regiontype(d, 1)
 end
 
@@ -111,6 +111,7 @@ end
 end
 
 @testset "check_correct_format_Speed" begin
+    # Provide all required keys, but make 'id' the wrong type to trigger the assertion
     d = Dict("Speed" => [Dict("id" => "notint", "region_type" => "rt", "vehicle_type" => "vt", "travel_speed" => 1.0)])
     @test_throws ErrorException check_correct_format_Speed(d)
 end
