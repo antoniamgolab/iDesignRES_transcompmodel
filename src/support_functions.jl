@@ -678,17 +678,18 @@ Creates a set of pairs of odpair and path IDs.
     # create_r_k_set is defined in internal_functions.jl and should not be redefined here
 
 """
-	create_model(model::JuMP.Model, data_structures::Dict)
+    create_model(data_structures, case_name::String, optimizer)
 
 Definition of JuMP.model and adding of variables.
 
 # Arguments
-- model::JuMP.Model: JuMP model
-- data_structures::Dict: dictionary with the input data and parsing of the input parameters
+- `data_structures`: dictionary with the input data and parsing of the input parameters
+- `case_name::String`: name of the case
+- `optimizer`: optimizer to use for the model
 
 # Returns
-- model::JuMP.Model: JuMP model with the variables added
-- data_structures::Dict: dictionary with the input data
+- `model::JuMP.Model`: JuMP model with the variables added
+- `data_structures::Dict`: dictionary with the input data
 """
 function create_model(data_structures, case_name::String, optimizer)
     model = Model(optimizer)
@@ -709,15 +710,16 @@ Calculating the carbon price along a given route based on the regions that the p
     # create_emission_price_along_path is defined in internal_functions.jl and should not be redefined here
 
 """
-	save_results(model::Model, case_name::String)
+    save_results(model::Model, case::String, data_structures::Dict, write_to_file::Bool = true, folder_for_results::String = "results")
 
 Saves the results of the optimization model to YAML files.
 
 # Arguments
-- model::Model: JuMP model
-- case_name::String: name of the case
-- file_for_results::String: name of the file to save the results
-- data_structures::Dict: dictionary with the input data
+- `model::Model`: JuMP model
+- `case::String`: name of the case
+- `data_structures::Dict`: dictionary with the input data
+- `write_to_file::Bool`: whether to write results to file (default: true)
+- `folder_for_results::String`: name of the folder to save the results (default: "results")
 """
 function save_results(
     model::Model,
@@ -967,16 +969,18 @@ end
 
 
 """
-    Function to disaggregate the total electricity load into hourly load profiles for a specific fuel type.
+    disagreggate(model::JuMP.Model, data_structures::Dict, fuel_id::Int=2, year::Int=2020)
 
-    # Arguments
-    - `model::JuMP.Model`: The optimization model.
-    - `data_structures::Dict`: The data structures.
-    - `fuel_id::Int`: The fuel ID.
-    - `year::Int`: The year.
+Function to disaggregate the total electricity load into hourly load profiles for a specific fuel type.
 
-    # Returns
-    - `yearly_load_dict::Dict`: Demand distribution among different vehicle types.
+# Arguments
+- `model::JuMP.Model`: The optimization model.
+- `data_structures::Dict`: The data structures.
+- `fuel_id::Int`: The fuel ID.
+- `year::Int`: The year.
+
+# Returns
+- `yearly_load_dict::Dict`: Demand distribution among different vehicle types.
 """
 
 function disagreggate(model::JuMP.Model, data_structures::Dict, fuel_id::Int=2, year::Int=2020)

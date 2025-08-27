@@ -1,5 +1,8 @@
 # Optimization functions
-@anchor(constraints_objective)
+
+```@meta
+CurrentModule = TransComp
+```
 
 This page documents all constraint and objective functions in the transport component model.
 

@@ -1,5 +1,4 @@
 # Input data
-@anchor(input_data)
 
 The input data is used in the format of [YAML](https://yaml.org/) and is structured by data types.
 These are the following:

@@ -30,7 +30,7 @@ export base_define_variables, constraint_demand_coverage, constraint_vehicle_siz
     run_mode_infrastructure_sizing
 
 # Export supporting functions (from support_functions.jl)
-export get_input_data, parse_data, create_model, depreciation_factor, create_emission_price_along_path, disagreggate, save_results
+export get_input_data, parse_data, create_model, disagreggate, save_results
 
 # Export checks (from checks.jl)
 export check_input_file, check_required_keys, check_model_parametrization, check_required_sub_keys, check_folder_writable, check_dimensions_of_input_parameters, check_validity_of_model_parametrization, check_uniquness_of_ids
