@@ -32,6 +32,7 @@ makedocs(;
         ]  # Entry point to the docs
         "Examples" => Any["Basque Country"=>"examples/basque-case.md",]  # Entry point to the docs
     ],
+    checkdocs = :exports,
     # theme = Documenter.Themes.Calcite()  # Use a custom theme
     # format = Documenter.Markdown()  # Output format
     # Optional: You can customize the theme and navigation options here
