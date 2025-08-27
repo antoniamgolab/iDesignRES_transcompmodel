@@ -1,5 +1,5 @@
 # Types and functions
-so ``` @id types_and_functions 
+@id types_and_functions 
 
 ## Support Functions
 
