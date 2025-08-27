@@ -1,5 +1,5 @@
 # Mathematical model
-```@id math_formulation
+@anchor math_formulation
 
 # Mathematical equation
 

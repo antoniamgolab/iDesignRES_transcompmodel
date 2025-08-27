@@ -1,5 +1,5 @@
 # Basque Country
-@id basque-case
+@anchor basque-case
 
 
 ## Case study description

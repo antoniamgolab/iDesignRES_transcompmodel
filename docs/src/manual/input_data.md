@@ -1,5 +1,5 @@
 # Input data
-```@id input_data
+@anchor input_data
 
 The input file is defined as one [YAML](https://yaml.org/).
 
