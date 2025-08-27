@@ -2,11 +2,10 @@
 """
 
     This file contains functions relating to the mathematical formulation of the model, i.e., the definition of constraints and the objective function, including also the definition of decision variables.
+"""
 
 """
 
-using YAML, JuMP
-"""
 	base_define_variables(model::Model, data_structures::Dict)
 
 Defines the variables for the model.
@@ -572,7 +571,15 @@ function constraint_fueling_infrastructure(model::JuMP.Model, data_structures::D
     )
 end
 
+"""
+    constraint_supply_infrastructure(model::JuMP.Model, data_structures::Dict)
 
+Constraints for sizing of supply infrastructure at nodes and edges.
+
+# Arguments
+- model::JuMP.Model: JuMP model
+- data_structures::Dict: dictionary with the input data
+"""
 function constraint_supply_infrastructure(model::JuMP.Model, data_structures::Dict)
     technologies = data_structures["technology_list"]
 

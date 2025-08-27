@@ -18,6 +18,9 @@ Pages = [
 	"manual/output_data.md",
 	"manual/math_formulation.md",
 	"manual/types_and_functions.md",
+	"manual/types.md",
+	"manual/constraints_and_objective.md",
+	"manual/internal_functions.md",
 	"examples/basque-case.md"
 ]
 ```

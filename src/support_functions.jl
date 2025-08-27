@@ -17,11 +17,10 @@ This function reads the input data and checks requirements for the content of th
 - data_dict::Dict: dictionary with the input data
 """
 function get_input_data(path_to_source_file::String) # TODO: change this in the Basque country case study 
-    check_input_file(path_to_source_file) # TODO: change this; then the test for this check 
-    # If path_to_source_file is a folder, load and merge all YAML files inside
+    check_input_file(path_to_source_file)
     if isdir(path_to_source_file)
         yaml_files = filter(f -> endswith(f, ".yaml"), readdir(path_to_source_file, join=true))
-        data_dict = Dict()
+        data_dict = Dict{Any,Any}()
         for file in yaml_files
             file_data = YAML.load_file(file)
             for (k, v) in file_data
@@ -619,84 +618,9 @@ function parse_data(data_dict::Dict)
 
     return data_structures
 end
-"""
-    generate_exact_length_subsets(start_year::Int, end_year::Int, delta_y::Int)
 
-Generates a list of subsets of years with a fixed length.
-
-# Arguments
-- `start_year::Int`: The first year.
-- `end_year::Int`: The last year.
-- `delta_y::Int`: The length of the subsets.
-"""
-function generate_exact_length_subsets(start_year::Int, end_year::Int, delta_y::Int)
-    all_years = start_year:end_year
-    subsets = []
-
-    for i ∈ 1:(length(all_years)-delta_y+1)
-        push!(subsets, collect(all_years[i:(i+delta_y-1)]))
-    end
-
-    return subsets
-end
-
-"""
-	create_m_tv_pairs(techvehicle_list::Vector{TechVehicle}, mode_list::Vector{Mode})
-
-Creates a set of pairs of mode and techvehicle IDs.
-
-# Arguments
-- techvehicle_list::Vector{TechVehicle}: list of techvehicles
-- mode_list::Vector{Mode}: list of modes
-
-# Returns
-- m_tv_pairs::Set: set of pairs of mode and techvehicle IDs
-
-"""
-function create_m_tv_pairs(techvehicle_list::Vector{TechVehicle}, mode_list::Vector{Mode})
-    m_tv_pairs = Set((tv.vehicle_type.mode.id, tv.id) for tv ∈ techvehicle_list)
-    techvehicle_ids = [tv.id for tv ∈ techvehicle_list]
-    global counter_additional_vehs = length(techvehicle_list)
-    for m ∈ mode_list
-        for v ∈ techvehicle_list
-            if v.vehicle_type.mode.id == m.id
-                push!(m_tv_pairs, (m.id, v.id))
-            end
-        end
-        if !m.quantify_by_vehs
-            push!(m_tv_pairs, (m.id, counter_additional_vehs + 1))
-            push!(techvehicle_ids, counter_additional_vehs + 1)
-            global counter_additional_vehs += 1
-        end
-    end
-    return m_tv_pairs
-end
-
-"""
-	create_tv_id_set(techvehicle_list::Vector{TechVehicle}, mode_list::Vector{Mode})
-
-Creates a list of techvehicle IDs.
-
-# Arguments
-- techvehicle_list::Vector{TechVehicle}: list of techvehicles
-- mode_list::Vector{Mode}: list of modes
-
-# Returns
-- techvehicle_ids_2::Set: set of techvehicle IDs
-"""
-function create_tv_id_set(techvehicle_list_2::Vector{TechVehicle}, mode_list::Vector{Mode})
-    m_tv_pairs = Set((tv.vehicle_type.mode.id, tv.id) for tv ∈ techvehicle_list_2)
-    techvehicle_ids_2 = Set([tv.id for tv ∈ techvehicle_list_2])
-    global counter_additional_vehs_2 = length(techvehicle_list_2)
-
-    for m ∈ mode_list
-        if !m.quantify_by_vehs
-            push!(techvehicle_ids_2, counter_additional_vehs_2 + 1)
-            global counter_additional_vehs_2 += 1
-        end
-    end
-    return techvehicle_ids_2
-end
+    # create_m_tv_pairs is defined in internal_functions.jl and should not be redefined here
+    # create_tv_id_set is defined in internal_functions.jl and should not be redefined here
 
 """
 	create_v_t_set(techvehicle_list::Vector{TechVehicle})
@@ -709,45 +633,10 @@ Creates a set of pairs of techvehicle IDs.
 # Returns
 - t_v_pairs::Set: set of pairs of techvehicle IDs
 """
-function create_v_t_set(techvehicle_list::Vector{TechVehicle})
-    t_v_pairs = Set((tv.id, tv.id) for tv ∈ techvehicle_list)
-    return t_v_pairs
-end
+    # create_v_t_set is defined in internal_functions.jl and should not be redefined here
 
-"""
-	create_p_r_k_set(odpairs::Vector{Odpair})
 
-Creates a set of pairs of product, odpair, and path IDs.
 
-# Arguments
-- odpairs::Vector{Odpair}: list of odpairs
-
-# Returns
-- p_r_k_pairs::Set: set of pairs of product, odpair, and path IDs
-"""
-function create_p_r_k_set(odpairs::Vector{Odpair})
-    p_r_k_pairs = Set((r.product.id, r.id, k.id) for r ∈ odpairs for k ∈ r.paths)
-    return p_r_k_pairs
-end
-
-"""
-	create_p_r_k_e_set(odpairs::Vector{Odpair})
-
-Creates a set of pairs of product, odpair, path, and element IDs.
-
-# Arguments
-- odpairs::Vector{Odpair}: list of odpairs
-
-# Returns
-- p_r_k_e_pairs::Set: set of pairs of product, odpair, path, and element IDs
-"""
-function create_p_r_k_e_set(odpairs::Vector{Odpair})
-    p_r_k_e_pairs = Set(
-        (r.product.id, r.id, k.id, el) for r ∈ odpairs for k ∈ r.paths for
-        el ∈ k.sequence if el.type == "edge"
-    )
-    return p_r_k_e_pairs
-end
 
 """
 	create_p_r_k_g_set(odpairs::Vector{Odpair})
@@ -760,13 +649,7 @@ Creates a set of pairs of product, odpair, path, and element IDs.
 # Returns
 - p_r_k_g_pairs::Set: set of pairs of product, odpair, path, and element IDs
 """
-function create_p_r_k_g_set(odpairs::Vector{Odpair})
-    p_r_k_g_pairs = Set(
-        (r.product.id, r.id, k.id, el.id) for r ∈ odpairs for k ∈ r.paths for
-        el ∈ k.sequence
-    )
-    return p_r_k_g_pairs
-end
+    # create_p_r_k_g_set is defined in internal_functions.jl and should not be redefined here
 
 """
 	create_p_r_k_n_set(odpairs::Vector{Odpair})
@@ -779,13 +662,7 @@ Creates a set of pairs of product, odpair, path, and element IDs.
 # Returns
 - p_r_k_n_pairs::Set: set of pairs of product, odpair, path, and element IDs
 """
-function create_p_r_k_n_set(odpairs::Vector{Odpair})
-    p_r_k_n_pairs = Set(
-        (r.product.id, r.id, k.id, el) for r ∈ odpairs for k ∈ r.paths for
-        el ∈ k.sequence if el.type == "node"
-    )
-    return p_r_k_n_pairs
-end
+    # create_p_r_k_n_set is defined in internal_functions.jl and should not be redefined here
 
 """
 	create_r_k_set(odpairs::Vector{Odpair})
@@ -798,10 +675,7 @@ Creates a set of pairs of odpair and path IDs.
 # Returns
 - r_k_pairs::Set: set of pairs of odpair and path IDs
 """
-function create_r_k_set(odpairs::Vector{Odpair})
-    r_k_pairs = Set((r.id, k.id) for r ∈ odpairs for k ∈ r.paths)
-    return r_k_pairs
-end
+    # create_r_k_set is defined in internal_functions.jl and should not be redefined here
 
 """
 	create_model(model::JuMP.Model, data_structures::Dict)
@@ -832,23 +706,7 @@ Calculating the carbon price along a given route based on the regions that the p
 - k::Path: path
 - data_structures::Dict: dictionary with the input data 
 """
-function create_emission_price_along_path(k::Path, y::Int64, data_structures::Dict)
-    n = length(k.sequence)
-    geographic_element_list = data_structures["geographic_element_list"]
-    global total_carbon_price = 0.0
-    for el ∈ k.sequence
-        current_carbon_price =
-            geographic_element_list[findfirst(
-                e -> e.id == el.id,
-                geographic_element_list,
-            )].carbon_price
-        # println(current_carbon_price, total_carbon_price)
-        global total_carbon_price = total_carbon_price + current_carbon_price[y]
-    end
-    average_carbon_price = total_carbon_price / n
-    # println(average_carbon_price)
-    return average_carbon_price
-end
+    # create_emission_price_along_path is defined in internal_functions.jl and should not be redefined here
 
 """
 	save_results(model::Model, case_name::String)
@@ -962,11 +820,7 @@ function save_results(
         budget_penalty_minus_dict[(y, r.id)] = value(model[:budget_penalty_minus][y, r.id])
     end
 
-    function stringify_keys(dict::Dict)
-        return Dict(
-            string(k) => (v isa Float64 ? @sprintf("%.6f", v) : string(v)) for (k, v) ∈ dict
-        )
-    end
+    # stringify_keys is defined in internal_functions.jl and should not be redefined here
 
     @info "Saving results..."
     # Convert the keys of each dictionary to strings

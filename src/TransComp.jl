@@ -11,6 +11,7 @@ using YAML, JuMP, Printf
 # Include all source files
 include("structs.jl")
 include("model_functions.jl")
+include("internal_functions.jl")
 include("support_functions.jl")
 include("checks.jl")
 
@@ -29,7 +30,7 @@ export base_define_variables, constraint_demand_coverage, constraint_vehicle_siz
     run_mode_infrastructure_sizing
 
 # Export supporting functions (from support_functions.jl)
-export get_input_data, parse_data, create_m_tv_pairs, create_tv_id_set, create_v_t_set, create_p_r_k_set, create_p_r_k_e_set, create_p_r_k_g_set, create_p_r_k_n_set, create_r_k_set, create_model, depreciation_factor, create_emission_price_along_path, disagreggate, save_results
+export get_input_data, parse_data, create_model, depreciation_factor, create_emission_price_along_path, disagreggate, save_results
 
 # Export checks (from checks.jl)
 export check_input_file, check_required_keys, check_model_parametrization, check_required_sub_keys, check_folder_writable, check_dimensions_of_input_parameters, check_validity_of_model_parametrization, check_uniquness_of_ids

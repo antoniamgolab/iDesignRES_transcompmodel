@@ -21,7 +21,6 @@ struct GeographicElement
     to::Any
     length::Float64
 end
-
 """
     Mode
 
@@ -42,17 +41,17 @@ struct Mode
     name::String
     quantify_by_vehs::Bool
     cost_per_ukm::Array{Float64,1}
-    emission_factor::Array{Float64,1} # gCO2/ukm
+    emission_factor::Array{Float64,1}
     infrastructure_expansion_costs::Array{Float64,1}
     infrastructure_om_costs::Array{Float64,1}
-    waiting_time::Array{Float64,1} # waiting time in h
+    waiting_time::Array{Float64,1}
 end
 
 """
     Product
 
 A 'Product' represents either a good or a service that is being transported. This may include passengers, or different types of products in the freight transport.
-The differentiation of transported products related to the different needs for transportation and, therefore, different possible sets of transport modes, vehicle types and drivetrain technologies are available for transport.
+The differentiation of transported products relates to the different needs for transportation and, therefore, different possible sets of transport modes, vehicle types and drivetrain technologies available for transport.
 
 # Fields
 - `id::Int`: unique identifier of the product
@@ -72,8 +71,7 @@ A 'Path' represents a possible route between two nodes. This sequence includes t
 - `id::Int`: unique identifier of the path
 - `name::String`: name of the path
 - `length::Float64`: length of the path in km
-- `sequence`: sequence of nodes and edges that are passed through
-
+- `sequence::Array{GeographicElement,1}`: sequence of graph items (nodes/edges) in the path
 """
 struct Path
     id::Int
@@ -307,6 +305,20 @@ A 'DetourTimeReductions' represents the detour time reductions that can be achie
 
 """
 
+"""
+    DetourTimeReduction
+
+A 'DetourTimeReduction' describes a reduction in detour time at a fueling station.
+
+# Fields
+- `id::Int`: unique identifier of the detour time reduction
+- `fuel::Fuel`: fuel type of the fueling station
+- `location::GeographicElement`: location of the fueling station
+- `reduction_id::Int`: unique identifier of the detour time reduction
+- `detour_time_reduction::Float64`: detour time reduction in h
+- `fueling_cap_lb::Float64`: lower bound of fueling capacity
+- `fueling_cap_ub::Float64`: upper bound of fueling capacity
+"""
 struct DetourTimeReduction
     id::Int
     fuel::Fuel
@@ -404,6 +416,17 @@ Speed indicates the average travel speed that is given by a certain region and v
 - `travel_speed::Float64`: travel speed in km/h
 """
 
+"""
+    Speed
+
+Speed indicates the average travel speed that is given by a certain region and vehicle type.
+
+# Fields
+- `id::Int`: unique identifier of the speed
+- `region_type::Regiontype`: region in which the speed is valid
+- `vehicle_type::Vehicletype`: vehicle type for which the speed is valid
+- `travel_speed::Float64`: travel speed in km/h
+"""
 struct Speed
     id::Int
     region_type::Regiontype
@@ -424,6 +447,18 @@ A 'MarketShares' describes the market share of a vehicle type with a specific dr
 - `region_type::Array{Regiontype,1}`: array of region types that are affected by this TechVehicle share constraint
 """
 
+"""
+    MarketShares
+
+A 'MarketShares' describes the market share of a vehicle type with a specific drivetrain technology in a specific year.
+
+# Fields
+- `id::Int`: unique identifier of the market share
+- `type::TechVehicle`: vehicle type and technology
+- `share::Float64`: market share of the vehicle type (in %)
+- `year::Int`: year of the expected market share
+- `region_type::Array{Regiontype,1}`: array of region types that are affected by this TechVehicle share constraint
+"""
 struct MarketShares
     id::Int
     type::TechVehicle
@@ -445,6 +480,18 @@ A 'ModeShares' describes the mode share of a transport mode in a specific year.
 - `region_type::Array{Regiontype,1}`: array of region types that are affected by this TechVehicle share constraint
 """
 
+"""
+    ModeShares
+
+A 'ModeShares' describes the mode share of a transport mode in a specific year.
+
+# Fields
+- `id::Int`: unique identifier of the mode share
+- `mode::Mode`: mode of transport
+- `share::Float64`: share of the mode
+- `year::Int`: year of the mode share
+- `region_type::Array{Regiontype,1}`: array of region types that are affected by this TechVehicle share constraint
+"""
 struct ModeShares
     id::Int
     mode::Mode
@@ -590,5 +637,8 @@ global struct_names_extended = [
     "DetourReductionFactor",
 ]
 
+
 global default_data =
     Dict("alpha_f" => 0.1, "beta_f" => 0.1, "alpha_h" => 0.1, "beta_h" => 0.1)
+
+

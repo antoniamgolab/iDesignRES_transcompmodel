@@ -1,3 +1,5 @@
+using ..TransComp: create_p_r_k_set, create_m_tv_pairs
+
 function generate_data_case_tech_shift()
     Y = 5
     y_init = 2020
