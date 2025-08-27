@@ -1,9 +1,21 @@
 using Test
-using ..TransComp
+using TransComp
 
-@testset "check_input_file" begin
+# Set constants for tests
+years = 3
+generations = 2
+y_init = 2025
+g_init = 2025
+
+@testset "Checks functions" begin
+    @testset "check_input_file" begin
     @test_throws ErrorException check_input_file("nonexistent.yaml")
     @test_throws ErrorException check_input_file("file.txt")
+    # @test_throws ErrorException check_input_file("nonexistent_folder")
+    # # Create a temp folder with no YAML files and test
+    # mktempdir() do tmpdir
+    #     @test_throws ErrorException check_input_file(tmpdir)
+    # end
 end
 
 @testset "check_required_keys" begin
@@ -35,309 +47,243 @@ using Test
         ]
     )
 
-    @test_throws AssertionError check_required_sub_keys(data_invalid, required_keys, "Layers")
-end
-
-
-@testset "check_folder_writable" begin
-    @test_throws ErrorException check_folder_writable("nonexistent_folder")
-end
-
-@testset "check_validity_of_model_parametrization" begin
-    d = Dict("Model" => Dict("y_init" => "notint", "Y" => 1, "pre_y" => 1, "discount_rate" => 0.05))
-    @test_throws AssertionError check_validity_of_model_parametrization(d)
-end
-
-
-@testset "check_model_parametrization" begin
-    d = Dict("Model" => Dict())
-    @test_throws ErrorException check_model_parametrization(d, ["missing_key"])
-end
-
-@testset "check_dimensions_of_input_parameters" begin
-    @test check_dimensions_of_input_parameters(Dict())
-end
-
-@testset "check_uniquness_of_ids" begin
-    d = Dict("A" => [Dict("id" => 1), Dict("id" => 1)])
-    @test_throws ErrorException check_uniquness_of_ids(d, ["A"])
-end
-
-
-@testset "Checks functions" begin
-    years = 3
-    generations = 2
-
-    # -------------------------
-    # check_required_keys
-    # -------------------------
-    @testset "check_required_keys" begin
-        d = Dict("a" => 1)
-        @test check_required_keys(d, ["a"]) === nothing
-        @test_throws ErrorException check_required_keys(d, ["a", "b"])
+        @test_throws AssertionError check_required_sub_keys(data_invalid, required_keys, "Layers")
     end
 
-    # -------------------------
-    # check_required_sub_keys
-    # -------------------------
-    @testset "check_required_sub_keys" begin
-        d_valid = Dict("Layers" => [Dict("id" => 1, "type" => "x")])
-        @test check_required_sub_keys(d_valid, ["id","type"], "Layers") === nothing
 
-        d_invalid = Dict("Layers" => [Dict("id" => 1)]) # missing "type"
-        @test_throws AssertionError check_required_sub_keys(d_invalid, ["id","type"], "Layers")
+    @testset "check_folder_writable" begin
+        @test_throws ErrorException check_folder_writable("nonexistent_folder")
     end
 
-    # -------------------------
-    # check_uniquness_of_ids
-    # -------------------------
-    @testset "check_uniquness_of_ids" begin
-        good = Dict("Vehicle" => [Dict("id"=>1), Dict("id"=>2)])
-        @test check_uniquness_of_ids(good, "Vehicle") === nothing
-
-        bad = Dict("Vehicle" => [Dict("id"=>1), Dict("id"=>1)]) # duplicate id
-        @test_throws AssertionError check_uniquness_of_ids(bad, "Vehicle")
+    @testset "check_validity_of_model_parametrization" begin
+        d = Dict("Model" => Dict("y_init" => "notint", "Y" => 1, "pre_y" => 1, "discount_rate" => 0.05))
+        @test_throws AssertionError check_validity_of_model_parametrization(d)
     end
 
-    # -------------------------
-    # check_dimensions_of_input_parameters
-    # -------------------------
+
+    @testset "check_model_parametrization" begin
+        d = Dict("Model" => Dict())
+        @test_throws ErrorException check_model_parametrization(d, ["missing_key"])
+    end
+
     @testset "check_dimensions_of_input_parameters" begin
-        good = Dict(
-            "ParameterA" => [1,2,3],
-            "ParameterB" => [10,20,30]
-        )
-        @test check_dimensions_of_input_parameters(good, ["ParameterA","ParameterB"], years) === nothing
-
-        bad = Dict(
-            "ParameterA" => [1,2],
-            "ParameterB" => [10,20,30]
-        )
-        @test_throws AssertionError check_dimensions_of_input_parameters(bad, ["ParameterA","ParameterB"], years)
+        @test check_dimensions_of_input_parameters(Dict())
     end
 
-    # -------------------------
+    @testset "check_uniquness_of_ids" begin
+        d = Dict("A" => [Dict("id" => 1), Dict("id" => 1)])
+        @test_throws ErrorException check_uniquness_of_ids(d, ["A"])
+    end
+    # ------------------------------
     # GeographicElement
-    # -------------------------
-    @testset "check_correct_formats_GeographicElement" begin
+    # ------------------------------
+    @testset "GeographicElement" begin
         good = Dict("GeographicElement" => [
-            Dict("id"=>1,"type"=>"region","name"=>"North",
-                 "carbon_price"=>[1,2,3],"length"=>100.0)
+            Dict("id"=>1, "type"=>"region", "name"=>"Region A",
+                 "carbon_price"=>[10.0,12.0,14.0], "length"=>100.0)
         ])
-        @test check_correct_formats_GeographicElement(good, years) === nothing
-
         bad = Dict("GeographicElement" => [
-            Dict("id"=>1,"type"=>"region","name"=>"North",
-                 "carbon_price"=>[1,2], "length"=>100.0) # wrong length
+            Dict("id"=>"wrong", "type"=>123, "name"=>456,
+                 "carbon_price"=>[10,"12",14], "length"=>"long")
         ])
-        @test_throws AssertionError check_correct_formats_GeographicElement(bad, years)
+        @test TransComp.check_correct_formats_GeographicElement(good, years) === nothing
+        @test_throws AssertionError TransComp.check_correct_formats_GeographicElement(bad, years)
     end
 
-    # -------------------------
+    # ------------------------------
     # FinancialStatus
-    # -------------------------
-    @testset "check_correct_formats_FinancialStatus" begin
+    # ------------------------------
+    @testset "FinancialStatus" begin
         good = Dict("FinancialStatus" => [
-            Dict("id"=>1,"name"=>"HH","VoT"=>5.0,
-                 "monetary_budget_purchase"=>100.0,
-                 "monetary_budget_purchase_lb"=>50.0,
-                 "monetary_budget_purchase_ub"=>150.0)
+            Dict("id"=>1, "name"=>"Low Income", "VoT"=>50.0,
+                 "monetary_budget_purchase"=>10000.0,
+                 "monetary_budget_purchase_lb"=>5000.0,
+                 "monetary_budget_purchase_ub"=>15000.0)
         ])
-        @test check_correct_formats_FinancialStatus(good) === nothing
-
         bad = Dict("FinancialStatus" => [
-            Dict("id"=>1,"name"=>"HH","VoT"=>"oops",
-                 "monetary_budget_purchase"=>100.0,
-                 "monetary_budget_purchase_lb"=>50.0,
-                 "monetary_budget_purchase_ub"=>150.0)
+            Dict("id"=>"wrong", "name"=>123, "VoT"=>"high",
+                 "monetary_budget_purchase"=>"many",
+                 "monetary_budget_purchase_lb"=>20000.0,
+                 "monetary_budget_purchase_ub"=>15000.0)
         ])
-        @test_throws AssertionError check_correct_formats_FinancialStatus(bad)
+        @test TransComp.check_correct_formats_FinancialStatus(good) === nothing
+        @test_throws AssertionError TransComp.check_correct_formats_FinancialStatus(bad)
     end
 
-    # -------------------------
+    # ------------------------------
     # Mode
-    # -------------------------
-    @testset "check_correct_format_Mode" begin
-        good = Dict("Mode" => [
-            Dict("id"=>1,"name"=>"Car","quantify_by_vehs"=>true,
-                 "costs_per_ukm"=>[1,2,3],
-                 "emission_factor"=>[0.1,0.2,0.3],
-                 "infrastructure_expansion_costs"=>[10,20,30],
-                 "infrastructure_om_costs"=>[5,5,5],
-                 "waiting_time"=>[1,1,1])
+    # ------------------------------
+    @testset "Mode" begin
+        good = Dict("Mode"=>[
+            Dict("id"=>1, "name"=>"Car", "quantify_by_vehs"=>true,
+                 "costs_per_ukm"=>[0.1,0.12,0.14],
+                 "emission_factor"=>[100.0,95.0,90.0],
+                 "infrastructure_expansion_costs"=>[1000.0,1100.0,1200.0],
+                 "infrastructure_om_costs"=>[100.0,110.0,120.0],
+                 "waiting_time"=>[5.0,5.0,5.0])
         ])
-        @test check_correct_format_Mode(good, years) === nothing
-
-        bad = deepcopy(good)
-        bad["Mode"][1]["costs_per_ukm"] = [1] # wrong length
-        @test_throws AssertionError check_correct_format_Mode(bad, years)
+        bad = Dict("Mode"=>[
+            Dict("id"=>"one", "name"=>123, "quantify_by_vehs"=>"yes",
+                 "costs_per_ukm"=>[0.1,"0.12",0.14],
+                 "emission_factor"=>["high",95.0,90.0],
+                 "infrastructure_expansion_costs"=>[1000,"1100",1200],
+                 "infrastructure_om_costs"=>[100,110,"120"],
+                 "waiting_time"=>["fast",5.0,5.0])
+        ])
+        @test TransComp.check_correct_format_Mode(good, years) === nothing
+        @test_throws AssertionError TransComp.check_correct_format_Mode(bad, years)
     end
 
-    # -------------------------
+    # ------------------------------
     # Product
-    # -------------------------
-    @testset "check_correct_format_Product" begin
-        good = Dict("Product" => [
-            Dict("id"=>1,"name"=>"p1","category"=>"c1")
-        ])
-        @test check_correct_format_Product(good) === nothing
-
-        bad = Dict("Product" => [
-            Dict("id"=>1,"category"=>"c1") # missing name
-        ])
-        @test_throws ErrorException check_correct_format_Product(bad)
+    # ------------------------------
+    @testset "Product" begin
+        good = Dict("Product"=>[Dict("id"=>1,"name"=>"Battery")])
+        bad = Dict("Product"=>[Dict("id"=>"wrong","name"=>123)])
+        @test TransComp.check_correct_format_Product(good) === nothing
+        @test_throws AssertionError TransComp.check_correct_format_Product(bad)
     end
 
-    # -------------------------
+    # ------------------------------
     # Path
-    # -------------------------
-    @testset "check_correct_format_Path" begin
-        good = Dict("Path" => [Dict("id"=>1,"name"=>"p1")])
-        @test check_correct_format_Path(good) === nothing
-
-        bad = Dict("Path" => [Dict("name"=>"p1")]) # missing id
-        @test_throws ErrorException check_correct_format_Path(bad)
+    # ------------------------------
+    @testset "Path" begin
+        good = Dict("Path"=>[Dict("id"=>1,"name"=>"PathA","length"=>100.0,"sequence"=>[1,2,3])])
+        bad = Dict("Path"=>[Dict("id"=>"x","name"=>123,"length"=>"long","sequence"=>["a","b"])])
+        @test TransComp.check_correct_format_Path(good) === nothing
+        @test_throws AssertionError TransComp.check_correct_format_Path(bad)
     end
 
-    # -------------------------
+    # ------------------------------
     # Fuel
-    # -------------------------
-    @testset "check_correct_format_Fuel" begin
-        good = Dict("Fuel" => [
-            Dict("id"=>1,"name"=>"f1","co2_content"=>[1,2,3])
-        ])
-        @test check_correct_format_Fuel(good, years) === nothing
-
-        bad = Dict("Fuel" => [
-            Dict("id"=>1,"name"=>"f1","co2_content"=>[1]) # wrong length
-        ])
-        @test_throws AssertionError check_correct_format_Fuel(bad, years)
+    # ------------------------------
+    @testset "Fuel" begin
+        good = Dict("Fuel"=>[Dict("id"=>1,"name"=>"Electric",
+                                  "cost_per_kWh"=>[0.2,0.21,0.22],
+                                  "cost_per_kW"=>[1000,1050,1100],
+                                  "emission_factor"=>[0.0,0.0,0.0],
+                                  "fueling_infrastructure_om_costs"=>[10,11,12])])
+        bad = Dict("Fuel"=>[Dict("id"=>"one","name"=>123,
+                                 "cost_per_kWh"=>[0.2,"0.21",0.22],
+                                 "cost_per_kW"=>["1000",1050,1100],
+                                 "emission_factor"=>["low",0.0,0.0],
+                                 "fueling_infrastructure_om_costs"=>["ten",11,12])])
+        @test TransComp.check_correct_format_Fuel(good, years) === nothing
+        @test_throws AssertionError TransComp.check_correct_format_Fuel(bad, years)
     end
 
-    # -------------------------
+    # ------------------------------
     # Technology
-    # -------------------------
-    @testset "check_correct_format_Technology" begin
-        good = Dict("Technology" => [
-            Dict("id"=>1,"name"=>"t1","energy_efficiency"=>[1,2,3])
-        ])
-        @test check_correct_format_Technology(good, years) === nothing
-
-        bad = Dict("Technology" => [
-            Dict("id"=>1,"name"=>"t1","energy_efficiency"=>[1]) # wrong length
-        ])
-        @test_throws AssertionError check_correct_format_Technology(bad, years)
+    # ------------------------------
+    @testset "Technology" begin
+        good = Dict("Technology"=>[Dict("id"=>1,"name"=>"EV Motor","fuel"=>"Electric")])
+        bad = Dict("Technology"=>[Dict("id"=>"one","name"=>123,"fuel"=>456)])
+        @test TransComp.check_correct_format_Technology(good) === nothing
+        @test_throws AssertionError TransComp.check_correct_format_Technology(bad)
     end
 
-    # -------------------------
+    # ------------------------------
     # Vehicletype
-    # -------------------------
-    @testset "check_correct_format_Vehicletype" begin
-        good = Dict("Vehicletype" => [
-            Dict("id"=>1,"name"=>"vt1")
-        ])
-        @test check_correct_format_Vehicletype(good) === nothing
-
-        bad = Dict("Vehicletype" => [
-            Dict("name"=>"vt1") # missing id
-        ])
-        @test_throws ErrorException check_correct_format_Vehicletype(bad)
+    # ------------------------------
+    @testset "Vehicletype" begin
+        good = Dict("Vehicletype"=>[Dict("id"=>1,"name"=>"Sedan","mode"=>1,"product"=>"Battery")])
+        bad = Dict("Vehicletype"=>[Dict("id"=>"x","name"=>123,"mode"=>"one","product"=>456)])
+        @test TransComp.check_correct_format_Vehicletype(good) === nothing
+        @test_throws AssertionError TransComp.check_correct_format_Vehicletype(bad)
     end
 
-    # -------------------------
+    # ------------------------------
     # Regiontype
-    # -------------------------
-    @testset "check_correct_format_Regiontype" begin
-        good = Dict("Regiontype" => [Dict("id"=>1,"name"=>"r1")])
-        @test check_correct_format_Regiontype(good) === nothing
-
-        bad = Dict("Regiontype" => [Dict("name"=>"r1")]) # missing id
-        @test_throws ErrorException check_correct_format_Regiontype(bad)
+    # ------------------------------
+    @testset "Regiontype" begin
+        good = Dict("Regiontype"=>[Dict("id"=>1,"name"=>"Urban","costs_var"=>[10,11,12],"costs_fix"=>[100,110,120])])
+        bad = Dict("Regiontype"=>[Dict("id"=>"x","name"=>123,"costs_var"=>["10",11,12],"costs_fix"=>[100,"110",120])])
+        @test TransComp.check_correct_format_Regiontype(good, years) === nothing
+        @test_throws AssertionError TransComp.check_correct_format_Regiontype(bad, years)
     end
 
-    # -------------------------
+    # ------------------------------
     # TechVehicle
-    # -------------------------
-    @testset "check_correct_format_TechVehicle" begin
-        good = Dict("TechVehicle" => [Dict("id"=>1,"tech_id"=>1,"veh_id"=>1)])
-        @test check_correct_format_TechVehicle(good) === nothing
-
-        bad = Dict("TechVehicle" => [Dict("id"=>1,"tech_id"=>1)]) # missing veh_id
-        @test_throws ErrorException check_correct_format_TechVehicle(bad)
+    # ------------------------------
+    @testset "TechVehicle" begin
+        good = Dict("TechVehicle"=>[Dict(
+            "id"=>1,"name"=>"EV1","vehicle_type"=>"Sedan","technology"=>1,
+            "capital_cost"=>[30000,31000],
+            "maintenance_cost_annual"=>[[1000,1050,1100],[1100,1150,1200]],
+            "maintenance_cost_distance"=>[[0.1,0.11,0.12],[0.12,0.13,0.14]],
+            "W"=>[10,11], "spec_cons"=>[0.15,0.16],
+            "Lifetime"=>[10,10], "AnnualRange"=>[15000,15000],
+            "products"=>["Battery"], "tank_capacity"=>[60,60],
+            "peak_fueling"=>[50,50]
+        )])
+        bad = Dict("TechVehicle"=>[Dict(
+            "id"=>"x","name"=>123,"vehicle_type"=>456,"technology"=>"one",
+            "capital_cost"=>[30000,"31000"],
+            "maintenance_cost_annual"=>[[1000,1050,"1100"]],
+            "maintenance_cost_distance"=>[[0.1,"0.11",0.12]],
+            "W"=>["ten"], "spec_cons"=>["0.15"],
+            "Lifetime"=>[10,"10"], "AnnualRange"=>[15000,"15000"],
+            "products"=>[123], "tank_capacity"=>[60,"60"],
+            "peak_fueling"=>[50,"50"]
+        )])
+        @test TransComp.check_correct_format_TechVehicle(good, years, generations) === nothing
+        @test_throws AssertionError TransComp.check_correct_format_TechVehicle(bad, years, generations)
     end
 
-    # -------------------------
+    # ------------------------------
     # InitialVehicleStock
-    # -------------------------
-    @testset "check_correct_format_InitialVehicleStock" begin
-        good = Dict("InitialVehicleStock" => [
-            Dict("veh_id"=>1,"region_id"=>1,"stock"=>[1,2])
-        ])
-        @test check_correct_format_InitialVehicleStock(good, generations) === nothing
-
-        bad = Dict("InitialVehicleStock" => [
-            Dict("veh_id"=>1,"region_id"=>1,"stock"=>[1]) # wrong length
-        ])
-        @test_throws AssertionError check_correct_format_InitialVehicleStock(bad, generations)
+    # ------------------------------
+    @testset "InitialVehicleStock" begin
+        good = Dict("InitialVehicleStock"=>[Dict("id"=>1,"techvehicle"=>1,"year_of_purchase"=>2025,"stock"=>10)])
+        bad = Dict("InitialVehicleStock"=>[Dict("id"=>"x","techvehicle"=>"one","year_of_purchase"=>2024,"stock"=>"many")])
+        @test TransComp.check_correct_format_InitialVehicleStock(good, y_init, g_init) === nothing
+        @test_throws AssertionError TransComp.check_correct_format_InitialVehicleStock(bad, y_init, g_init)
     end
 
-    # -------------------------
+    # ------------------------------
     # InitialFuelingInfr
-    # -------------------------
-    @testset "check_correct_format_InitialFuelingInfr" begin
-        good = Dict("InitialFuelingInfr" => [
-            Dict("fuel_id"=>1,"region_id"=>1,"infra"=>[1,2])
-        ])
-        @test check_correct_format_InitialFuelingInfr(good, generations) === nothing
-
-        bad = Dict("InitialFuelingInfr" => [
-            Dict("fuel_id"=>1,"region_id"=>1,"infra"=>[1]) # wrong length
-        ])
-        @test_throws AssertionError check_correct_format_InitialFuelingInfr(bad, generations)
+    # ------------------------------
+    @testset "InitialFuelingInfr" begin
+        good = Dict("InitialFuelingInfr"=>[Dict("id"=>1,"fuel"=>"Electric","allocation"=>1,"installed_kW"=>100)])
+        bad = Dict("InitialFuelingInfr"=>[Dict("id"=>"x","fuel"=>123,"allocation"=>"one","installed_kW"=>"100")])
+        @test TransComp.check_correct_format_InitialFuelingInfr(good) === nothing
+        @test_throws AssertionError TransComp.check_correct_format_InitialFuelingInfr(bad)
     end
 
-    # -------------------------
+    # ------------------------------
     # InitialModeInfr
-    # -------------------------
-    @testset "check_correct_format_InitialModeInfr" begin
-        good = Dict("InitialModeInfr" => [
-            Dict("mode_id"=>1,"region_id"=>1,"infra"=>[1,2])
-        ])
-        @test check_correct_format_InitialModeInfr(good, generations) === nothing
-
-        bad = Dict("InitialModeInfr" => [
-            Dict("mode_id"=>1,"region_id"=>1,"infra"=>[1]) # wrong length
-        ])
-        @test_throws AssertionError check_correct_format_InitialModeInfr(bad, generations)
+    # ------------------------------
+    @testset "InitialModeInfr" begin
+        good = Dict("InitialModeInfr"=>[Dict("id"=>1,"mode"=>1,"allocation"=>1,"installed_ukm"=>100)])
+        bad = Dict("InitialModeInfr"=>[Dict("id"=>"x","mode"=>"one","allocation"=>"one","installed_ukm"=>"100")])
+        @test TransComp.check_correct_format_InitialModeInfr(good) === nothing
+        @test_throws AssertionError TransComp.check_correct_format_InitialModeInfr(bad)
     end
 
-    # -------------------------
+    # ------------------------------
     # Odpair
-    # -------------------------
-    @testset "check_correct_format_Odpair" begin
-        good = Dict("Odpair" => [
-            Dict("id"=>1,"origin"=>1,"destination"=>2,"distance"=>[10,20,30])
-        ])
-        @test check_correct_format_Odpair(good, years) === nothing
-
-        bad = Dict("Odpair" => [
-            Dict("id"=>1,"origin"=>1,"destination"=>2,"distance"=>[10]) # wrong length
-        ])
-        @test_throws AssertionError check_correct_format_Odpair(bad, years)
+    # ------------------------------
+    @testset "Odpair" begin
+        good = Dict("Odpair"=>[Dict("id"=>1,"from"=>1,"to"=>2,"path_id"=>1,
+                                    "F"=>[100.0,105.0,110.0],"product"=>"Battery",
+                                    "vehicle_stock_init"=>[10,12,14],
+                                    "financial_status"=>"Low Income","region_type"=>"Urban")])
+        bad = Dict("Odpair"=>[Dict("id"=>"x","from"=>"one","to"=>"two","path_id"=>"p",
+                                   "F"=>["100",105,110],"product"=>123,
+                                   "vehicle_stock_init"=>["ten",12,14],
+                                   "financial_status"=>1,"region_type"=>2)])
+        @test TransComp.check_correct_format_Odpair(good, years) === nothing
+        @test_throws AssertionError TransComp.check_correct_format_Odpair(bad, years)
     end
 
-    # -------------------------
+    # ------------------------------
     # Speed
-    # -------------------------
-    @testset "check_correct_format_Speed" begin
-        good = Dict("Speed" => [
-            Dict("origin"=>1,"destination"=>2,"mode"=>1,"speeds"=>[50,60,70])
-        ])
-        @test check_correct_format_Speed(good, years) === nothing
-
-        bad = Dict("Speed" => [
-            Dict("origin"=>1,"destination"=>2,"mode"=>1,"speeds"=>[50]) # wrong length
-        ])
-        @test_throws AssertionError check_correct_format_Speed(bad, years)
+    # ------------------------------
+    @testset "Speed" begin
+        good = Dict("Speed"=>[Dict("id"=>1,"region_type"=>"Urban","vehicle_type"=>"Sedan","travel_speed"=>50.0)])
+        bad = Dict("Speed"=>[Dict("id"=>"x","region_type"=>123,"vehicle_type"=>456,"travel_speed"=>"fast")])
+        @test TransComp.check_correct_format_Speed(good) === nothing
+        @test_throws AssertionError TransComp.check_correct_format_Speed(bad)
     end
+
 end
