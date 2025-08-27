@@ -20,17 +20,18 @@ makedocs(;
         ansicolor = true,
     ),
     pages = [
-        "Home" => "index.md"
+        "Home" => "index.md",
         "Manual" => Any[
-            "Quick Start"=>"manual/quick-start.md",
-            "How to use"=>"manual/how-to-use.md",
-            "Preparation of input data"=>"manual/input_data.md",
-            "Output data"=>"manual/output_data.md",
-            "Mathematical model"=>"manual/math_formulation.md",
-            "Types and functions"=>"manual/types_and_functions.md",
-            
-        ]  # Entry point to the docs
-        "Examples" => Any["Basque Country"=>"examples/basque-case.md",]  # Entry point to the docs
+            "Quick Start" => "manual/quick-start.md",
+            "How to use" => "manual/how-to-use.md",
+            "Preparation of input data" => "manual/input_data.md",
+            "Output data" => "manual/output_data.md",
+            "Mathematical model" => "manual/math_formulation.md",
+            "Types and functions" => "manual/types_and_functions.md",
+        ],
+        "Examples" => Any[
+            "Basque Country" => "examples/basque-case.md",
+        ]
     ],
     checkdocs = :exports,
     # theme = Documenter.Themes.Calcite()  # Use a custom theme
