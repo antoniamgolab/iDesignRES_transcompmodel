@@ -15,7 +15,7 @@ include("support_functions.jl")
 include("checks.jl")
 
 # Export types (from structs.jl)
-export Node, Edge, GeographicElement, Mode, Product, Path, Fuel, Technology, Vehicletype, TechVehicle, InitialVehicleStock, InitialFuelingInfr, InitialModeInfr, FinancialStatus, Regiontype, Odpair, Speed, MarketShares, ModeShares, ModeSharemaxbyyear, ModeShareminbyyear, EmissionLimitbymode, EmissionLimitbyyear, VehicleSubsidy, SupplyType, InitialSupplyInfr
+export Node, Edge, GeographicElement, Mode, Product, Path, Fuel, Technology, Vehicletype, TechVehicle, InitialVehicleStock, InitialFuelingInfr, InitialModeInfr, FinancialStatus, Regiontype, Odpair, Speed, MarketShares, ModeShares, ModeSharemaxbyyear, ModeShareminbyyear, EmissionLimitbymode, EmissionLimitbyyear, VehicleSubsidy, SupplyType, InitialSupplyInfr, InitDetourTime
 
 
 # Export model functions (from model_functions.jl)
