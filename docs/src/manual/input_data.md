@@ -37,7 +37,7 @@ Other entries of the input file must include data inputs for the following data 
 * `Regiontype` is for defining differently build environments within the considered regions, f.e. urban, rural, suburban. This is for introducing region-type-specific parameters such as costs (f.e. related to parking fees) and different travel speed.
 * `Odpair`: This defines all origin-destination pairs with corresponding trips number which defines the travel demand. Within this, the origin and destination of these trips are defined among with a list of different possible paths that can be travel between the origin and destination. Further, it must include the product that is transported, the consumer group by financial status, the region type and travel time budget.
 
-Specifications for this are in [`Types and functions`](@ref types_and_functions). Each value must be defined in each item of a list for a key.
+Specifications for this are in [`Types and functions`](@ref(types_and_functions)). Each value must be defined in each item of a list for a key.
 
 For each of these data types, a list with is added - as in the upcoming 
 ```yaml
