@@ -17,7 +17,8 @@ Pages = [
 	"manual/input_data.md",
 	"manual/output_data.md",
 	"manual/math_formulation.md",
-	"manual/types_and_functions.md"
+	"manual/types_and_functions.md",
+	"examples/basque-case.md"
 ]
 ```
 
