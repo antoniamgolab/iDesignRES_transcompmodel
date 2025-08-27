@@ -1,0 +1,33 @@
+Speed:
+  - vehicle_type: "Car_s_passenger_car"
+    region_type: "urban"
+    id: 0
+    travel_speed: 30
+  - vehicle_type: "Car_s_passenger_car"
+    region_type: "rural"
+    id: 1
+    travel_speed: 60
+  - vehicle_type: "Car_m_passenger_car"
+    region_type: "urban"
+    id: 2
+    travel_speed: 30
+  - vehicle_type: "Car_m_passenger_car"
+    region_type: "rural"
+    id: 3
+    travel_speed: 60
+  - vehicle_type: "SUV_passenger_car"
+    region_type: "urban"
+    id: 4
+    travel_speed: 30
+  - vehicle_type: "SUV_passenger_car"
+    region_type: "rural"
+    id: 5
+    travel_speed: 60
+  - vehicle_type: "bus"
+    region_type: "urban"
+    id: 6
+    travel_speed: 30
+  - vehicle_type: "bus"
+    region_type: "rural"
+    id: 7
+    travel_speed: 60

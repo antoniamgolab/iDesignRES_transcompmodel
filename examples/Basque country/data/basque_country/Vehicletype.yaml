@@ -1,0 +1,17 @@
+Vehicletype:
+  - name: "Car_s_passenger_car"
+    mode: 1
+    id: 0
+    product: "passenger"
+  - name: "Car_m_passenger_car"
+    mode: 1
+    id: 1
+    product: "passenger"
+  - name: "SUV_passenger_car"
+    mode: 1
+    id: 2
+    product: "passenger"
+  - name: "bus"
+    mode: 2
+    id: 3
+    product: "passenger"

@@ -1,0 +1,133 @@
+Path:
+  - length: 28.0
+    name: "0"
+    sequence:
+      - 12
+    id: 0
+  - length: 32.0
+    name: "1"
+    sequence:
+      - 12
+    id: 1
+  - length: 36.0
+    name: "2"
+    sequence:
+      - 12
+    id: 2
+  - length: 92.0
+    name: "3"
+    sequence:
+      - 12
+    id: 3
+  - length: 32.0
+    name: "4"
+    sequence:
+      - 12
+    id: 4
+  - length: 48.0
+    name: "5"
+    sequence:
+      - 12
+    id: 5
+  - length: 396.0
+    name: "6"
+    sequence:
+      - 13
+      - 7
+      - 12
+    id: 6
+  - length: 28.0
+    name: "7"
+    sequence:
+      - 13
+    id: 7
+  - length: 32.0
+    name: "8"
+    sequence:
+      - 13
+    id: 8
+  - length: 36.0
+    name: "9"
+    sequence:
+      - 13
+    id: 9
+  - length: 92.0
+    name: "10"
+    sequence:
+      - 13
+    id: 10
+  - length: 32.0
+    name: "11"
+    sequence:
+      - 13
+    id: 11
+  - length: 48.0
+    name: "12"
+    sequence:
+      - 13
+    id: 12
+  - length: 396.0
+    name: "13"
+    sequence:
+      - 12
+      - 7
+      - 13
+    id: 13
+  - length: 388.0
+    name: "14"
+    sequence:
+      - 14
+      - 4
+      - 13
+    id: 14
+  - length: 252.0
+    name: "15"
+    sequence:
+      - 14
+      - 3
+      - 12
+    id: 15
+  - length: 28.0
+    name: "16"
+    sequence:
+      - 14
+    id: 16
+  - length: 32.0
+    name: "17"
+    sequence:
+      - 14
+    id: 17
+  - length: 36.0
+    name: "18"
+    sequence:
+      - 14
+    id: 18
+  - length: 92.0
+    name: "19"
+    sequence:
+      - 14
+    id: 19
+  - length: 32.0
+    name: "20"
+    sequence:
+      - 14
+    id: 20
+  - length: 48.0
+    name: "21"
+    sequence:
+      - 14
+    id: 21
+  - length: 388.0
+    name: "22"
+    sequence:
+      - 13
+      - 4
+      - 14
+    id: 22
+  - length: 252.0
+    name: "23"
+    sequence:
+      - 12
+      - 3
+      - 14
+    id: 23

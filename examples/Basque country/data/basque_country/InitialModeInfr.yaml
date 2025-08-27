@@ -1,0 +1,153 @@
+InitialModeInfr:
+  - allocation: 0
+    mode: 1
+    id: 0
+    installed_ukm: 0
+  - allocation: 0
+    mode: 2
+    id: 1
+    installed_ukm: 0
+  - allocation: 1
+    mode: 1
+    id: 2
+    installed_ukm: 0
+  - allocation: 1
+    mode: 2
+    id: 3
+    installed_ukm: 0
+  - allocation: 2
+    mode: 1
+    id: 4
+    installed_ukm: 0
+  - allocation: 2
+    mode: 2
+    id: 5
+    installed_ukm: 0
+  - allocation: 3
+    mode: 1
+    id: 6
+    installed_ukm: 0
+  - allocation: 3
+    mode: 2
+    id: 7
+    installed_ukm: 0
+  - allocation: 4
+    mode: 1
+    id: 8
+    installed_ukm: 0
+  - allocation: 4
+    mode: 2
+    id: 9
+    installed_ukm: 0
+  - allocation: 5
+    mode: 1
+    id: 10
+    installed_ukm: 0
+  - allocation: 5
+    mode: 2
+    id: 11
+    installed_ukm: 0
+  - allocation: 6
+    mode: 1
+    id: 12
+    installed_ukm: 0
+  - allocation: 6
+    mode: 2
+    id: 13
+    installed_ukm: 0
+  - allocation: 7
+    mode: 1
+    id: 14
+    installed_ukm: 0
+  - allocation: 7
+    mode: 2
+    id: 15
+    installed_ukm: 0
+  - allocation: 8
+    mode: 1
+    id: 16
+    installed_ukm: 0
+  - allocation: 8
+    mode: 2
+    id: 17
+    installed_ukm: 0
+  - allocation: 9
+    mode: 1
+    id: 18
+    installed_ukm: 0
+  - allocation: 9
+    mode: 2
+    id: 19
+    installed_ukm: 0
+  - allocation: 10
+    mode: 1
+    id: 20
+    installed_ukm: 0
+  - allocation: 10
+    mode: 2
+    id: 21
+    installed_ukm: 0
+  - allocation: 11
+    mode: 1
+    id: 22
+    installed_ukm: 0
+  - allocation: 11
+    mode: 2
+    id: 23
+    installed_ukm: 0
+  - allocation: 12
+    mode: 1
+    id: 24
+    installed_ukm: 0
+  - allocation: 12
+    mode: 2
+    id: 25
+    installed_ukm: 0
+  - allocation: 13
+    mode: 1
+    id: 26
+    installed_ukm: 0
+  - allocation: 13
+    mode: 2
+    id: 27
+    installed_ukm: 0
+  - allocation: 14
+    mode: 1
+    id: 28
+    installed_ukm: 0
+  - allocation: 14
+    mode: 2
+    id: 29
+    installed_ukm: 0
+  - allocation: 15
+    mode: 1
+    id: 30
+    installed_ukm: 0
+  - allocation: 15
+    mode: 2
+    id: 31
+    installed_ukm: 0
+  - allocation: 16
+    mode: 1
+    id: 32
+    installed_ukm: 0
+  - allocation: 16
+    mode: 2
+    id: 33
+    installed_ukm: 0
+  - allocation: 17
+    mode: 1
+    id: 34
+    installed_ukm: 0
+  - allocation: 17
+    mode: 2
+    id: 35
+    installed_ukm: 0
+  - allocation: 18
+    mode: 1
+    id: 36
+    installed_ukm: 0
+  - allocation: 18
+    mode: 2
+    id: 37
+    installed_ukm: 0

@@ -1,0 +1,153 @@
+InitDetourTime:
+  - fuel: "electricity"
+    location: "ES211"
+    detour_time: 0.8021286575561527
+    id: 0
+  - fuel: "electricity"
+    location: "ES212"
+    detour_time: 0.26462837142006135
+    id: 1
+  - fuel: "electricity"
+    location: "ES213"
+    detour_time: 0.28001845527858893
+    id: 2
+  - fuel: "electricity"
+    location: "ES130_ES412"
+    detour_time: 0.06666666666666667
+    id: 3
+  - fuel: "diesel"
+    location: "ES130_ES412"
+    detour_time: 0.06666666666666667
+    id: 4
+  - fuel: "electricity"
+    location: "ES130_ES213"
+    detour_time: 0.06666666666666667
+    id: 5
+  - fuel: "diesel"
+    location: "ES130_ES213"
+    detour_time: 0.06666666666666667
+    id: 6
+  - fuel: "electricity"
+    location: "ES213_ES412"
+    detour_time: 0.06666666666666667
+    id: 7
+  - fuel: "diesel"
+    location: "ES213_ES412"
+    detour_time: 0.06666666666666667
+    id: 8
+  - fuel: "electricity"
+    location: "ES213_ES211"
+    detour_time: 0.06666666666666667
+    id: 9
+  - fuel: "diesel"
+    location: "ES213_ES211"
+    detour_time: 0.06666666666666667
+    id: 10
+  - fuel: "electricity"
+    location: "ES213_ES212"
+    detour_time: 0.06666666666666667
+    id: 11
+  - fuel: "diesel"
+    location: "ES213_ES212"
+    detour_time: 0.06666666666666667
+    id: 12
+  - fuel: "electricity"
+    location: "ES412_ES211"
+    detour_time: 0.06666666666666667
+    id: 13
+  - fuel: "diesel"
+    location: "ES412_ES211"
+    detour_time: 0.06666666666666667
+    id: 14
+  - fuel: "electricity"
+    location: "ES412_ES230"
+    detour_time: 0.06666666666666667
+    id: 15
+  - fuel: "diesel"
+    location: "ES412_ES230"
+    detour_time: 0.06666666666666667
+    id: 16
+  - fuel: "electricity"
+    location: "ES211_ES212"
+    detour_time: 0.06666666666666667
+    id: 17
+  - fuel: "diesel"
+    location: "ES211_ES212"
+    detour_time: 0.06666666666666667
+    id: 18
+  - fuel: "electricity"
+    location: "ES211_ES220"
+    detour_time: 0.06666666666666667
+    id: 19
+  - fuel: "diesel"
+    location: "ES211_ES220"
+    detour_time: 0.06666666666666667
+    id: 20
+  - fuel: "electricity"
+    location: "ES211_ES230"
+    detour_time: 0.06666666666666667
+    id: 21
+  - fuel: "diesel"
+    location: "ES211_ES230"
+    detour_time: 0.06666666666666667
+    id: 22
+  - fuel: "electricity"
+    location: "ES212_ES220"
+    detour_time: 0.06666666666666667
+    id: 23
+  - fuel: "diesel"
+    location: "ES212_ES220"
+    detour_time: 0.06666666666666667
+    id: 24
+  - fuel: "electricity"
+    location: "ES220_ES230"
+    detour_time: 0.06666666666666667
+    id: 25
+  - fuel: "diesel"
+    location: "ES220_ES230"
+    detour_time: 0.06666666666666667
+    id: 26
+  - fuel: "diesel"
+    location: "ES211"
+    detour_time: 0.06666666666666667
+    id: 27
+  - fuel: "diesel"
+    location: "ES212"
+    detour_time: 0.06666666666666667
+    id: 28
+  - fuel: "diesel"
+    location: "ES213"
+    detour_time: 0.06666666666666667
+    id: 29
+  - fuel: "electricity"
+    location: "ES220"
+    detour_time: 0.06666666666666667
+    id: 30
+  - fuel: "diesel"
+    location: "ES220"
+    detour_time: 0.06666666666666667
+    id: 31
+  - fuel: "electricity"
+    location: "ES230"
+    detour_time: 0.06666666666666667
+    id: 32
+  - fuel: "diesel"
+    location: "ES230"
+    detour_time: 0.06666666666666667
+    id: 33
+  - fuel: "electricity"
+    location: "ES412"
+    detour_time: 0.06666666666666667
+    id: 34
+  - fuel: "diesel"
+    location: "ES412"
+    detour_time: 0.06666666666666667
+    id: 35
+  - fuel: "electricity"
+    location: "ES130"
+    detour_time: 0.06666666666666667
+    id: 36
+  - fuel: "diesel"
+    location: "ES130"
+    detour_time: 0.06666666666666667
+    id: 37

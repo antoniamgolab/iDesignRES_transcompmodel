@@ -1,0 +1,67 @@
+FinancialStatus:
+  - VoT: 6.604
+    monetary_budget_purchase_lb: 6502.517414567654
+    monetary_budget_operational_ub: 894.5572999999999
+    name: "First quintile"
+    monetary_budget_operational_lb: 481.6847
+    monetary_budget_purchase_time_horizon: 15
+    id: 0
+    monetary_budget_purchase_ub: 7947.521284471578
+    average_household_size: 2.4
+    monetary_budget_operational: 688.121
+    monetary_budget_purchase: 7225.019349519615
+  - VoT: 12.769900000000002
+    monetary_budget_purchase_lb: 12954.675921982775
+    monetary_budget_operational_ub: 1372.4854
+    name: "Second quintile"
+    monetary_budget_operational_lb: 739.0306
+    monetary_budget_purchase_time_horizon: 10
+    id: 1
+    monetary_budget_purchase_ub: 15833.492793534504
+    average_household_size: 2.4
+    monetary_budget_operational: 1055.758
+    monetary_budget_purchase: 14394.084357758638
+  - VoT: 18.9345
+    monetary_budget_purchase_lb: 12954.675921982775
+    monetary_budget_operational_ub: 1557.99072
+    name: "Third quintile"
+    monetary_budget_operational_lb: 838.9180800000001
+    monetary_budget_purchase_time_horizon: 7
+    id: 2
+    monetary_budget_purchase_ub: 15833.492793534504
+    average_household_size: 2.4
+    monetary_budget_operational: 1198.4544
+    monetary_budget_purchase: 14394.084357758638
+  - VoT: 25.100400000000004
+    monetary_budget_purchase_lb: 14804.278921746964
+    monetary_budget_operational_ub: 1682.0622000000003
+    name: "Fourth quintile"
+    monetary_budget_operational_lb: 905.7258000000002
+    monetary_budget_purchase_time_horizon: 5
+    id: 3
+    monetary_budget_purchase_ub: 18094.11868213518
+    average_household_size: 2.4
+    monetary_budget_operational: 1293.8940000000002
+    monetary_budget_purchase: 16449.19880194107
+  - VoT: 31.265
+    monetary_budget_purchase_lb: 17980.352970553053
+    monetary_budget_operational_ub: 1935.9795000000001
+    name: "Fifth quintile"
+    monetary_budget_operational_lb: 1042.4505000000001
+    monetary_budget_purchase_time_horizon: 3
+    id: 4
+    monetary_budget_purchase_ub: 21975.986964009287
+    average_household_size: 2.4
+    monetary_budget_operational: 1489.2150000000001
+    monetary_budget_purchase: 19978.16996728117
+  - VoT: 31.265
+    monetary_budget_purchase_lb: 17980.352970553053
+    monetary_budget_operational_ub: 1935.9795000000001
+    name: "Commercial"
+    monetary_budget_operational_lb: 1042.4505000000001
+    monetary_budget_purchase_time_horizon: 3
+    id: 5
+    monetary_budget_purchase_ub: 21975.986964009287
+    average_household_size: 2.4
+    monetary_budget_operational: 1489.2150000000001
+    monetary_budget_purchase: 19978.16996728117

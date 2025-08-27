@@ -1,0 +1,13 @@
+Technology:
+  - name: "ICEV-g"
+    fuel: "diesel"
+    id: 1
+  - name: "BEV"
+    fuel: "electricity"
+    id: 2
+  - name: "fossilfueled"
+    fuel: "diesel"
+    id: 3
+  - name: "electrified"
+    fuel: "electricity"
+    id: 4

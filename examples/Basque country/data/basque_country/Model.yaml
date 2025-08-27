@@ -1,0 +1,14 @@
+Model:
+  goals_tot_BEV:
+    2030: 230.0
+  pre_y: 25
+  y_init: 2020
+  N: 2
+  goals_no_new_ICEV:
+    2035: 0.0
+  discount_rate: 0.05
+  E: 12
+  budget_penalty_minus: 100
+  Y: 31
+  gamma: 0.0003
+  budget_penalty_plus: 1000
