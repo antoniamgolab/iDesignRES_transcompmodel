@@ -1,3 +1,6 @@
+# Mathematical model
+```@id math_formulation
+
 # Mathematical equation
 
 In the following, the mathematical description of the optimization model is explained, elaborating on all relevant functionalities.
