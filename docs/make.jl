@@ -27,10 +27,9 @@ makedocs(;
             "Preparation of input data" => "manual/input_data.md",
             "Output data" => "manual/output_data.md",
             "Mathematical model" => "manual/math_formulation.md",
-            "Types and functions" => "manual/types_and_functions.md",
+            "Functions" => "manual/functions.md",
             "Model Types" => "manual/types.md",
-            "Constraints and Objective" => "manual/constraints_and_objective.md",
-            "Internal Functions" => "manual/internal_functions.md",
+            "Optimization functions" => "manual/constraints_and_objective.md",
         ],
         "Examples" => Any[
             "Basque Country" => "examples/basque-case.md",

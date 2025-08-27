@@ -1,4 +1,4 @@
-# Constraints and Objective
+# Optimization functions
 @anchor(constraints_objective)
 
 This page documents all constraint and objective functions in the transport component model.

@@ -15,10 +15,9 @@ The *Transcomp* model is aimed at modeling developments in subsectors of the tra
 - [Input Data](manual/input_data.md)
 - [Output Data](manual/output_data.md)
 - [Math Formulation](manual/math_formulation.md)
-- [Types and Functions](manual/types_and_functions.md)
+- [Functions](manual/functions.md)
 - [Types](manual/types.md)
-- [Constraints and Objective](manual/constraints_and_objective.md)
-- [Internal Functions](manual/internal_functions.md)
+- [Optimization functions](manual/constraints_and_objective.md)
 
 ## Examples of application
 
