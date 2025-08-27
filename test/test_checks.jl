@@ -255,6 +255,7 @@ using Test
         )
         @test TransComp.check_correct_format_InitialVehicleStock(good, y_init, g_init) === nothing
         @test_throws AssertionError TransComp.check_correct_format_InitialVehicleStock(bad, y_init, g_init)
+
     end
 
     # ------------------------------
