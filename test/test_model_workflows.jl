@@ -1,7 +1,7 @@
 using Test
 using JuMP
 using HiGHS
-include("../src/model_functions.jl")
+using TransComp
 
 # Dummy data_structures for testing (should be replaced with a proper fixture or mock)
 data_structures = Dict(
