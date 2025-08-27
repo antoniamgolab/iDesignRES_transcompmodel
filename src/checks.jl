@@ -547,18 +547,6 @@ function check_correct_format_TechVehicle(
     end
 end
 
-"""
-    check_correct_format_InitialVehicleStock(data_structures::Dict, y_init::Int, g_init::Int)
-
-Check if the format of the InitialVehicleStock entries is correct.
-
-# Arguments
-- `data_structures::Dict`: The input data.
-- `y_init::Int`: The year of the first year of the optimization horizon.
-- `g_init::Int`: The first generation.
-
-"""
-
 function check_correct_format_InitialVehicleStock(
     data_structures::Dict,
     y_init::Int,
@@ -570,20 +558,14 @@ function check_correct_format_InitialVehicleStock(
         @assert isa(ivs["id"], Int) "The key 'id' in 'InitialVehicleStock' must be an integer value. Error at $(ivs["id"])."
         @assert isa(ivs["techvehicle"], Int) "The key 'techvehicle' in 'InitialVehicleStock' must be a integer value. Error at $(ivs["id"])."
         @assert isa(ivs["year_of_purchase"], Int) "The key 'year_of_purchase' in 'InitialVehicleStock' must be a integer value. Error at $(ivs["id"])."
-        @assert isa(ivs["stock"], Int) || isa(ivs["stock"], Float64) "The key 'number' in 'InitialVehicleStock' must be a float or integer value. Error at $(ivs["id"])."
-        if ivs["year_of_purchase"] < g_init
-            error(
-                "The year of purchase must not be earlier than the year of the first considered generation. Error at $(ivs["id"]).",
-            )
-        end
+        @assert isa(ivs["stock"], Int) || isa(ivs["stock"], Float64) "The key 'stock' in 'InitialVehicleStock' must be a float or integer value. Error at $(ivs["id"])."
 
-        if ivs["year_of_purchase"] >= y_init
-            error(
-                "The year of purchase must not be later than the year of the first considered year of the optimization horizon. Error at $(ivs["id"]).",
-            )
-        end
+        # Year checks changed to @assert
+        @assert ivs["year_of_purchase"] >= g_init "The year of purchase must not be earlier than the first considered generation. Error at $(ivs["id"])."
+        @assert ivs["year_of_purchase"] < y_init "The year of purchase must not be later than the first considered year of the optimization horizon. Error at $(ivs["id"])."
     end
 end
+
 
 """
     check_correct_format_InitialFuelingInfra(data_structures::Dict)
