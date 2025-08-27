@@ -3,20 +3,29 @@ using JuMP
 using HiGHS
 using TransComp
 
-# Dummy data_structures for testing (should be replaced with a proper fixture or mock)
+using TransComp
+
+# Minimal mock Mode and TechVehicle
+mode = Mode(1, "road", true, 0.0, 0.0, 0.0, 0.0, 0.0)
+fuel = Fuel(1, "electricity", 0.0, 0.0, 0.0, 0.0)
+technology = Technology(1, "BEV", fuel)
+product = Product(1, "default")
+vehicletype = Vehicletype(1, "car", 1, ["default"])
+techvehicle = TechVehicle(1, "EV", vehicletype, technology, 0.0, 0.0, 0.0, 0.0, 0.0, 1, 1, ["default"], 0.0, 0.0, 0.0)
+
 data_structures = Dict(
     "y_init" => 2020,
     "Y_end" => 2022,
     "g_init" => 2020,
     "odpair_list" => [],
-    "techvehicle_list" => [],
-    "mode_list" => [],
-    "product_list" => [],
+    "techvehicle_list" => [techvehicle],
+    "mode_list" => [mode],
+    "product_list" => [product],
     "path_list" => [],
     "regiontype_list" => [],
-    "fuel_list" => [],
-    "technology_list" => [],
-    "vehicletype_list" => [],
+    "fuel_list" => [fuel],
+    "technology_list" => [technology],
+    "vehicletype_list" => [vehicletype],
     "market_share_list" => [],
     "emission_constraints_by_mode_list" => [],
     "initialfuelinginfr_list" => [],
