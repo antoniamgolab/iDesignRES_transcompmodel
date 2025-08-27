@@ -63,78 +63,434 @@ end
     @test_throws ErrorException check_uniquness_of_ids(d, ["A"])
 end
 
-@testset "check_correct_formats_GeographicElement" begin
-    d = Dict("GeographicElement" => [Dict("id" => "notint", "type" => "t", "name" => "n", "carbon_price" => [1.0, 1.0], "length" => 1.0)])
-    @test_throws ErrorException check_correct_formats_GeographicElement(d, 1)
-end
+using Test
 
-@testset "check_correct_formats_FinancialStatus" begin
-    d = Dict("FinancialStatus" => [Dict("id" => "notint", "name" => "n", "VoT" => 1.0, "monetary_budget_purchase" => 1.0, "monetary_budget_purchase_lb" => 2.0, "monetary_budget_purchase_ub" => 3.0)])
-    @test_throws ErrorException check_correct_formats_FinancialStatus(d)
-end
+@testset "Format checks" begin
+    years = 3
+    generations = 2
 
-@testset "check_correct_format_Mode" begin
-    d = Dict("Mode" => [Dict("id" => "notint", "name" => "n", "quantify_by_vehs" => true, "costs_per_ukm" => [1.0, 1.0], "emission_factor" => [1.0, 1.0], "infrastructure_expansion_costs" => [1.0, 1.0], "infrastructure_om_costs" => [1.0, 1.0], "waiting_time" => [1.0, 1.0])])
-    @test_throws ErrorException check_correct_format_Mode(d, 1)
-end
+    # -------------------------------
+    # GeographicElement
+    # -------------------------------
+    data_valid = Dict(
+        "GeographicElement" => [
+            Dict(
+                "id" => 1,
+                "type" => "region",
+                "name" => "North",
+                "carbon_price" => [10.0, 20.0, 30.0],
+                "length" => 100.0
+            )
+        ]
+    )
+    @test check_correct_formats_GeographicElement(data_valid, years) === nothing
 
-@testset "check_correct_format_Product" begin
-    d = Dict("Product" => [Dict("id" => "notint", "name" => "n")])
-    @test_throws ErrorException check_correct_format_Product(d)
-end
+    data_invalid = Dict(
+        "GeographicElement" => [
+            Dict(  # missing id
+                "type" => "region",
+                "name" => "North",
+                "carbon_price" => [10.0, 20.0, 30.0],
+                "length" => 100.0
+            )
+        ]
+    )
+    @test_throws ErrorException check_correct_formats_GeographicElement(data_invalid, years)
 
-@testset "check_correct_format_Path" begin
-    d = Dict("Path" => [Dict("id" => "notint", "name" => "n", "length" => 1.0, "sequence" => [1])])
-    @test_throws ErrorException check_correct_format_Path(d)
-end
+    # -------------------------------
+    # FinancialStatus
+    # -------------------------------
+    data_valid = Dict(
+        "FinancialStatus" => [
+            Dict(
+                "id" => 1,
+                "name" => "Household",
+                "VoT" => 5.0,
+                "monetary_budget_purchase" => 100.0,
+                "monetary_budget_purchase_lb" => 50.0,
+                "monetary_budget_purchase_ub" => 150.0
+            )
+        ]
+    )
+    @test check_correct_formats_FinancialStatus(data_valid) === nothing
 
-@testset "check_correct_format_Fuel" begin
-    d = Dict("Fuel" => [Dict("id" => "notint", "name" => "n", "cost_per_kWh" => [1.0, 1.0], "cost_per_kW" => [1.0, 1.0], "emission_factor" => [1.0, 1.0], "fueling_infrastructure_om_costs" => [1.0, 1.0])])
-    @test_throws ErrorException check_correct_format_Fuel(d, 1)
-end
+    data_invalid = Dict(
+        "FinancialStatus" => [
+            Dict(  # wrong type for VoT
+                "id" => 1,
+                "name" => "Household",
+                "VoT" => "five",
+                "monetary_budget_purchase" => 100.0,
+                "monetary_budget_purchase_lb" => 50.0,
+                "monetary_budget_purchase_ub" => 150.0
+            )
+        ]
+    )
+    @test_throws AssertionError check_correct_formats_FinancialStatus(data_invalid)
 
-@testset "check_correct_format_Technology" begin
-    d = Dict("Technology" => [Dict("id" => "notint", "name" => "n", "fuel" => "f")])
-    @test_throws ErrorException check_correct_format_Technology(d)
-end
+    # -------------------------------
+    # Mode
+    # -------------------------------
+    data_valid = Dict(
+        "Mode" => [
+            Dict(
+                "id" => 1,
+                "name" => "Car",
+                "quantify_by_vehs" => true,
+                "costs_per_ukm" => [1.0, 2.0, 3.0],
+                "emission_factor" => [0.1, 0.2, 0.3],
+                "infrastructure_expansion_costs" => [100, 200, 300],
+                "infrastructure_om_costs" => [5, 5, 5],
+                "waiting_time" => [1, 1, 1]
+            )
+        ]
+    )
+    @test check_correct_format_Mode(data_valid, years) === nothing
 
-@testset "check_correct_format_Vehicletype" begin
-    d = Dict("Vehicletype" => [Dict("id" => "notint", "name" => "n", "mode" => 1, "product" => "p")])
-    @test_throws ErrorException check_correct_format_Vehicletype(d)
-end
+    data_invalid = Dict(
+        "Mode" => [
+            Dict(
+                "id" => 1,
+                "name" => "Car",
+                "quantify_by_vehs" => true,
+                "costs_per_ukm" => [1.0], # too short
+                "emission_factor" => [0.1, 0.2, 0.3],
+                "infrastructure_expansion_costs" => [100, 200, 300],
+                "infrastructure_om_costs" => [5, 5, 5],
+                "waiting_time" => [1, 1, 1]
+            )
+        ]
+    )
+    @test_throws AssertionError check_correct_format_Mode(data_invalid, years)
 
-@testset "check_correct_format_Regiontype" begin
-    d = Dict("Regiontype" => [Dict("id" => "notint", "name" => "n", "costs_var" => [1.0, 1.0], "costs_fix" => [1.0, 1.0])])
-    @test_throws ErrorException check_correct_format_Regiontype(d, 1)
-end
+    # -------------------------------
+    # Product
+    # -------------------------------
+    data_valid = Dict(
+        "Product" => [
+            Dict(
+                "id" => 1,
+                "name" => "Food",
+                "type" => "consumable",
+                "base_year_demand" => 100.0
+            )
+        ]
+    )
+    @test check_correct_format_Product(data_valid) === nothing
 
-@testset "check_correct_format_TechVehicle" begin
-    d = Dict("TechVehicle" => [Dict("id" => "notint", "name" => "n", "vehicle_type" => "vt", "technology" => 1, "capital_cost" => [1.0], "maintenance_cost_annual" => [[1.0]], "maintenance_cost_distance" => [[1.0]], "W" => [1.0], "spec_cons" => [1.0], "Lifetime" => [1.0], "AnnualRange" => [1.0], "products" => ["p"], "tank_capacity" => [1.0], "peak_fueling" => [1.0])])
-    @test_throws ErrorException check_correct_format_TechVehicle(d, 1, 1)
-end
+    data_invalid = Dict(
+        "Product" => [
+            Dict( # wrong type for demand
+                "id" => 1,
+                "name" => "Food",
+                "type" => "consumable",
+                "base_year_demand" => "a lot"
+            )
+        ]
+    )
+    @test_throws AssertionError check_correct_format_Product(data_invalid)
 
-@testset "check_correct_format_InitialVehicleStock" begin
-    d = Dict("InitialVehicleStock" => [Dict("id" => "notint", "techvehicle" => 1, "year_of_purchase" => 0, "stock" => 1.0)])
-    @test_throws ErrorException check_correct_format_InitialVehicleStock(d, 1, 1)
-end
+    # -------------------------------
+    # Path
+    # -------------------------------
+    data_valid = Dict(
+        "Path" => [
+            Dict(
+                "id" => 1,
+                "name" => "Route A",
+                "od_pair_id" => 1,
+                "layer_id_sequence" => [1, 2, 3],
+                "time_sequence" => [1.0, 2.0, 3.0],
+                "length_sequence" => [10.0, 20.0, 30.0]
+            )
+        ]
+    )
+    @test check_correct_format_Path(data_valid) === nothing
 
-@testset "check_correct_format_InitialFuelingInfr" begin
-    d = Dict("InitialFuelingInfr" => [Dict("id" => "notint", "fuel" => "f", "allocation" => 1, "installed_kW" => 1.0)])
-    @test_throws ErrorException check_correct_format_InitialFuelingInfr(d)
-end
+    data_invalid = Dict(
+        "Path" => [
+            Dict( # time_sequence wrong type
+                "id" => 1,
+                "name" => "Route A",
+                "od_pair_id" => 1,
+                "layer_id_sequence" => [1, 2, 3],
+                "time_sequence" => ["fast", "slow"],
+                "length_sequence" => [10.0, 20.0, 30.0]
+            )
+        ]
+    )
+    @test_throws AssertionError check_correct_format_Path(data_invalid)
 
-@testset "check_correct_format_InitialModeInfr" begin
-    d = Dict("InitialModeInfr" => [Dict("id" => "notint", "mode" => 1, "allocation" => 1, "installed_ukm" => 1.0)])
-    @test_throws ErrorException check_correct_format_InitialModeInfr(d)
-end
+    # -------------------------------
+    # Fuel
+    # -------------------------------
+    data_valid = Dict(
+        "Fuel" => [
+            Dict(
+                "id" => 1,
+                "name" => "Gasoline",
+                "production_cost" => [1.0, 2.0, 3.0],
+                "co2_content" => [0.1, 0.2, 0.3]
+            )
+        ]
+    )
+    @test check_correct_format_Fuel(data_valid, years) === nothing
 
-@testset "check_correct_format_Odpair" begin
-    d = Dict("Odpair" => [Dict("id" => "notint", "from" => 1, "to" => 1, "path_id" => 1, "F" => [1.0], "product" => "p", "vehicle_stock_init" => [1.0], "financial_status" => "fs", "region_type" => "rt")])
-    @test_throws ErrorException check_correct_format_Odpair(d, 1)
-end
+    data_invalid = Dict(
+        "Fuel" => [
+            Dict( # co2_content too short
+                "id" => 1,
+                "name" => "Gasoline",
+                "production_cost" => [1.0, 2.0, 3.0],
+                "co2_content" => [0.1]
+            )
+        ]
+    )
+    @test_throws AssertionError check_correct_format_Fuel(data_invalid, years)
 
-@testset "check_correct_format_Speed" begin
-    # Provide all required keys, but make 'id' the wrong type to trigger the assertion
-    d = Dict("Speed" => [Dict("id" => "notint", "region_type" => "rt", "vehicle_type" => "vt", "travel_speed" => 1.0)])
-    @test_throws ErrorException check_correct_format_Speed(d)
+    # -------------------------------
+    # Technology
+    # -------------------------------
+    data_valid = Dict(
+        "Technology" => [
+            Dict(
+                "id" => 1,
+                "name" => "Battery",
+                "fuel_id" => 1,
+                "purchase_cost" => [100, 200, 300],
+                "om_cost" => [5, 5, 5],
+                "max_capacity_addition" => [1, 2, 3],
+                "efficiency" => [0.9, 0.95, 0.98]
+            )
+        ]
+    )
+    @test check_correct_format_Technology(data_valid, years) === nothing
+
+    data_invalid = Dict(
+        "Technology" => [
+            Dict( # wrong type for efficiency
+                "id" => 1,
+                "name" => "Battery",
+                "fuel_id" => 1,
+                "purchase_cost" => [100, 200, 300],
+                "om_cost" => [5, 5, 5],
+                "max_capacity_addition" => [1, 2, 3],
+                "efficiency" => ["high", "medium", "low"]
+            )
+        ]
+    )
+    @test_throws AssertionError check_correct_format_Technology(data_invalid, years)
+
+    # -------------------------------
+    # Vehicletype
+    # -------------------------------
+    data_valid = Dict(
+        "Vehicletype" => [
+            Dict(
+                "id" => 1,
+                "name" => "Sedan",
+                "mode_id" => 1,
+                "capacity" => 4,
+                "investment_cost" => [20000, 21000, 22000],
+                "om_cost" => [500, 550, 600]
+            )
+        ]
+    )
+    @test check_correct_format_Vehicletype(data_valid, years) === nothing
+
+    data_invalid = Dict(
+        "Vehicletype" => [
+            Dict( # om_cost wrong length
+                "id" => 1,
+                "name" => "Sedan",
+                "mode_id" => 1,
+                "capacity" => 4,
+                "investment_cost" => [20000, 21000, 22000],
+                "om_cost" => [500]
+            )
+        ]
+    )
+    @test_throws AssertionError check_correct_format_Vehicletype(data_invalid, years)
+
+    # -------------------------------
+    # Regiontype
+    # -------------------------------
+    data_valid = Dict(
+        "Regiontype" => [
+            Dict(
+                "id" => 1,
+                "name" => "Urban",
+                "share" => 0.7
+            )
+        ]
+    )
+    @test check_correct_format_Regiontype(data_valid) === nothing
+
+    data_invalid = Dict(
+        "Regiontype" => [
+            Dict( # share wrong type
+                "id" => 1,
+                "name" => "Urban",
+                "share" => "seventy percent"
+            )
+        ]
+    )
+    @test_throws AssertionError check_correct_format_Regiontype(data_invalid)
+
+    # -------------------------------
+    # TechVehicle
+    # -------------------------------
+    data_valid = Dict(
+        "TechVehicle" => [
+            Dict(
+                "id" => 1,
+                "vehicle_id" => 1,
+                "technology_id" => 1,
+                "generation" => 1,
+                "efficiency" => [0.8, 0.85, 0.9],
+                "costs" => [10000, 9500, 9000]
+            )
+        ]
+    )
+    @test check_correct_format_TechVehicle(data_valid, years, generations) === nothing
+
+    data_invalid = Dict(
+        "TechVehicle" => [
+            Dict( # efficiency too short
+                "id" => 1,
+                "vehicle_id" => 1,
+                "technology_id" => 1,
+                "generation" => 1,
+                "efficiency" => [0.8],
+                "costs" => [10000, 9500, 9000]
+            )
+        ]
+    )
+    @test_throws AssertionError check_correct_format_TechVehicle(data_invalid, years, generations)
+
+    # -------------------------------
+    # InitialVehicleStock
+    # -------------------------------
+    data_valid = Dict(
+        "InitialVehicleStock" => [
+            Dict(
+                "techvehicle_id" => 1,
+                "stock" => 100
+            )
+        ]
+    )
+    @test check_correct_format_InitialVehicleStock(data_valid) === nothing
+
+    data_invalid = Dict(
+        "InitialVehicleStock" => [
+            Dict( # stock wrong type
+                "techvehicle_id" => 1,
+                "stock" => "many"
+            )
+        ]
+    )
+    @test_throws AssertionError check_correct_format_InitialVehicleStock(data_invalid)
+
+    # -------------------------------
+    # InitialFuelingInfr
+    # -------------------------------
+    data_valid = Dict(
+        "InitialFuelingInfr" => [
+            Dict(
+                "fuel_id" => 1,
+                "capacity" => 100.0
+            )
+        ]
+    )
+    @test check_correct_format_InitialFuelingInfr(data_valid) === nothing
+
+    data_invalid = Dict(
+        "InitialFuelingInfr" => [
+            Dict( # capacity wrong type
+                "fuel_id" => 1,
+                "capacity" => "lots"
+            )
+        ]
+    )
+    @test_throws AssertionError check_correct_format_InitialFuelingInfr(data_invalid)
+
+    # -------------------------------
+    # InitialModeInfr
+    # -------------------------------
+    data_valid = Dict(
+        "InitialModeInfr" => [
+            Dict(
+                "mode_id" => 1,
+                "capacity" => 500.0
+            )
+        ]
+    )
+    @test check_correct_format_InitialModeInfr(data_valid) === nothing
+
+    data_invalid = Dict(
+        "InitialModeInfr" => [
+            Dict( # missing capacity
+                "mode_id" => 1
+            )
+        ]
+    )
+    @test_throws ErrorException check_correct_format_InitialModeInfr(data_invalid)
+
+    # -------------------------------
+    # Odpair
+    # -------------------------------
+    data_valid = Dict(
+        "Odpair" => [
+            Dict(
+                "id" => 1,
+                "origin_id" => 1,
+                "destination_id" => 2,
+                "product_id" => 1,
+                "base_year_demand" => 50.0,
+                "base_year_price" => 2.0,
+                "price_elast" => -0.5
+            )
+        ]
+    )
+    @test check_correct_format_Odpair(data_valid) === nothing
+
+    data_invalid = Dict(
+        "Odpair" => [
+            Dict( # base_year_demand wrong type
+                "id" => 1,
+                "origin_id" => 1,
+                "destination_id" => 2,
+                "product_id" => 1,
+                "base_year_demand" => "lots",
+                "base_year_price" => 2.0,
+                "price_elast" => -0.5
+            )
+        ]
+    )
+    @test_throws AssertionError check_correct_format_Odpair(data_invalid)
+
+    # -------------------------------
+    # Speed
+    # -------------------------------
+    data_valid = Dict(
+        "Speed" => [
+            Dict(
+                "layer_id" => 1,
+                "mode_id" => 1,
+                "speed" => [10.0, 20.0, 30.0]
+            )
+        ]
+    )
+    @test check_correct_format_Speed(data_valid, years) === nothing
+
+    data_invalid = Dict(
+        "Speed" => [
+            Dict( # speed wrong length
+                "layer_id" => 1,
+                "mode_id" => 1,
+                "speed" => [10.0]
+            )
+        ]
+    )
+    @test_throws AssertionError check_correct_format_Speed(data_invalid, years)
 end
