@@ -1,6 +1,6 @@
 using Test
 using JuMP
-using Gurobi
+using HiGHS
 include("../src/model_functions.jl")
 
 # Dummy data_structures for testing (should be replaced with a proper fixture or mock)
@@ -39,7 +39,7 @@ data_structures = Dict(
     "default_data" => Dict(),
     "Model" => Dict("Y"=>1,"y_init"=>2020,"pre_y"=>0,"gamma"=>1,"discount_rate"=>0.05,"budget_penalty_plus"=>1,"budget_penalty_minus"=>1)
 )
-optimizer = Gurobi.Optimizer
+optimizer = HiGHS.Optimizer
 
 @testset "Model workflow functions include expected constraints" begin
     model, _ = run_minimum_viable_case(data_structures, optimizer)
