@@ -1,5 +1,7 @@
 @anchor(basque-case)
-# Basque Country
+# Basque Country Case Study
+
+This example demonstrates the application of the TransComp model to the Basque Country region.
 
 ## Case study description
 * The case study encompasses the federal state *Basque Community* in Spain. This consists of three subregions which is the spatial extent of the case study, considering the trips within the regions and between the three regions. The temporal horizon is 2020-2050 with considering vehicles bought since 1995. 

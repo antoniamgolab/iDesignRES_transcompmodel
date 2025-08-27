@@ -1,5 +1,4 @@
 # Mathematical model
-@anchor(math_formulation)
 
 # Mathematical equation
 

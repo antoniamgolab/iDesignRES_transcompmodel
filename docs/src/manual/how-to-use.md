@@ -1,5 +1,4 @@
 # How to use?
-@anchor(how_to_use)
 
 In the following, we describe the purposeful usage of the model.
 

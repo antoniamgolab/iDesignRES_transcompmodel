@@ -1,5 +1,4 @@
 # Model Types
-@anchor(types)
 
 This page documents all custom types used in the transport component model.
 
