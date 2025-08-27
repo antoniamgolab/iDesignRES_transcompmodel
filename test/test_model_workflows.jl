@@ -11,20 +11,20 @@ mode = Mode(
     1,
     "road",
     true,
-    [0.0],
-    [0.0],
-    [0.0],
-    [0.0],
-    [0.0]
+    [0.0, 0.0],
+    [0.0, 0.0],
+    [0.0, 0.0],
+    [0.0, 0.0],
+    [0.0, 0.0]
 )
 product = Product(1, "default")
 fuel = Fuel(
     1,
     "electricity",
-    [0.0],
-    [0.0],
-    [0.0],
-    [0.0]
+    [0.0, 0.0],
+    [0.0, 0.0],
+    [0.0, 0.0],
+    [0.0, 0.0]
 )
 technology = Technology(1, "BEV", fuel)
 vehicletype = Vehicletype(1, "car", mode, [product])
@@ -33,17 +33,17 @@ techvehicle = TechVehicle(
     "EV",
     vehicletype,
     technology,
-    [0.0],
-    [[0.0]],
-    [[0.0]],
-    [0.0],
-    [0.0],
-    [1],
-    [0.0],
-    [product],
-    [0.0],
-    [0.0],
-    [0.0]
+    [0.0, 0.0],
+    [[0.0, 0.0], [0.0, 0.0]],
+    [[0.0, 0.0], [0.0, 0.0]],
+    [0.0, 0.0],
+    [0.0, 0.0],
+    [1, 2],
+    [0.0, 0.0],
+    [product, product],
+    [0.0, 0.0],
+    [0.0, 0.0],
+    [0.0, 0.0]
 )
 
 data_structures = Dict(

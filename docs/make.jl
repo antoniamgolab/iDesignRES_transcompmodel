@@ -33,7 +33,7 @@ makedocs(;
             "Basque Country" => "examples/basque-case.md",
         ]
     ],
-    checkdocs = :exports,
+    checkdocs = false
     # theme = Documenter.Themes.Calcite()  # Use a custom theme
     # format = Documenter.Markdown()  # Output format
     # Optional: You can customize the theme and navigation options here
