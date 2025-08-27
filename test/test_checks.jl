@@ -13,10 +13,31 @@ end
     @test_throws ErrorException check_required_keys(d, ["a", "b"])
 end
 
+using Test
+
 @testset "check_required_sub_keys" begin
-    d = Dict("parent" => [Dict("a" => 1)])
-    @test_throws ErrorException check_required_sub_keys(d, ["b"], "parent")
+    # Case 1: valid input, should not throw
+    data_valid = Dict(
+        "Layers" => [
+            Dict("id" => 1, "type" => "conv"),
+            Dict("id" => 2, "type" => "dense")
+        ]
+    )
+    required_keys = ["id", "type"]
+
+    @test check_required_sub_keys(data_valid, required_keys, "Layers") === nothing
+
+    # Case 2: missing a key in one dict, should throw AssertionError
+    data_invalid = Dict(
+        "Layers" => [
+            Dict("id" => 1),              # missing "type"
+            Dict("id" => 2, "type" => "dense")
+        ]
+    )
+
+    @test_throws AssertionError check_required_sub_keys(data_invalid, required_keys, "Layers")
 end
+
 
 @testset "check_folder_writable" begin
     @test_throws ErrorException check_folder_writable("nonexistent_folder")
