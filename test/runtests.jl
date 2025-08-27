@@ -34,11 +34,9 @@ using YAML
             include("test_supply_infrastructure.jl")
         end
     end
-    
-    @testset "Constraining mode share" begin
-        @testset "Constraining mode share test" begin
-            include("test_mode_share_restrict.jl")
-        end
+
+    @testset "Model workflow functions" begin
+        include("test_model_workflows.jl")
     end
 
     @testset "Constraining market share" begin
@@ -52,8 +50,9 @@ using YAML
             include("test_input_data_reading.jl")
         end
     end
-
-end
     @testset "Checks functions" begin
         include("test_checks.jl")
     end
+
+end
+    

@@ -1,3 +1,4 @@
+
 """
 
     This file contains functions relating to the mathematical formulation of the model, i.e., the definition of constraints and the objective function, including also the definition of decision variables.
@@ -1294,4 +1295,115 @@ function objective(model::Model, data_structures::Dict)
         end
     end
     @objective(model, Min, total_cost_expr)
+end
+
+
+
+"""
+    run_minimum_viable_case(data_structures::Dict, optimizer)
+
+Runs the minimum viable case: creates the model, applies demand coverage constraint, and sets the objective.
+
+# Arguments
+- data_structures::Dict: dictionary with the input data
+- optimizer: JuMP optimizer
+
+# Returns
+- model::JuMP.Model: JuMP model with constraints and objective set
+- data_structures::Dict: dictionary with the input data
+"""
+function run_minimum_viable_case(data_structures::Dict, optimizer)
+    model, data_structures = create_model(data_structures, "minimum_viable_case", optimizer)
+    constraint_demand_coverage(model, data_structures)
+    objective(model, data_structures)
+    return model, data_structures
+end
+
+"""
+    run_vehicle_stock_sizing(data_structures::Dict, optimizer)
+
+Creates model, applies demand coverage and vehicle sizing constraints, and sets the objective.
+Output: Cost-optimal coverage of travel demand with sizing of required vehicle stock.
+"""
+function run_vehicle_stock_sizing(data_structures::Dict, optimizer)
+    model, data_structures = create_model(data_structures, "vehicle_stock_sizing", optimizer)
+    constraint_demand_coverage(model, data_structures)
+    constraint_vehicle_sizing(model, data_structures)
+    objective(model, data_structures)
+    return model, data_structures
+end
+
+"""
+    run_vehicle_stock_aging(data_structures::Dict, optimizer)
+
+Creates model, applies demand coverage, vehicle sizing, and vehicle aging constraints, and sets the objective.
+Output: Cost-optimal coverage of travel demand with sizing of required vehicle stock under the consideration of the age structure of the vehicles.
+"""
+function run_vehicle_stock_aging(data_structures::Dict, optimizer)
+    model, data_structures = create_model(data_structures, "vehicle_stock_aging", optimizer)
+    constraint_demand_coverage(model, data_structures)
+    constraint_vehicle_sizing(model, data_structures)
+    constraint_vehicle_aging(model, data_structures)
+    objective(model, data_structures)
+    return model, data_structures
+end
+
+"""
+    run_constrained_technology_shift(data_structures::Dict, optimizer)
+
+Creates model, applies demand coverage, vehicle sizing, vehicle aging, and vehicle stock shift constraints, and sets the objective.
+Output: Cost-optimal coverage of travel demand with sizing of required vehicle stock under the consideration of the age structure of the vehicles and limitations on the speed of vehicle stock shift.
+"""
+function run_constrained_technology_shift(data_structures::Dict, optimizer)
+    model, data_structures = create_model(data_structures, "constrained_technology_shift", optimizer)
+    constraint_demand_coverage(model, data_structures)
+    constraint_vehicle_sizing(model, data_structures)
+    constraint_vehicle_aging(model, data_structures)
+    constraint_vehicle_stock_shift(model, data_structures)
+    objective(model, data_structures)
+    return model, data_structures
+end
+
+"""
+    run_fueling_infrastructure_sizing(data_structures::Dict, optimizer)
+
+Creates model, applies demand coverage, vehicle sizing, fueling demand constraints, and sets the objective.
+Output: Cost-optimal coverage of travel demand with sizing of required vehicle stock and expansion of fueling infrastructure.
+"""
+function run_fueling_infrastructure_sizing(data_structures::Dict, optimizer)
+    model, data_structures = create_model(data_structures, "fueling_infrastructure_sizing", optimizer)
+    constraint_demand_coverage(model, data_structures)
+    constraint_vehicle_sizing(model, data_structures)
+    constraint_fueling_demand(model, data_structures)
+    objective(model, data_structures)
+    return model, data_structures
+end
+
+"""
+    run_constrained_mode_shift(data_structures::Dict, optimizer)
+
+Creates model, applies demand coverage, vehicle sizing, mode shift constraints, and sets the objective.
+Output: Cost-optimal coverage of travel demand with sizing of required vehicle stock and constrained mode shift.
+"""
+function run_constrained_mode_shift(data_structures::Dict, optimizer)
+    model, data_structures = create_model(data_structures, "constrained_mode_shift", optimizer)
+    constraint_demand_coverage(model, data_structures)
+    constraint_vehicle_sizing(model, data_structures)
+    constraint_mode_shift(model, data_structures)
+    objective(model, data_structures)
+    return model, data_structures
+end
+
+"""
+    run_mode_infrastructure_sizing(data_structures::Dict, optimizer)
+
+Creates model, applies demand coverage, mode shift constraints, and sets the objective.
+Output: Cost-optimal coverage of travel demand under limitation of speed of shift.
+"""
+function run_mode_infrastructure_sizing(data_structures::Dict, optimizer)
+    model, data_structures = create_model(data_structures, "mode_infrastructure_sizing", optimizer)
+    constraint_demand_coverage(model, data_structures)
+    constraint_mode_shift(model, data_structures)
+    objective(model, data_structures)
+    return model, data_structures
 end
