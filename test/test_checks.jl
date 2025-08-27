@@ -234,8 +234,25 @@ using Test
     # InitialVehicleStock
     # ------------------------------
     @testset "InitialVehicleStock" begin
-        good = Dict("InitialVehicleStock"=>[Dict("id"=>1,"techvehicle"=>1,"year_of_purchase"=>2025,"stock"=>10)])
-        bad = Dict("InitialVehicleStock"=>[Dict("id"=>"x","techvehicle"=>"one","year_of_purchase"=>2024,"stock"=>"many")])
+        y_init = 2026
+        g_init = 2025
+
+        good = Dict(
+            "InitialVehicleStock" => [
+                Dict("id" => 1, "techvehicle" => 1, "year_of_purchase" => 2025, "stock" => 10)
+            ]
+        )
+
+        bad = Dict(
+            "InitialVehicleStock" => [
+                # year_of_purchase earlier than first generation
+                Dict("id" => 1, "techvehicle" => 1, "year_of_purchase" => 2024, "stock" => 10),
+                # year_of_purchase later than first considered year
+                Dict("id" => 2, "techvehicle" => 2, "year_of_purchase" => 2026, "stock" => 5),
+                # stock is not int or float
+                Dict("id" => 3, "techvehicle" => 3, "year_of_purchase" => 2025, "stock" => "ten")
+            ]
+        )
         @test TransComp.check_correct_format_InitialVehicleStock(good, y_init, g_init) === nothing
         @test_throws AssertionError TransComp.check_correct_format_InitialVehicleStock(bad, y_init, g_init)
     end
