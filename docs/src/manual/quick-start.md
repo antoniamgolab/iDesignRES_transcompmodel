@@ -1,5 +1,5 @@
 # Quick start
-@anchor quick_start
+@anchor(quick_start)
 
 In the following, you will find an explanation of how get the TransComp model to run.
 

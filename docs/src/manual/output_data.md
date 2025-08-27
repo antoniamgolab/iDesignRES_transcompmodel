@@ -1,5 +1,5 @@
 # Output data
-@anchor output_data
+@anchor(output_data)
 
 The format of the output is also in [YAML](https://yaml.org/). 
 For each of the decision variables of the model, a seperate output file is generated.

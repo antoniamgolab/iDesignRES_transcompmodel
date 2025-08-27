@@ -1,5 +1,5 @@
 # TransComp Documentation
-@anchor index
+@anchor(index)
 
 Welcome to the documentation for the `TransComp` package. This package provides tools for transportation modeling and optimization.
 

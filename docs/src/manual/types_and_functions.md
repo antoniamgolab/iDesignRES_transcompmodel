@@ -1,5 +1,5 @@
 # Types and functions
-@anchor types_and_functions 
+@anchor(types_and_functions) 
 
 ## Support Functions
 
