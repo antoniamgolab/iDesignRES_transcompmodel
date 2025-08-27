@@ -8,16 +8,18 @@ include(joinpath(@__DIR__, "../../src/TransComp.jl"))
 using .TransComp
 
 script_dir = @__DIR__   # Directory of the current script
-yaml_file_path = normpath(joinpath(@__DIR__, "data/basque_country_input.yaml"))
-println("Constructed file path: $yaml_file_path")
+
+# Now load all YAML files from the data folder
+data_folder_path = normpath(joinpath(@__DIR__, "data/basque_country/"))
+println("Loading all YAML files from folder: $data_folder_path")
 
 using Dates
 
 timestamp = Dates.format(now(), "yyyy-mm-dd_HH-MM-SS")
-case = "testing_$timestamp"
 
-file = yaml_file_path
-@info file
+case = "testing_$timestamp"
+file = data_folder_path
+@info "Input folder: $file"
 
 # reading input data and initializing the model
 @info "Initialization ..."

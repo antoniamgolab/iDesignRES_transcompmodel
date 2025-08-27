@@ -11,11 +11,11 @@ g_init = 2025
     @testset "check_input_file" begin
     @test_throws ErrorException check_input_file("nonexistent.yaml")
     @test_throws ErrorException check_input_file("file.txt")
-    # @test_throws ErrorException check_input_file("nonexistent_folder")
-    # # Create a temp folder with no YAML files and test
-    # mktempdir() do tmpdir
-    #     @test_throws ErrorException check_input_file(tmpdir)
-    # end
+    @test_throws ErrorException check_input_file("nonexistent_folder")
+    # Create a temp folder with no YAML files and test
+    mktempdir() do tmpdir
+        @test_throws ErrorException check_input_file(tmpdir)
+    end
 end
 
 @testset "check_required_keys" begin

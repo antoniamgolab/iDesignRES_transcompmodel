@@ -2195,7 +2195,7 @@ TechVehicle:
       - 0.01
       - 0.01
       - 0.01
-    maintnance_cost_distance:
+    maintenance_cost_distance:
       -
         - 6.36
         - 6.36
@@ -6243,7 +6243,7 @@ TechVehicle:
       - 0.01
       - 0.01
       - 0.01
-    maintnance_cost_distance:
+    maintenance_cost_distance:
       -
         - 7.23
         - 7.23
@@ -10291,7 +10291,7 @@ TechVehicle:
       - 0.01
       - 0.01
       - 0.01
-    maintnance_cost_distance:
+    maintenance_cost_distance:
       -
         - 8.99
         - 8.99
@@ -14339,7 +14339,7 @@ TechVehicle:
       - 0.01
       - 0.01
       - 0.01
-    maintnance_cost_distance:
+    maintenance_cost_distance:
       -
         - 4.283362791685152
         - 4.283362791685152
@@ -18387,7 +18387,7 @@ TechVehicle:
       - 0.01
       - 0.01
       - 0.01
-    maintnance_cost_distance:
+    maintenance_cost_distance:
       -
         - 5.543989936732059
         - 5.543989936732059
@@ -22435,7 +22435,7 @@ TechVehicle:
       - 0.01
       - 0.01
       - 0.01
-    maintnance_cost_distance:
+    maintenance_cost_distance:
       -
         - 7.327103670486395
         - 7.327103670486395
@@ -26483,7 +26483,7 @@ TechVehicle:
       - 0.01
       - 0.01
       - 0.01
-    maintnance_cost_distance:
+    maintenance_cost_distance:
       -
         - 6.36
         - 6.36
@@ -30531,7 +30531,7 @@ TechVehicle:
       - 0.01
       - 0.01
       - 0.01
-    maintnance_cost_distance:
+    maintenance_cost_distance:
       -
         - 7.23
         - 7.23
@@ -34579,7 +34579,7 @@ TechVehicle:
       - 0.01
       - 0.01
       - 0.01
-    maintnance_cost_distance:
+    maintenance_cost_distance:
       -
         - 8.99
         - 8.99
@@ -38627,7 +38627,7 @@ TechVehicle:
       - 0.01
       - 0.01
       - 0.01
-    maintnance_cost_distance:
+    maintenance_cost_distance:
       -
         - 6.36
         - 6.36
@@ -42675,7 +42675,7 @@ TechVehicle:
       - 0.01
       - 0.01
       - 0.01
-    maintnance_cost_distance:
+    maintenance_cost_distance:
       -
         - 7.23
         - 7.23
@@ -46723,7 +46723,7 @@ TechVehicle:
       - 0.01
       - 0.01
       - 0.01
-    maintnance_cost_distance:
+    maintenance_cost_distance:
       -
         - 8.99
         - 8.99
@@ -50771,7 +50771,7 @@ TechVehicle:
       - 0.01
       - 0.01
       - 0.01
-    maintnance_cost_distance:
+    maintenance_cost_distance:
       -
         - 6.36
         - 6.36
@@ -54819,7 +54819,7 @@ TechVehicle:
       - 0.01
       - 0.01
       - 0.01
-    maintnance_cost_distance:
+    maintenance_cost_distance:
       -
         - 7.23
         - 7.23
@@ -58867,7 +58867,7 @@ TechVehicle:
       - 0.01
       - 0.01
       - 0.01
-    maintnance_cost_distance:
+    maintenance_cost_distance:
       -
         - 8.99
         - 8.99

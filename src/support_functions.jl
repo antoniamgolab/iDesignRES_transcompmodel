@@ -16,10 +16,22 @@ This function reads the input data and checks requirements for the content of th
 # Returns
 - data_dict::Dict: dictionary with the input data
 """
-function get_input_data(path_to_source_file::String)
-    check_input_file(path_to_source_file)
-    data_dict = YAML.load_file(path_to_source_file)
-    check_required_keys(data_dict, struct_names_base)
+function get_input_data(path_to_source_file::String) # TODO: change this in the Basque country case study 
+    check_input_file(path_to_source_file) # TODO: change this; then the test for this check 
+    # If path_to_source_file is a folder, load and merge all YAML files inside
+    if isdir(path_to_source_file)
+        yaml_files = filter(f -> endswith(f, ".yaml"), readdir(path_to_source_file, join=true))
+        data_dict = Dict()
+        for file in yaml_files
+            file_data = YAML.load_file(file)
+            for (k, v) in file_data
+                data_dict[k] = v
+            end
+        end
+    else
+        data_dict = YAML.load_file(path_to_source_file)
+    end
+    check_required_keys(data_dict, struct_names_base) 
     # checking completion of model parametrization 
     check_model_parametrization(
         data_dict,
