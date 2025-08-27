@@ -19,6 +19,23 @@ function check_input_file(path_to_source_file::String)
         error("The input file must be a YAML file.")
     end
 end
+# function check_input_file(path_to_source_file::String)
+#     if isdir(path_to_source_file)
+#         # Check for YAML files in the folder
+#         yaml_files = filter(f -> endswith(f, ".yaml") || endswith(f, ".yml"), readdir(path_to_source_file))
+#         if isempty(yaml_files)
+#             error("The folder exists but contains no YAML files.")
+#         end
+#         return
+#     elseif isfile(path_to_source_file)
+#         if !endswith(path_to_source_file, ".yaml") && !endswith(path_to_source_file, ".yml")
+#             error("The input file must be a YAML file.")
+#         end
+#         return
+#     else
+#         error("The input path does not exist or is not a valid file/folder.")
+#     end
+# end
 
 """
     check_required_keys(data_dict::Dict, required_keys::Vector{String})
