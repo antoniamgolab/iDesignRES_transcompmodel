@@ -47,23 +47,23 @@ For further explanation of variables `alpha_f`, `beta_f`,`alpha_h`, `beta_h` and
 Other entries of the input file must include data inputs for the following data structures as keys in the input file:
 
 * [`GeographicElement`](types.md#transcomp-geographicelement): This includes nodes and connections between the nodes. For connections, it is important to define the fields `from`, `to` and `length`. `carbon_price` is a list of the length `Y` defining the location-dependent carbon price. 
-* [`Mode`](types.md#transcomp-mode) defines the set of mode types - this may be, for example, road, public transport, bike, or, a more specific, train. 
+* [`Mode`](types.md#transcomp-mode) defines the set of mode types - this may be, for example, road, public transport, bike, or, more specifically, train. 
 * [`Product`](types.md#transcomp-product) is the set of different product types that is considered, for which different types of vehicles are needed. This can include different types of freight goods, passengers etc. 
-* [`Path`](types.md#transcomp-path): Paths are sequences or geographic elements in the considered case study. A key parameter for this is their length.
+* [`Path`](types.md#transcomp-path): Paths are sequences of geographic elements in the considered case study. A key parameter for this is their length.
 * [`Fuel`](types.md#transcomp-fuel): This introduces all considered fuel types with corresponding emission factor, energy specific costs, costs investments and O&M costs for fueling infrastructure. The word *fuel* is used here to specify the energy source that powers the vehicles, and, therefore, also includes electricity. 
 * [`Technology`](types.md#transcomp-technology) is the drive-train technology, for which a fuel is defined.
-* [`Vehicletype`](types.md#transcomp-vehicletype) may include f.e. *midi-truck*, *passenger SUV*. Here, the mode for which the vehicle is used must be specified, as weel as, the product that is used for. 
-* [`TechVehicle`](types.md#transcomp-techvehicle) defines a set of combinations of vehicle types and drive-train technologies. Here, all the costs parameters related to this are defined along with technical specifics on the lifetime, load factor, annual range, tank capacity, maximum fueling power and fueling time are specified for each generation.
+* [`Vehicletype`](types.md#transcomp-vehicletype) may include e.g. *midi-truck*, *passenger SUV*. Here, the mode for which the vehicle is used must be specified, as well as the product that is used for. 
+* [`TechVehicle`](types.md#transcomp-techvehicle) defines a set of combinations of vehicle types and drive-train technologies. Here, all the cost parameters related to this are defined along with technical specifics on the lifetime, load factor, annual range, tank capacity, maximum fueling power and fueling time are specified for each generation.
 * [`InitialVehicleStock`](types.md#transcomp-initialvehiclestock) is a list defining the existing vehicle stock at the beginning of the optimization horizon along with their current age. The oldest vehicles considered must have the maximum age of *pre_y*.
-* [`InitialFuelingInfr`](types.md#transcomp-initialfuelinginfr) defines fueling capacities of the exisiting infrastructure per fuel.
+* [`InitialFuelingInfr`](types.md#transcomp-initialfuelinginfr) defines fueling capacities of the existing infrastructure per fuel.
 * [`InitialModeInfr`](types.md#transcomp-initialmodeinfr) defines the same for mode infrastructure.
 * [`FinancialStatus`](types.md#transcomp-financialstatus): To consider groups of different income levels, we define here the monetary budget of transport service consumers and their specific value of time (*VoT*).
-* [`Regiontype`](types.md#transcomp-regiontype) is for defining differently build environments within the considered regions, f.e. urban, rural, suburban. This is for introducing region-type-specific parameters such as costs (f.e. related to parking fees) and different travel speed.
-* [`Odpair`](types.md#transcomp-odpair): This defines all origin-destination pairs with corresponding trips number which defines the travel demand. Within this, the origin and destination of these trips are defined among with a list of different possible paths that can be travel between the origin and destination. Further, it must include the product that is transported, the consumer group by financial status, the region type and travel time budget.
+* [`Regiontype`](types.md#transcomp-regiontype) is for defining differently built environments within the considered regions, e.g. urban, rural, suburban. This is for introducing region-type-specific parameters such as costs (e.g. related to parking fees) and different travel speed.
+* [`Odpair`](types.md#transcomp-odpair): This defines all origin-destination pairs with corresponding trip numbers which defines the travel demand. Within this, the origin and destination of these trips are defined along with a list of different possible paths that can be traveled between the origin and destination. Further, it must include the product that is transported, the consumer group by financial status, the region type and travel time budget.
 
-Specifications for this are in [`Types`](types.md). Each value must be defined in each item of a list for a key.
+The required fields and its types correspond to the struct definitions as documented in [`Types`](types.md). Each value must be defined in each item of a list for a key.
 
-For each of these data types, a list with is added - as in the upcoming 
+For each of these data types, a list is added - as in the upcoming example: 
 ```yaml
 Mode:
 - id: 1
@@ -73,6 +73,7 @@ Mode:
   name: public_transport
   quantify_by_vehs: false
 ```
+
 Here, two travel modes are specified. The first one is modeled based on its vehicle stock.
 See the example for further an example on this. 
 

@@ -10,3 +10,9 @@ It is an optimization model which allows to softlink with energy system and tran
 
 The model runs entirely with Julia. Examples for the application of the model can be found in [`examples`](examples).
 
+## Acknowledgments
+
+**AI Assistance Disclosure**: Parts of this documentation and code organization were developed with AI assistance to improve clarity, consistency, and structure. All technical content, mathematical formulations, and model logic have been reviewed and validated by the development team.
+
+The TransComp model was developed as part of the EU Horizon project [iDesignRES](https://idesignres.eu/) in work package 1.
+

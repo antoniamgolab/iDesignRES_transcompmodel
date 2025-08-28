@@ -1,12 +1,12 @@
 # Quick start
 
-In the following, you will find an explanation of how get the TransComp model to run.
+In the following, you will find an explanation of how to get the TransComp model to run.
 
-## Prequisits
+## Prerequisites
  
-Make sure you have Julia installed and a suitable solver for optimization problem (for example, [Gurobi](https://www.gurobi.com/)).
+Make sure you have Julia installed and a suitable solver for optimization problems (for example, [Gurobi](https://www.gurobi.com/)).
 
-Clone the repository. and 
+Clone the repository and add the package: 
 
 ```julia
 add TransComp

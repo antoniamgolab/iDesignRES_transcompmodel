@@ -1,7 +1,5 @@
 using Test, JuMP, HiGHS, TransComp
 
-using Dates
-
 # Years
 y_init = 2020
 Y_end = 2022

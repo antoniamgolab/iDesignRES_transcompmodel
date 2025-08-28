@@ -12,12 +12,13 @@ using TransComp
 makedocs(;
     sitename = "TransComp Documentation",  # Title of the docs site
     modules = [TransComp],
-    authors = "Antonia Maria Golab",  # You can put your name or the team name
+    authors = "Antonia Maria Golab (with AI assistance for documentation)",  # You can put your name or the team name
     format = Documenter.HTML(;
         prettyurls = get(ENV, "CI", "false") == "true",
         edit_link = "main",
-        assets = String[],
+        assets = ["assets/custom.css", "assets/remove-prefix.js"],
         ansicolor = true,
+        canonical = "https://antoniamgolab.github.io/iDesignRES_transcompmodel",
     ),
     pages = [
         "Home" => "index.md",
@@ -27,15 +28,20 @@ makedocs(;
             "Preparation of input data" => "manual/input_data.md",
             "Output data" => "manual/output_data.md",
             "Mathematical model" => "manual/math_formulation.md",
-            "Functions" => "manual/functions.md",
+        ],
+        "Types and functions" => Any[
             "Model Types" => "manual/types.md",
+            "Functions" => "manual/functions.md",
             "Optimization functions" => "manual/constraints_and_objective.md",
         ],
         "Examples" => Any[
             "Basque Country" => "examples/basque-case.md",
         ]
     ],
-    checkdocs = :none 
+    checkdocs = :none,
+    doctest = false,
+    clean = true,
+    warnonly = [:missing_docs] 
     # theme = Documenter.Themes.Calcite()  # Use a custom theme
     # format = Documenter.Markdown()  # Output format
     # Optional: You can customize the theme and navigation options here
