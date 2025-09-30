@@ -281,27 +281,11 @@ struct FuelingInfrTypes
     max_occupancy_rate_veh_per_year::Float64
     by_route::Bool
     track_detour_time::Bool
-    gamma 
+    gamma::Array{Float64}
+    cost_per_kW::Array{Float64}
+    cost_per_kWh_network::Array{Float64}
 end
 
-"""
-    InitialFuelingInfr
-
-An 'InitialFuelingInfr' represents the fueling infrastructure that exists at the initial year of the optimization horizon.
-
-# Fields
-- `id::Int`: unique identifier of the initial fueling infrastructure
-- `technology::Technology`: technology of the fueling infrastructure
-- `allocation`: allocation of the fueling infrastructure
-- `installed_kW::Float64`: installed capacity of the fueling infrastructure in kW
-"""
-struct InitialFuelingInfr
-    id::Int
-    fuel::Fuel
-    allocation::Any
-    installed_kW::Float64
-    type::FuelingInfrTypes
-end
 
 
 """
@@ -438,6 +422,26 @@ struct FinancialStatus
     monetary_budget_purchase_ub::Any
     monetary_budget_purchase_time_horizon::Int
 end
+"""
+    InitialFuelingInfr
+
+An 'InitialFuelingInfr' represents the fueling infrastructure that exists at the initial year of the optimization horizon.
+
+# Fields
+- `id::Int`: unique identifier of the initial fueling infrastructure
+- `technology::Technology`: technology of the fueling infrastructure
+- `allocation`: allocation of the fueling infrastructure
+- `installed_kW::Float64`: installed capacity of the fueling infrastructure in kW
+"""
+struct InitialFuelingInfr
+    id::Int
+    fuel::Fuel
+    allocation::Any
+    installed_kW::Float64
+    type::FuelingInfrTypes
+    by_income_class::Bool
+    income_class::FinancialStatus
+end
 
 """
     Regiontype
@@ -530,9 +534,6 @@ struct TripRatio
 end
 
 
-
-
-
 struct MaximumFuelingCapacityByFuel
     id::Int
     fuel::Fuel
@@ -543,12 +544,15 @@ struct MaximumFuelingCapacityByFuel
     by_income_class::Bool
 end
 
+
 struct MaximumFuelingCapacityByTypeByYear
     id::Int
     year::Int
     location::GeographicElement
     maximum_capacity::Float64
     fueling_type::FuelingInfrTypes
+    by_income_class::Bool
+    income_class::FinancialStatus
 end
 
 """

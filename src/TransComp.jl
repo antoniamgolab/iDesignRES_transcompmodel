@@ -55,6 +55,7 @@ export Transportation_speeds
 export VehicleSubsidy
 
 # exporting model functions
+export constraint_a
 export base_define_variables
 export constraint_demand_coverage
 export constraint_vehicle_sizing
@@ -114,5 +115,6 @@ export find_large_rhs
 export apply_start_values_from_model
 export apply_start_values_fast_skip_progress
 export set_binary_start_x_c_from_relaxed!
+export create_blocks
 
 end
