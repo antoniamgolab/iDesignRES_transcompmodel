@@ -1,3 +1,23 @@
 basque_country_results.ipynb
 basque_country.ipynb
 temp_data/
+
+# Julia package management
+Manifest.toml
+
+# Documentation build artifacts
+docs/build/
+docs/.documenter-siteinfo.json
+docs/objects.inv
+docs/search_index.js
+
+# IDE and editor files
+.vscode/
+*.swp
+*.swo
+*~
+
+# Python artifacts (legacy cleanup)
+__pycache__/
+*.pyc
+*.pyo
