@@ -129,8 +129,8 @@ function generate_data_case_share_res()
         ),
     ]
     speed_list = [Speed(1, regiontype_list[1], vehicle_type_list[1], 60)]
-    market_share_list = [
-        MarketShares(1, techvehicle_list[2], 0, Y +y_init - 1, regiontype_list)]
+    market_share_list =
+        [MarketShares(1, techvehicle_list[2], 0, Y + y_init - 1, regiontype_list)]
     return data_structures = Dict(
         "Y" => Y,
         "y_init" => y_init,
@@ -214,10 +214,12 @@ end
 
     # checking demand coverage 
 
-    println(sum(
-        h_plus_dict[(Y_end, r.id, tv.id, g)] for r ∈ odpair_list for
-        tv ∈ techvehicle_list for g ∈ g_init:Y_end if tv.technology.id == 2
-    ))
+    println(
+        sum(
+            h_plus_dict[(Y_end, r.id, tv.id, g)] for r ∈ odpair_list for
+            tv ∈ techvehicle_list for g ∈ g_init:Y_end if tv.technology.id == 2
+        ),
+    )
     @test (
         round(
             sum(

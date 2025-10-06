@@ -601,9 +601,10 @@ function constraint_supply_infrastructure(model::JuMP.Model, data_structures::Di
         initsupplyinfr_list[findfirst(
             i -> i.supply_type.name == l.name && i.allocation.id == geo.id,
             initsupplyinfr_list,
-        )].installed_kW +
-        sum(model[:q_supply_infr_plus][y0, l.id, geo.id] for y0 ∈ data_structures["y_init"]:y) >=
-        sum(
+        )].installed_kW + sum(
+            model[:q_supply_infr_plus][y0, l.id, geo.id] for
+            y0 ∈ data_structures["y_init"]:y
+        ) >= sum(
             gamma * model[:s][y, p_r_k_g, tv.id] for p_r_k_g ∈ p_r_k_g_pairs for
             tv ∈ techvehicles for f ∈ fuel_list if p_r_k_g[4] == geo.id &&
             tv.technology.fuel.name == f.name &&
@@ -625,7 +626,7 @@ function constraint_mode_infrastructure(model::JuMP.Model, data_structures::Dict
     path_list = data_structures["path_list"]
     initialmodeinfr_list = data_structures["initialmodeinfr_list"]
     geographic_element_list = data_structures["geographic_element_list"]
-    
+
     @constraint(
         model,
         [
@@ -641,8 +642,9 @@ function constraint_mode_infrastructure(model::JuMP.Model, data_structures::Dict
         ) >=
         data_structures["gamma"] * sum(
             model[:f][y, p_r_k, m_tv, g] for p_r_k ∈ data_structures["p_r_k_pairs"] for
-            m_tv ∈ data_structures["m_tv_pairs"] for g in data_structures["g_init"]:y if
-            geo in path_list[findfirst(p -> p.id == p_r_k[3], path_list)].sequence && m.id == m_tv[1]
+            m_tv ∈ data_structures["m_tv_pairs"] for g ∈ data_structures["g_init"]:y if
+            geo in path_list[findfirst(p -> p.id == p_r_k[3], path_list)].sequence &&
+            m.id == m_tv[1]
         )
     )
 end
@@ -720,8 +722,8 @@ function constraint_vehicle_stock_shift(model::JuMP.Model, data_structures::Dict
             tv ∈ techvehicles
         ) +
         beta_h * sum(
-            model[:h_exist][y_init, r.id, tv.id, g] for
-            g ∈ g_init:(y_init-1) for tv ∈ techvehicles if tv.technology.id == t.id
+            model[:h_exist][y_init, r.id, tv.id, g] for g ∈ g_init:(y_init-1) for
+            tv ∈ techvehicles if tv.technology.id == t.id
         )
     )
 
@@ -742,8 +744,8 @@ function constraint_vehicle_stock_shift(model::JuMP.Model, data_structures::Dict
             tv ∈ techvehicles
         ) +
         beta_h * sum(
-            model[:h_exist][y_init, r.id, tv.id, g] for
-            g ∈ g_init:(y_init-1) for tv ∈ techvehicles if tv.technology.id == t.id
+            model[:h_exist][y_init, r.id, tv.id, g] for g ∈ g_init:(y_init-1) for
+            tv ∈ techvehicles if tv.technology.id == t.id
         )
     )
 
@@ -783,7 +785,7 @@ function constraint_vehicle_stock_shift(model::JuMP.Model, data_structures::Dict
         alpha_h *
         sum(model[:h][y, r.id, tv.id, g] for g ∈ g_init:(y-1) for tv ∈ techvehicles) +
         beta_h * sum(
-            model[:h][y-1, r.id, tv.id, g]  for g ∈ g_init:(y-1) for
+            model[:h][y-1, r.id, tv.id, g] for g ∈ g_init:(y-1) for
             tv ∈ techvehicles if tv.technology.id == t.id
         )
     )
@@ -877,8 +879,8 @@ function constraint_mode_share(model::JuMP.Model, data_structures::Dict)
         model,
         [el in mode_share_list],
         sum(
-            model[:f][el.year, (r.product.id, r.id, k.id), mv, g] for r ∈ odpairs
-            for mv ∈ m_tv_pairs for k ∈ r.paths for g ∈ g_init:(el.year) if
+            model[:f][el.year, (r.product.id, r.id, k.id), mv, g] for r ∈ odpairs for
+            mv ∈ m_tv_pairs for k ∈ r.paths for g ∈ g_init:(el.year) if
             mv[1] == el.mode.id && r.region_type.id in [rt.id for rt ∈ el.region_type]
         ) ==
         el.share * sum(
@@ -1287,7 +1289,9 @@ function objective(model::Model, data_structures::Dict)
                             total_cost_expr,
                             (
                                 initialsupplyinfr_list[findfirst(
-                                    i -> i.supply_type.id == st.id && i.allocation.id == geo.id,
+                                    i ->
+                                        i.supply_type.id == st.id &&
+                                            i.allocation.id == geo.id,
                                     initialsupplyinfr_list,
                                 )].installed_kW +
                                 model[:q_supply_infr_plus][y0, st.id, geo.id]
@@ -1333,7 +1337,8 @@ Creates model, applies demand coverage and vehicle sizing constraints, and sets 
 Output: Cost-optimal coverage of travel demand with sizing of required vehicle stock.
 """
 function run_vehicle_stock_sizing(data_structures::Dict, optimizer)
-    model, data_structures = create_model(data_structures, "vehicle_stock_sizing", optimizer)
+    model, data_structures =
+        create_model(data_structures, "vehicle_stock_sizing", optimizer)
     constraint_demand_coverage(model, data_structures)
     constraint_vehicle_sizing(model, data_structures)
     objective(model, data_structures)
@@ -1362,7 +1367,8 @@ Creates model, applies demand coverage, vehicle sizing, vehicle aging, and vehic
 Output: Cost-optimal coverage of travel demand with sizing of required vehicle stock under the consideration of the age structure of the vehicles and limitations on the speed of vehicle stock shift.
 """
 function run_constrained_technology_shift(data_structures::Dict, optimizer)
-    model, data_structures = create_model(data_structures, "constrained_technology_shift", optimizer)
+    model, data_structures =
+        create_model(data_structures, "constrained_technology_shift", optimizer)
     constraint_demand_coverage(model, data_structures)
     constraint_vehicle_sizing(model, data_structures)
     constraint_vehicle_aging(model, data_structures)
@@ -1378,7 +1384,8 @@ Creates model, applies demand coverage, vehicle sizing, fueling demand constrain
 Output: Cost-optimal coverage of travel demand with sizing of required vehicle stock and expansion of fueling infrastructure.
 """
 function run_fueling_infrastructure_sizing(data_structures::Dict, optimizer)
-    model, data_structures = create_model(data_structures, "fueling_infrastructure_sizing", optimizer)
+    model, data_structures =
+        create_model(data_structures, "fueling_infrastructure_sizing", optimizer)
     constraint_demand_coverage(model, data_structures)
     constraint_vehicle_sizing(model, data_structures)
     constraint_fueling_demand(model, data_structures)
@@ -1393,7 +1400,8 @@ Creates model, applies demand coverage, vehicle sizing, mode shift constraints, 
 Output: Cost-optimal coverage of travel demand with sizing of required vehicle stock and constrained mode shift.
 """
 function run_constrained_mode_shift(data_structures::Dict, optimizer)
-    model, data_structures = create_model(data_structures, "constrained_mode_shift", optimizer)
+    model, data_structures =
+        create_model(data_structures, "constrained_mode_shift", optimizer)
     constraint_demand_coverage(model, data_structures)
     constraint_vehicle_sizing(model, data_structures)
     constraint_mode_shift(model, data_structures)
@@ -1408,7 +1416,8 @@ Creates model, applies demand coverage, mode shift constraints, and sets the obj
 Output: Cost-optimal coverage of travel demand under limitation of speed of shift.
 """
 function run_mode_infrastructure_sizing(data_structures::Dict, optimizer)
-    model, data_structures = create_model(data_structures, "mode_infrastructure_sizing", optimizer)
+    model, data_structures =
+        create_model(data_structures, "mode_infrastructure_sizing", optimizer)
     constraint_demand_coverage(model, data_structures)
     constraint_mode_shift(model, data_structures)
     objective(model, data_structures)

@@ -17,13 +17,29 @@ fin_status = FinancialStatus(1, "default", 15.0, 10000.0, 9000.0, 11000.0, 5)
 region = Regiontype(1, "urban", fill(0.0, nyears), fill(0.0, nyears))
 
 # Minimal Mode
-mode = Mode(1, "road", true, zeros(nyears), zeros(nyears), zeros(nyears), zeros(nyears), zeros(nyears))
+mode = Mode(
+    1,
+    "road",
+    true,
+    zeros(nyears),
+    zeros(nyears),
+    zeros(nyears),
+    zeros(nyears),
+    zeros(nyears),
+)
 
 # Minimal Product
 product = Product(1, "default")
 
 # Minimal Fuel
-fuel = Fuel(1, "electricity", fill(0.0, nyears), fill(0.0, nyears), fill(0.0, nyears), fill(0.0, nyears))
+fuel = Fuel(
+    1,
+    "electricity",
+    fill(0.0, nyears),
+    fill(0.0, nyears),
+    fill(0.0, nyears),
+    fill(0.0, nyears),
+)
 
 # Minimal Technology
 technology = Technology(1, "BEV", fuel)
@@ -38,8 +54,8 @@ techvehicle = TechVehicle(
     vehicletype,
     technology,
     fill(0.0, nyears),                      # capital_cost
-    [fill(0.0, nyears) for _ in 1:nyears],  # maintenance_cost_annual
-    [fill(0.0, nyears) for _ in 1:nyears],  # maintenance_cost_distance
+    [fill(0.0, nyears) for _ ∈ 1:nyears],  # maintenance_cost_annual
+    [fill(0.0, nyears) for _ ∈ 1:nyears],  # maintenance_cost_distance
     fill(1.0, nyears),                      # W
     fill(0.0, nyears),                      # spec_cons
     fill(5, nyears),                        # Lifetime
@@ -47,7 +63,7 @@ techvehicle = TechVehicle(
     [product],                               # products
     fill(50.0, nyears),                     # tank_capacity
     fill(10.0, nyears),                     # peak_fueling
-    fill(0.5, nyears)                       # fueling_time
+    fill(0.5, nyears),                       # fueling_time
 )
 
 # Minimal InitialVehicleStock
@@ -67,7 +83,7 @@ odpair = Odpair(
     [init_stock],
     fin_status,
     region,
-    120.0
+    120.0,
 )
 
 # Minimal Initial Mode & Fueling Infrastructure
@@ -114,7 +130,6 @@ data_structures = Dict(
     "init_detour_times_list" => [],  # added
     "detour_time_reduction_list" => [],  # added
     "supplytype_list" => [],  # already in first
-    
 )
 
 
@@ -129,29 +144,29 @@ optimizer = HiGHS.Optimizer
 @testset "Model workflow functions include expected constraints" begin
     model, _ = run_minimum_viable_case(data_structures, optimizer)
     @test haskey(model, :f)
-    @test length(all_constraints(model; include_variable_in_set_constraints=true)) > 0
+    @test length(all_constraints(model; include_variable_in_set_constraints = true)) > 0
 
     model, _ = run_vehicle_stock_sizing(data_structures, optimizer)
-        @test haskey(model, :h)
-        @test length(all_constraints(model; include_variable_in_set_constraints=true)) > 0
+    @test haskey(model, :h)
+    @test length(all_constraints(model; include_variable_in_set_constraints = true)) > 0
 
     model, _ = run_vehicle_stock_aging(data_structures, optimizer)
     @test haskey(model, :h_exist)
-    @test length(all_constraints(model; include_variable_in_set_constraints=true)) > 0
+    @test length(all_constraints(model; include_variable_in_set_constraints = true)) > 0
 
     model, _ = run_constrained_technology_shift(data_structures, optimizer)
     @test haskey(model, :h_exist)
-        @test length(all_constraints(model; include_variable_in_set_constraints=true)) > 0
+    @test length(all_constraints(model; include_variable_in_set_constraints = true)) > 0
 
     model, _ = run_fueling_infrastructure_sizing(data_structures, optimizer)
     @test haskey(model, :q_fuel_infr_plus)
-        @test length(all_constraints(model; include_variable_in_set_constraints=true)) > 0
+    @test length(all_constraints(model; include_variable_in_set_constraints = true)) > 0
 
     model, _ = run_constrained_mode_shift(data_structures, optimizer)
     @test haskey(model, :h)
-        @test length(all_constraints(model; include_variable_in_set_constraints=true)) > 0
+    @test length(all_constraints(model; include_variable_in_set_constraints = true)) > 0
 
     model, _ = run_mode_infrastructure_sizing(data_structures, optimizer)
     @test haskey(model, :q_mode_infr_plus)
-        @test length(all_constraints(model; include_variable_in_set_constraints=true)) > 0
+    @test length(all_constraints(model; include_variable_in_set_constraints = true)) > 0
 end

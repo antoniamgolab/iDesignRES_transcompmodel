@@ -3,8 +3,6 @@ This file contains the functions that are used in the model but are not directly
 
 """
 
-using YAML, JuMP, Printf
-
 """
 	get_input_data(path_to_source_file::String)
 
@@ -19,18 +17,19 @@ This function reads the input data and checks requirements for the content of th
 function get_input_data(path_to_source_file::String) # TODO: change this in the Basque country case study 
     check_input_file(path_to_source_file)
     if isdir(path_to_source_file)
-        yaml_files = filter(f -> endswith(f, ".yaml"), readdir(path_to_source_file, join=true))
+        yaml_files =
+            filter(f -> endswith(f, ".yaml"), readdir(path_to_source_file, join = true))
         data_dict = Dict{Any,Any}()
-        for file in yaml_files
+        for file ∈ yaml_files
             file_data = YAML.load_file(file)
-            for (k, v) in file_data
+            for (k, v) ∈ file_data
                 data_dict[k] = v
             end
         end
     else
         data_dict = YAML.load_file(path_to_source_file)
     end
-    check_required_keys(data_dict, struct_names_base) 
+    check_required_keys(data_dict, struct_names_base)
     # checking completion of model parametrization 
     check_model_parametrization(
         data_dict,
@@ -619,8 +618,8 @@ function parse_data(data_dict::Dict)
     return data_structures
 end
 
-    # create_m_tv_pairs is defined in internal_functions.jl and should not be redefined here
-    # create_tv_id_set is defined in internal_functions.jl and should not be redefined here
+# create_m_tv_pairs is defined in internal_functions.jl and should not be redefined here
+# create_tv_id_set is defined in internal_functions.jl and should not be redefined here
 
 """
 	create_v_t_set(techvehicle_list::Vector{TechVehicle})
@@ -633,7 +632,7 @@ Creates a set of pairs of techvehicle IDs.
 # Returns
 - t_v_pairs::Set: set of pairs of techvehicle IDs
 """
-    # create_v_t_set is defined in internal_functions.jl and should not be redefined here
+# create_v_t_set is defined in internal_functions.jl and should not be redefined here
 
 
 
@@ -649,7 +648,7 @@ Creates a set of pairs of product, odpair, path, and element IDs.
 # Returns
 - p_r_k_g_pairs::Set: set of pairs of product, odpair, path, and element IDs
 """
-    # create_p_r_k_g_set is defined in internal_functions.jl and should not be redefined here
+# create_p_r_k_g_set is defined in internal_functions.jl and should not be redefined here
 
 """
 	create_p_r_k_n_set(odpairs::Vector{Odpair})
@@ -662,7 +661,7 @@ Creates a set of pairs of product, odpair, path, and element IDs.
 # Returns
 - p_r_k_n_pairs::Set: set of pairs of product, odpair, path, and element IDs
 """
-    # create_p_r_k_n_set is defined in internal_functions.jl and should not be redefined here
+# create_p_r_k_n_set is defined in internal_functions.jl and should not be redefined here
 
 """
 	create_r_k_set(odpairs::Vector{Odpair})
@@ -675,7 +674,7 @@ Creates a set of pairs of odpair and path IDs.
 # Returns
 - r_k_pairs::Set: set of pairs of odpair and path IDs
 """
-    # create_r_k_set is defined in internal_functions.jl and should not be redefined here
+# create_r_k_set is defined in internal_functions.jl and should not be redefined here
 
 """
     create_model(data_structures, case_name::String, optimizer)
@@ -707,7 +706,7 @@ Calculating the carbon price along a given route based on the regions that the p
 - k::Path: path
 - data_structures::Dict: dictionary with the input data 
 """
-    # create_emission_price_along_path is defined in internal_functions.jl and should not be redefined here
+# create_emission_price_along_path is defined in internal_functions.jl and should not be redefined here
 
 """
     save_results(model::Model, case::String, data_structures::Dict, write_to_file::Bool = true, folder_for_results::String = "results")
@@ -730,7 +729,7 @@ function save_results(
 )
     if write_to_file
         check_folder_writable(folder_for_results)
-    end 
+    end
     y_init = data_structures["y_init"]
     Y_end = data_structures["Y_end"]
     odpairs = data_structures["odpair_list"]
@@ -983,7 +982,12 @@ Function to disaggregate the total electricity load into hourly load profiles fo
 - `yearly_load_dict::Dict`: Demand distribution among different vehicle types.
 """
 
-function disagreggate(model::JuMP.Model, data_structures::Dict, fuel_id::Int=2, year::Int=2020)
+function disagreggate(
+    model::JuMP.Model,
+    data_structures::Dict,
+    fuel_id::Int = 2,
+    year::Int = 2020,
+)
     # creating hourly load profile for each year
     y_init = data_structures["y_init"]
     g_init = data_structures["g_init"]
@@ -995,24 +999,31 @@ function disagreggate(model::JuMP.Model, data_structures::Dict, fuel_id::Int=2, 
     s = value.(model[:s])
     h = value.(model[:h])
     yearly_load_dict = Dict()
-    y = year 
-    for tv in techvehicle_list
+    y = year
+    for tv ∈ techvehicle_list
 
         if tv.technology.fuel.id == fuel_id
-            total_h = sum(h[y, r.id, tv.id, g] for r in data_structures["odpair_list"] for g in data_structures["g_init"]:y)
-            
+            total_h = sum(
+                h[y, r.id, tv.id, g] for r ∈ data_structures["odpair_list"] for
+                g ∈ data_structures["g_init"]:y
+            )
+
             # i need for each year the total electricity load
-            total_load = sum(s[y, p_r_k_g, tv.id] for p_r_k_g in p_r_k_g_pairs for tv in techvehicle_list if tv.technology.fuel.id == fuel_id)
-    
+            total_load = sum(
+                s[y, p_r_k_g, tv.id] for p_r_k_g ∈ p_r_k_g_pairs for
+                tv ∈ techvehicle_list if tv.technology.fuel.id == fuel_id
+            )
+
             # i need amount of vehicles driving this year  
             load_dict_h_g = Dict()
 
-            for g in data_structures["g_init"]:y
-                h_g = sum(h[y, r.id, tv.id, g] for r in data_structures["odpair_list"])
+            for g ∈ data_structures["g_init"]:y
+                h_g = sum(h[y, r.id, tv.id, g] for r ∈ data_structures["odpair_list"])
                 share_load = h_g / total_h
                 if share_load > 0
-                    load_dict_h_g[g] = (h_g, share_load * total_load, tv.tank_capacity[g-g_init+1])
-                    
+                    load_dict_h_g[g] =
+                        (h_g, share_load * total_load, tv.tank_capacity[g-g_init+1])
+
                 end
             end
             yearly_load_dict[tv.id] = load_dict_h_g

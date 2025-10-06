@@ -133,7 +133,7 @@ function generate_data_case_mode_share_restrict()
         Speed(1, regiontype_list[1], vehicle_type_list[1], 60),
         Speed(2, regiontype_list[1], vehicle_type_list[2], 80),
     ]
-    mode_share_list = [ModeShares(1, mode_list[1], 0,  Y + y_init - 1, [regiontype_list[1]])]
+    mode_share_list = [ModeShares(1, mode_list[1], 0, Y + y_init - 1, [regiontype_list[1]])]
 
     return data_structures = Dict(
         "Y" => Y,

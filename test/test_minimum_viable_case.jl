@@ -378,11 +378,7 @@ end
     )
 
     # check fueling infrastructure sizing 
-    print(
-        sum(
-            q_fuel_infr_plus_dict[(y, 1, 1)] for f ∈ fuel_list for y ∈ y_init:Y_end
-        )
-    )
+    print(sum(q_fuel_infr_plus_dict[(y, 1, 1)] for f ∈ fuel_list for y ∈ y_init:Y_end))
     @test (
         round(
             sum(q_fuel_infr_plus_dict[(y, 1, 1)] for f ∈ fuel_list for y ∈ y_init:Y_end),

@@ -235,6 +235,13 @@ end
     )
 
     @test (
-        round(sum(q_mode_infr_plus_dict[y, m.id, geo.id] for m in data_structures["mode_list"] for geo in data_structures["geographic_element_list"] for y in data_structures["y_init"]:Y_end), digits=2) == 0.3
+        round(
+            sum(
+                q_mode_infr_plus_dict[y, m.id, geo.id] for m ∈ data_structures["mode_list"]
+                for geo ∈ data_structures["geographic_element_list"] for
+                y ∈ data_structures["y_init"]:Y_end
+            ),
+            digits = 2,
+        ) == 0.3
     )
 end

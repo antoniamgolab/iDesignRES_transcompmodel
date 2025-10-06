@@ -16,11 +16,54 @@ include("support_functions.jl")
 include("checks.jl")
 
 # Export types (from structs.jl)
-export Node, Edge, GeographicElement, Mode, Product, Path, Fuel, Technology, Vehicletype, TechVehicle, InitialVehicleStock, InitialFuelingInfr, InitialModeInfr, FinancialStatus, Regiontype, Odpair, Speed, MarketShares, ModeShares, ModeSharemaxbyyear, ModeShareminbyyear, EmissionLimitbymode, EmissionLimitbyyear, VehicleSubsidy, SupplyType, InitialSupplyInfr, InitDetourTime, DetourTimeReduction
+export Node,
+    Edge,
+    GeographicElement,
+    Mode,
+    Product,
+    Path,
+    Fuel,
+    Technology,
+    Vehicletype,
+    TechVehicle,
+    InitialVehicleStock,
+    InitialFuelingInfr,
+    InitialModeInfr,
+    FinancialStatus,
+    Regiontype,
+    Odpair,
+    Speed,
+    MarketShares,
+    ModeShares,
+    ModeSharemaxbyyear,
+    ModeShareminbyyear,
+    EmissionLimitbymode,
+    EmissionLimitbyyear,
+    VehicleSubsidy,
+    SupplyType,
+    InitialSupplyInfr,
+    InitDetourTime,
+    DetourTimeReduction
 
 
 # Export model functions (from model_functions.jl)
-export base_define_variables, constraint_demand_coverage, constraint_vehicle_sizing, constraint_vehicle_aging, constraint_monetary_budget, constraint_fueling_infrastructure, constraint_mode_infrastructure, constraint_fueling_demand, constraint_vehicle_stock_shift, constraint_mode_shift, constraint_mode_share, constraint_max_mode_share, constraint_min_mode_share, constraint_market_share, constraint_emissions_by_mode, constraint_supply_infrastructure, objective,
+export base_define_variables,
+    constraint_demand_coverage,
+    constraint_vehicle_sizing,
+    constraint_vehicle_aging,
+    constraint_monetary_budget,
+    constraint_fueling_infrastructure,
+    constraint_mode_infrastructure,
+    constraint_fueling_demand,
+    constraint_vehicle_stock_shift,
+    constraint_mode_shift,
+    constraint_mode_share,
+    constraint_max_mode_share,
+    constraint_min_mode_share,
+    constraint_market_share,
+    constraint_emissions_by_mode,
+    constraint_supply_infrastructure,
+    objective,
     run_minimum_viable_case,
     run_vehicle_stock_sizing,
     run_vehicle_stock_aging,
@@ -33,7 +76,14 @@ export base_define_variables, constraint_demand_coverage, constraint_vehicle_siz
 export get_input_data, parse_data, create_model, disagreggate, save_results
 
 # Export checks (from checks.jl)
-export check_input_file, check_required_keys, check_model_parametrization, check_required_sub_keys, check_folder_writable, check_dimensions_of_input_parameters, check_validity_of_model_parametrization, check_uniquness_of_ids
+export check_input_file,
+    check_required_keys,
+    check_model_parametrization,
+    check_required_sub_keys,
+    check_folder_writable,
+    check_dimensions_of_input_parameters,
+    check_validity_of_model_parametrization,
+    check_uniquness_of_ids
 # Add more exports from checks.jl as needed
 
 end

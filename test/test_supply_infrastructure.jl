@@ -138,8 +138,22 @@ function generate_data_supply_infr()
     ]
 
     initialsupplyinfr_list = [
-        InitialSupplyInfr(1, "1", fuel_list[1], supplytype_list[1], geographic_element_list[1], 0),
-        InitialSupplyInfr(2, "2", fuel_list[2], supplytype_list[2], geographic_element_list[1], 0),
+        InitialSupplyInfr(
+            1,
+            "1",
+            fuel_list[1],
+            supplytype_list[1],
+            geographic_element_list[1],
+            0,
+        ),
+        InitialSupplyInfr(
+            2,
+            "2",
+            fuel_list[2],
+            supplytype_list[2],
+            geographic_element_list[1],
+            0,
+        ),
     ]
 
     return data_structures = Dict(
@@ -212,7 +226,7 @@ end
     q_mode_infr_plus_dict,
     budget_penalty_plus_dict,
     budget_penalty_minus_dict,
-    q_supply_infr_plus_dict = 
+    q_supply_infr_plus_dict =
         save_results(model, case_name, data_structures, false, results_file_path)
 
 
@@ -226,11 +240,22 @@ end
     odpair_list = data_structures["odpair_list"]
     supplytype_list = data_structures["supplytype_list"]
 
-    @test sum(q_supply_infr_plus_dict[y, st.id, geo.id] for st in supplytype_list for geo in data_structures["geographic_element_list"] for v in
-    techvehicle_list for y in data_structures["y_init"]:Y_end if st.id == 2) == 0.8
-    
-    @test (round(sum(q_supply_infr_plus_dict[y, st.id, geo.id] for st in supplytype_list for geo in data_structures["geographic_element_list"] for v in
-    techvehicle_list for y in data_structures["y_init"]:Y_end if st.id == 1), digits=2) == 0.09)
+    @test sum(
+        q_supply_infr_plus_dict[y, st.id, geo.id] for st ∈ supplytype_list for
+        geo ∈ data_structures["geographic_element_list"] for v ∈ techvehicle_list for
+        y ∈ data_structures["y_init"]:Y_end if st.id == 2
+    ) == 0.8
+
+    @test (
+        round(
+            sum(
+                q_supply_infr_plus_dict[y, st.id, geo.id] for st ∈ supplytype_list for
+                geo ∈ data_structures["geographic_element_list"] for v ∈ techvehicle_list
+                for y ∈ data_structures["y_init"]:Y_end if st.id == 1
+            ),
+            digits = 2,
+        ) == 0.09
+    )
 
 
 end
