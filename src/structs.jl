@@ -53,7 +53,7 @@ A 'Graph_item' represents a graph item that is either a node or an edge.
 struct GeographicElement
     id::Int
     type::String
-    name::String
+    name
     carbon_price::Array{Float64,1}
     from::Any
     to::Any
@@ -118,6 +118,38 @@ struct Path
     name::String
     length::Float64
     sequence::Array{GeographicElement,1}
+    cumulative_distance::Array{Float64,1}
+    distance_from_previous::Array{Float64,1}
+end
+
+"""
+    MandatoryBreak
+
+A 'MandatoryBreak' represents a required driver rest break along a path, based on EU regulations (4.5 hours driving → 45 min break).
+
+# Fields
+- `id::Int`: unique identifier of the mandatory break
+- `path_id::Int`: ID of the path this break belongs to
+- `path_length::Float64`: total length of the path in km
+- `total_driving_time::Float64`: total driving time for entire path in hours (excluding breaks)
+- `break_number::Int`: sequential break number (1, 2, 3, ...)
+- `latest_node_idx::Int`: index in path.sequence where break must occur by (at latest)
+- `latest_geo_id::Int`: geographic element ID of the node where break must occur
+- `cumulative_distance::Float64`: distance traveled up to this break point in km
+- `cumulative_driving_time::Float64`: driving time up to this break point in hours (excluding break time)
+- `time_with_breaks::Float64`: total elapsed time AFTER taking this break in hours (including break time)
+"""
+struct MandatoryBreak
+    id::Int
+    path_id::Int
+    path_length::Float64
+    total_driving_time::Float64
+    break_number::Int
+    latest_node_idx::Int
+    latest_geo_id::Int
+    cumulative_distance::Float64
+    cumulative_driving_time::Float64
+    time_with_breaks::Float64
 end
 
 """
@@ -156,6 +188,40 @@ struct Technology
     id::Int
     name::String
     fuel::Fuel
+end
+
+"""
+    FuelCost
+
+A 'FuelCost' represents the cost of a fuel at a specific location.
+# Fields
+- `id::Int`: unique identifier of the fuel cost
+- `location::GeographicElement`: location where the fuel cost is valid
+- `fuel::Fuel`: fuel for which the cost is valid
+- `cost_per_kWh::Array{Float64,1}`: cost per kWh of the fuel in € for each year
+
+"""
+struct FuelCost
+    id::Int
+    location::GeographicElement
+    fuel::Fuel
+    cost_per_kWh::Array{Float64,1}
+end
+
+"""
+    NetworkConnectionCosts
+
+A 'NetworkConnectionCosts' represents the network connection costs for electricity infrastructure at a specific location.
+# Fields
+- `id::Int`: unique identifier of the network connection cost
+- `location::GeographicElement`: geographic element where these costs apply
+- `network_cost_per_kW::Array{Float64,1}`: network connection cost per kW in €/kW for each year
+
+"""
+struct NetworkConnectionCosts
+    id::Int
+    location::GeographicElement
+    network_cost_per_kW::Array{Float64,1}
 end
 
 """
@@ -269,7 +335,8 @@ A 'FuelingInfrTypes' represents the fueling infrastructure types that are used f
 - `max_occupancy_rate_veh_per_year::Float64`: maximum occupancy rate of the vehicle per year
 - `by_route::Bool`: if the fueling infrastructure is considered by route
 - `track_detour_time::Bool`: if the detour time to reach the fueling station is tracked
-- `gamma::Float64`: ratio between peak demand and annual demandfor fueling 
+- `gamma::Float64`: ratio between peak demand and annual demandfor fueling
+- `om_costs::Array{Float64}`: operation and maintenance costs in €/year
 
 """
 struct FuelingInfrTypes
@@ -284,6 +351,7 @@ struct FuelingInfrTypes
     gamma::Array{Float64}
     cost_per_kW::Array{Float64}
     cost_per_kWh_network::Array{Float64}
+    om_costs::Array{Float64}
 end
 
 
@@ -416,7 +484,7 @@ A 'FinancialStatus' describes a demographic group based on what there average bu
 struct FinancialStatus
     id::Int
     name::String
-    VoT::Any
+    VoT::Any  # Vector of values over time (one per year)
     monetary_budget_purchase::Any
     monetary_budget_purchase_lb::Any
     monetary_budget_purchase_ub::Any
@@ -491,7 +559,7 @@ struct Odpair
     financial_status::FinancialStatus
     region_type::Regiontype
     travel_time_budget::Float64
-    purpose::Int
+    purpose
 end
 
 """
@@ -1002,6 +1070,50 @@ struct VehicleSubsidy
     subsidy::Float64
 end
 
+"""
+
+    SpatialFlexibilityEdges
+
+A 'SpatialFlexibilityEdges' represents a set of edges that can be used for spatial flexibility in the routing of vehicles.
+# Fields
+- `id::Int`: unique identifier of the spatial flexibility edges
+- `subset_id::Int`: identifier of subset of edges for the generation-tech_vehicle-path combination
+- `path::Path`: path associated with these edges
+- `generation::Int`: generation of the vehicle
+- `tech_vehicle::TechVehicle`: vehicle type and technology
+- `sequence::Array{GeographicElement,1}`: sequence of nodes and edges that are passed through
+- `length::Float64`: length of the edges in km
+- `num_edges::Int`: number of edges in the sequence
+"""
+struct SpatialFlexibilityEdges
+    id::Int
+    subset_id::Int
+    path::Path
+    generation::Int
+    tech_vehicle::TechVehicle
+    sequence::Array{GeographicElement,1}
+    length::Float64
+    total_nb::Int
+end
+
+
+"""
+
+"""
+struct MandatoryBreaks
+    break_number::Int
+    cumulative_distance::Float64
+    cumulative_driving_time::Float64
+    latest_geo_id::GeographicElement
+    latest_node_idx::Int
+    path_id::Path
+    path_length::Float64
+    time_with_breaks::Float64
+    total_driving_time::Float64
+end
+
+
+
 global model_parameters = [
     "Y",
     "y_init",
@@ -1017,6 +1129,7 @@ global struct_names_base = [
     "Mode",
     "Product",
     "Path",
+    "MandatoryBreak",
     "Fuel",
     "Technology",
     "Vehicletype",
@@ -1060,3 +1173,4 @@ global struct_names_extended = [
 
 global default_data =
     Dict("alpha_f" => 0.1, "beta_f" => 0.1, "alpha_h" => 0.1, "beta_h" => 0.1, "alpha_h_t" => 0.1, "beta_h_t" => 0.1)
+

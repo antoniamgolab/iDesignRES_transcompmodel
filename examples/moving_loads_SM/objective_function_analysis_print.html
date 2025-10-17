@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Objective Function Analysis for SM.jl</title>
+    <style>
+        /* Print-optimized styles */
+        @page {
+            size: A4;
+            margin: 2cm 1.5cm;
+        }
+
+        @media print {
+            body {
+                font-size: 10pt;
+                line-height: 1.4;
+            }
+
+            h1 {
+                font-size: 18pt;
+                page-break-before: avoid;
+                page-break-after: avoid;
+            }
+
+            h2 {
+                font-size: 14pt;
+                page-break-before: auto;
+                page-break-after: avoid;
+                margin-top: 1.5em;
+            }
+
+            h3 {
+                font-size: 12pt;
+                page-break-after: avoid;
+            }
+
+            table {
+                page-break-inside: avoid;
+                font-size: 9pt;
+            }
+
+            pre, code {
+                page-break-inside: avoid;
+                font-size: 8pt;
+            }
+
+            .term-section {
+                page-break-inside: avoid;
+                margin-bottom: 1.5em;
+            }
+
+            hr {
+                page-break-after: always;
+                border: none;
+                height: 0;
+                margin: 0;
+            }
+
+            .no-print {
+                display: none;
+            }
+        }
+
+        /* Screen styles */
+        @media screen {
+            body {
+                max-width: 900px;
+                margin: 0 auto;
+                padding: 20px;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                line-height: 1.6;
+                background-color: #f5f5f5;
+            }
+
+            .container {
+                background-color: white;
+                padding: 40px;
+                box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            }
+
+            .print-button {
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 10px 20px;
+                background-color: #007bff;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 14px;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            }
+
+            .print-button:hover {
+                background-color: #0056b3;
+            }
+        }
+
+        /* Common styles */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+        }
+
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            color: #34495e;
+            border-bottom: 2px solid #95a5a6;
+            padding-bottom: 5px;
+            margin-top: 30px;
+        }
+
+        h3 {
+            color: #16a085;
+            margin-top: 20px;
+        }
+
+        .metadata {
+            background-color: #ecf0f1;
+            padding: 15px;
+            border-left: 4px solid #3498db;
+            margin-bottom: 20px;
+        }
+
+        .metadata p {
+            margin: 5px 0;
+        }
+
+        .status-active {
+            color: #27ae60;
+            font-weight: bold;
+        }
+
+        .status-inactive {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+
+        code {
+            background-color: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        pre {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #3498db;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            line-height: 1.4;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        table th {
+            background-color: #34495e;
+            color: white;
+            padding: 10px;
+            text-align: left;
+            border: 1px solid #2c3e50;
+        }
+
+        table td {
+            padding: 8px;
+            border: 1px solid #bdc3c7;
+        }
+
+        table tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        ul {
+            line-height: 1.8;
+        }
+
+        .term-section {
+            background-color: #f9f9f9;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 5px;
+            border-left: 5px solid #3498db;
+        }
+
+        .inactive-section {
+            border-left-color: #95a5a6;
+        }
+
+        .component-list {
+            background-color: white;
+            padding: 10px 15px;
+            margin: 10px 0;
+            border-radius: 3px;
+        }
+
+        strong {
+            color: #2c3e50;
+        }
+    </style>
+</head>
+<body>
+    <button class="print-button no-print" onclick="window.print()">🖨️ Print / Save as PDF</button>
+
+    <div class="container">
+        <h1>Objective Function Analysis for SM.jl</h1>
+
+        <div class="metadata">
+            <p><strong>Analysis Date:</strong> 2025-10-16</p>
+            <p><strong>Model Configuration:</strong> SM.jl with <code>exclude_detour_time = false</code></p>
+            <p><strong>Relevant Variables:</strong> f, h, h_plus, h_exist, h_minus, s, q_fuel_infr_plus, soc, travel_time, extra_break_time</p>
+        </div>
+
+        <h2>Overview</h2>
+        <p>This document analyzes which objective function terms are <strong>ACTIVE</strong> in SM.jl and documents the structure:</p>
+        <p style="text-align: center; font-size: 1.1em; font-weight: bold; color: #2c3e50;">Decision Variable × Cost Parameter/Attribute</p>
+
+        <p>The objective function minimizes total system cost discounted over time:</p>
+        <pre>minimize: Σ (cost_term × discount_factor)
+where discount_factor = 1 / (1 + discount_rate)^(y - y_init)</pre>
+
+        <h2>ACTIVE TERMS (Used in SM.jl)</h2>
+
+        <div class="term-section">
+            <h3>1. Extra Break Time Penalty</h3>
+            <p><strong>Status:</strong> <span class="status-active">✓ ACTIVE</span></p>
+            <p><strong>Condition:</strong> <code>has_var["extra_break_time"]</code> AND <code>fueling_infr_types_list</code> not empty</p>
+            <p><strong>Location:</strong> Lines 3819-3846</p>
+
+            <p><strong>Formula:</strong></p>
+            <pre>extra_break_time[y, (p, r_id, k, geo_id), tv_id, f_l, g] × VoT × discount_factor</pre>
+
+            <div class="component-list">
+                <p><strong>Components:</strong></p>
+                <ul>
+                    <li><strong>Decision Variable:</strong> <code>extra_break_time[y, (p, r_id, k, geo_id), tv_id, f_l, g]</code> (hours of slack for mandatory breaks)</li>
+                    <li><strong>Cost Parameter:</strong> <code>VoT</code> - Value of Time (€/hour) from <code>odpair.financial_status.VoT</code></li>
+                    <li><strong>Discount:</strong> <code>discount_factor</code></li>
+                </ul>
+            </div>
+
+            <p><strong>Purpose:</strong> Penalizes unnecessary breaks beyond mandatory requirements (drivers value their time)</p>
+        </div>
+
+        <div class="term-section">
+            <h3>2. Fuel/Energy Costs</h3>
+            <p><strong>Status:</strong> <span class="status-active">✓ ACTIVE</span></p>
+            <p><strong>Condition:</strong> <code>has_var["s"]</code></p>
+            <p><strong>Location:</strong> Lines 3889-3937</p>
+
+            <p><strong>Formula (with infrastructure types):</strong></p>
+            <pre>s[y, (p, r_id, k, geo_id), v_id, f_l, g] × 1000 ×
+  (infr_cost_per_kWh + fuel_cost_per_kWh + 10^(-6) × emission_factor × carbon_price) ×
+  discount_factor</pre>
+
+            <div class="component-list">
+                <p><strong>Components:</strong></p>
+                <ul>
+                    <li><strong>Decision Variable:</strong> <code>s[y, (p, r_id, k, geo_id), v_id, f_l, g]</code> (energy consumed in kWh)</li>
+                    <li><strong>Cost Parameters:</strong>
+                        <ul>
+                            <li><code>infr_cost_per_kWh</code>: Infrastructure network cost from <code>fueling_infr_types.cost_per_kWh_network[y-y_init+1]</code></li>
+                            <li><code>fuel_cost_per_kWh</code>: Location-specific fuel cost from <code>fuel_cost_list</code> OR base <code>fuel.cost_per_kWh[y-y_init+1]</code></li>
+                            <li><code>emission_factor</code>: From <code>techvehicle.technology.fuel.emission_factor[y-y_init+1]</code></li>
+                            <li><code>carbon_price</code>: From <code>geo.carbon_price[y-y_init+1]</code></li>
+                        </ul>
+                    </li>
+                    <li><strong>Scaling:</strong> 1000 (conversion factor)</li>
+                    <li><strong>Discount:</strong> <code>discount_factor</code></li>
+                </ul>
+            </div>
+
+            <p><strong>Purpose:</strong> Total energy costs including fuel, infrastructure markup, and emissions</p>
+        </div>
+
+        <div class="term-section">
+            <h3>3. Vehicle Capital Costs</h3>
+            <p><strong>Status:</strong> <span class="status-active">✓ ACTIVE</span></p>
+            <p><strong>Condition:</strong> <code>has_var["h_plus"]</code></p>
+            <p><strong>Location:</strong> Lines 3940-3947</p>
+
+            <p><strong>Formula:</strong></p>
+            <pre>h_plus[y, r_id, v_id, y] × (capital_cost - veh_subsidy)</pre>
+
+            <div class="component-list">
+                <p><strong>Components:</strong></p>
+                <ul>
+                    <li><strong>Decision Variable:</strong> <code>h_plus[y, r_id, v_id, y]</code> (number of vehicles purchased in year y)</li>
+                    <li><strong>Cost Parameters:</strong>
+                        <ul>
+                            <li><code>capital_cost</code>: From <code>techvehicle.capital_cost[y-y_init+1]</code></li>
+                            <li><code>veh_subsidy</code>: From <code>vehicle_subsidy_list</code> (if applicable, else 0)</li>
+                        </ul>
+                    </li>
+                    <li><strong>Discount:</strong> Implied in outer loop discount_factor</li>
+                </ul>
+            </div>
+
+            <p><strong>Purpose:</strong> Capital expenditure for new vehicle purchases</p>
+        </div>
+
+        <div class="term-section">
+            <h3>4. Vehicle Maintenance Costs (Annual)</h3>
+            <p><strong>Status:</strong> <span class="status-active">✓ ACTIVE</span></p>
+            <p><strong>Condition:</strong> <code>has_var["h"]</code> AND vehicle still within lifetime</p>
+            <p><strong>Location:</strong> Lines 3953-3969</p>
+
+            <p><strong>Formula:</strong></p>
+            <pre>h[y, r_id, v_id, g] × maintenance_cost_annual[g-g_init+1][y-g+1] × discount_factor</pre>
+
+            <div class="component-list">
+                <p><strong>Components:</strong></p>
+                <ul>
+                    <li><strong>Decision Variable:</strong> <code>h[y, r_id, v_id, g]</code> (number of vehicles of generation g active in year y)</li>
+                    <li><strong>Cost Parameter:</strong> <code>maintenance_cost_annual[g-g_init+1][y-g+1]</code> from <code>techvehicle.maintenance_cost_annual</code></li>
+                    <li><strong>Condition:</strong> Only if <code>y - g < techvehicle.Lifetime[g-g_init+1]</code></li>
+                    <li><strong>Discount:</strong> <code>discount_factor</code></li>
+                </ul>
+            </div>
+
+            <p><strong>Purpose:</strong> Annual fixed maintenance costs per vehicle</p>
+        </div>
+
+        <div class="term-section">
+            <h3>5. Intangible Costs (Value of Time)</h3>
+            <p><strong>Status:</strong> <span class="status-active">✓ ACTIVE</span></p>
+            <p><strong>Condition:</strong> <code>has_var["f"]</code></p>
+            <p><strong>Location:</strong> Lines 4052-4066</p>
+
+            <p><strong>Formula:</strong></p>
+            <pre>f[y, (p, r_id, k), (m_id, v_id), g] × 1000 × VoT × LOS_without_detour × discount_factor
+
+where:
+LOS_without_detour = route_length / speed + waiting_time</pre>
+
+            <div class="component-list">
+                <p><strong>Components:</strong></p>
+                <ul>
+                    <li><strong>Decision Variable:</strong> <code>f[y, (p, r_id, k), (m_id, v_id), g]</code> (traffic flow on route)</li>
+                    <li><strong>Cost Parameters:</strong>
+                        <ul>
+                            <li><code>VoT</code>: Value of Time from <code>odpair.financial_status.VoT</code> (€/hour)</li>
+                            <li><code>route_length</code>: Sum of path lengths in km</li>
+                            <li><code>speed</code>: From <code>speed_list</code> (km/h)</li>
+                            <li><code>waiting_time</code>: From <code>vehicle_type.mode.waiting_time[y-y_init+1]</code></li>
+                        </ul>
+                    </li>
+                    <li><strong>Scaling:</strong> 1000 (conversion factor)</li>
+                    <li><strong>Discount:</strong> <code>discount_factor</code></li>
+                </ul>
+            </div>
+
+            <p><strong>Purpose:</strong> Cost of travel time for freight/passengers</p>
+        </div>
+
+        <div class="term-section">
+            <h3>6. Vehicle Maintenance Costs (Distance-Based)</h3>
+            <p><strong>Status:</strong> <span class="status-active">✓ ACTIVE</span></p>
+            <p><strong>Condition:</strong> <code>has_var["f"]</code> AND vehicle still within lifetime</p>
+            <p><strong>Location:</strong> Lines 4068-4078</p>
+
+            <p><strong>Formula:</strong></p>
+            <pre>f[y, (p, r_id, k), (m_id, v_id), g] × 1000 ×
+  maintenance_cost_distance[g-g_init+1][y-g+1] × route_length ×
+  discount_factor</pre>
+
+            <div class="component-list">
+                <p><strong>Components:</strong></p>
+                <ul>
+                    <li><strong>Decision Variable:</strong> <code>f[y, (p, r_id, k), (m_id, v_id), g]</code> (traffic flow)</li>
+                    <li><strong>Cost Parameters:</strong>
+                        <ul>
+                            <li><code>maintenance_cost_distance[g-g_init+1][y-g+1]</code>: From <code>techvehicle.maintenance_cost_distance</code> (€/km)</li>
+                            <li><code>route_length</code>: Path length in km</li>
+                        </ul>
+                    </li>
+                    <li><strong>Condition:</strong> Only if <code>y - g < techvehicle.Lifetime[g-g_init+1]</code></li>
+                    <li><strong>Scaling:</strong> 1000 (conversion factor)</li>
+                    <li><strong>Discount:</strong> <code>discount_factor</code></li>
+                </ul>
+            </div>
+
+            <p><strong>Purpose:</strong> Variable maintenance costs per kilometer traveled</p>
+        </div>
+
+        <div class="term-section">
+            <h3>7. Fueling Infrastructure Capital Costs</h3>
+            <p><strong>Status:</strong> <span class="status-active">✓ ACTIVE</span></p>
+            <p><strong>Condition:</strong> <code>haskey(model.obj_dict, :q_fuel_infr_plus)</code></p>
+            <p><strong>Location:</strong> Lines 4185-4283</p>
+
+            <p><strong>Formula (with infrastructure types):</strong></p>
+            <pre>q_fuel_infr_plus[y, f_l, geo_id] × cost_per_kW × discount_factor</pre>
+
+            <div class="component-list">
+                <p><strong>Components:</strong></p>
+                <ul>
+                    <li><strong>Decision Variable:</strong> <code>q_fuel_infr_plus[y, f_l, geo_id]</code> (charging/fueling capacity expansion in kW)</li>
+                    <li><strong>Cost Parameter:</strong> <code>cost_per_kW[y-y_init+1]</code> from <code>fueling_infr_types.cost_per_kW</code></li>
+                    <li><strong>Condition:</strong> Only in investment years</li>
+                    <li><strong>Discount:</strong> <code>discount_factor</code></li>
+                </ul>
+            </div>
+
+            <p><strong>Purpose:</strong> Capital costs for new charging/fueling infrastructure</p>
+        </div>
+
+        <div class="term-section">
+            <h3>8. Fuel Infrastructure O&M Costs (Fuel-Specific)</h3>
+            <p><strong>Status:</strong> <span class="status-active">✓ ACTIVE</span></p>
+            <p><strong>Condition:</strong> <code>haskey(model.obj_dict, :q_fuel_infr_plus)</code></p>
+            <p><strong>Location:</strong> Lines 4232-4280</p>
+
+            <p><strong>Formula:</strong></p>
+            <pre>(initial_capacity + q_fuel_infr_plus[y0, f_l, geo_id]) ×
+  fuel_om_costs[y-y_init+1] ×
+  discount_factor</pre>
+
+            <div class="component-list">
+                <p><strong>Components:</strong></p>
+                <ul>
+                    <li><strong>Decision Variable:</strong> <code>q_fuel_infr_plus[y0, f_l, geo_id]</code> (cumulative capacity)</li>
+                    <li><strong>Initial Capacity:</strong> From <code>initialfuelinfr_list.installed_kW</code></li>
+                    <li><strong>Cost Parameter:</strong> <code>fuel.fueling_infrastructure_om_costs[y-y_init+1]</code> (€/kW/year)</li>
+                    <li><strong>Discount:</strong> <code>discount_factor</code></li>
+                </ul>
+            </div>
+
+            <p><strong>Purpose:</strong> Annual O&M costs for fuel-specific infrastructure</p>
+        </div>
+
+        <div class="term-section">
+            <h3>9. Fuel Infrastructure O&M Costs (Infrastructure-Type-Specific)</h3>
+            <p><strong>Status:</strong> <span class="status-active">✓ ACTIVE</span></p>
+            <p><strong>Condition:</strong> <code>haskey(model.obj_dict, :q_fuel_infr_plus)</code></p>
+            <p><strong>Location:</strong> Lines 4249-4279</p>
+
+            <p><strong>Formula:</strong></p>
+            <pre>(initial_capacity + q_fuel_infr_plus[y0, f_l, geo_id]) ×
+  infr_type_om_costs[y-y_init+1] ×
+  discount_factor</pre>
+
+            <div class="component-list">
+                <p><strong>Components:</strong></p>
+                <ul>
+                    <li><strong>Decision Variable:</strong> <code>q_fuel_infr_plus[y0, f_l, geo_id]</code> (cumulative capacity)</li>
+                    <li><strong>Initial Capacity:</strong> From <code>initialfuelinfr_list.installed_kW</code></li>
+                    <li><strong>Cost Parameter:</strong> <code>fueling_infr_types.om_costs[y-y_init+1]</code> (€/kW/year)</li>
+                    <li><strong>Discount:</strong> <code>discount_factor</code></li>
+                </ul>
+            </div>
+
+            <p><strong>Purpose:</strong> Additional O&M costs specific to infrastructure type (e.g., fast vs slow charging)</p>
+        </div>
+
+        <div class="term-section">
+            <h3>10. Network Connection Costs</h3>
+            <p><strong>Status:</strong> <span class="status-active">✓ ACTIVE</span> (if network_connection_costs_list not empty)</p>
+            <p><strong>Condition:</strong> <code>haskey(model.obj_dict, :q_fuel_infr_plus)</code> AND <code>network_connection_costs_list</code> not empty</p>
+            <p><strong>Location:</strong> Lines 4284-4316+</p>
+
+            <p><strong>Formula:</strong></p>
+            <pre>(initial_capacity + q_fuel_infr_plus[y0, f_l, geo_id]) ×
+  network_cost_per_kW[y-y_init+1] ×
+  discount_factor</pre>
+
+            <div class="component-list">
+                <p><strong>Components:</strong></p>
+                <ul>
+                    <li><strong>Decision Variable:</strong> <code>q_fuel_infr_plus[y0, f_l, geo_id]</code> (cumulative capacity)</li>
+                    <li><strong>Initial Capacity:</strong> From <code>initialfuelinfr_list.installed_kW</code></li>
+                    <li><strong>Cost Parameter:</strong> <code>network_connection_costs.network_cost_per_kW[y-y_init+1]</code> (€/kW/year for grid connection)</li>
+                    <li><strong>Discount:</strong> <code>discount_factor</code></li>
+                </ul>
+            </div>
+
+            <p><strong>Purpose:</strong> Annual grid connection costs for charging infrastructure</p>
+        </div>
+
+        <h2>INACTIVE TERMS (Not Used in SM.jl)</h2>
+
+        <div class="term-section inactive-section">
+            <h3>A. VoT Detour Time Component</h3>
+            <p><strong>Status:</strong> <span class="status-inactive">✗ INACTIVE</span></p>
+            <p><strong>Reason:</strong> <code>has_var["vot_dt"] = false</code> (variable not defined)</p>
+            <p><strong>Location:</strong> Lines 3765-3776</p>
+            <p>Would penalize detour time if active.</p>
+        </div>
+
+        <div class="term-section inactive-section">
+            <h3>B. Budget Penalties</h3>
+            <p><strong>Status:</strong> <span class="status-inactive">✗ INACTIVE</span></p>
+            <p><strong>Reason:</strong> Budget penalty variables not defined</p>
+            <p><strong>Location:</strong> Lines 3778-3816</p>
+            <p><strong>Includes:</strong></p>
+            <ul>
+                <li><code>budget_penalty_plus</code></li>
+                <li><code>budget_penalty_minus</code></li>
+                <li><code>budget_penalty_yearly_plus</code></li>
+                <li><code>budget_penalty_yearly_minus</code></li>
+            </ul>
+        </div>
+
+        <div class="term-section inactive-section">
+            <h3>C. Fueling Time Costs</h3>
+            <p><strong>Status:</strong> <span class="status-inactive">✗ INACTIVE</span></p>
+            <p><strong>Reason:</strong> <code>has_var["n_fueling"] = false</code> (not in relevant_vars)</p>
+            <p><strong>Location:</strong> Lines 3979-4049</p>
+            <p><strong>Would include:</strong></p>
+            <ul>
+                <li><code>n_fueling × fueling_time × VoT × discount_factor</code></li>
+                <li>Different fueling times for infrastructure types (7 min for hydrogen, calculated time for charging)</li>
+            </ul>
+        </div>
+
+        <div class="term-section inactive-section">
+            <h3>D. Detour Time Costs</h3>
+            <p><strong>Status:</strong> <span class="status-inactive">✗ INACTIVE</span></p>
+            <p><strong>Reason:</strong> <code>has_var["detour_time"] = false</code> (not in relevant_vars)</p>
+            <p><strong>Location:</strong> Lines 4082-4115</p>
+            <p>Would penalize detour time to reach charging infrastructure.</p>
+        </div>
+
+        <div class="term-section inactive-section">
+            <h3>E. Mode Infrastructure Costs</h3>
+            <p><strong>Status:</strong> <span class="status-inactive">✗ INACTIVE</span></p>
+            <p><strong>Reason:</strong> <code>has_var["q_mode_infr_plus"] = false</code> (not in relevant_vars)</p>
+            <p><strong>Location:</strong> Lines 4120-4183</p>
+            <p>Would include costs for expanding transport mode infrastructure (roads, rail, etc.)</p>
+        </div>
+
+        <h2>Summary Table</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Term</th>
+                    <th>Variable</th>
+                    <th>Cost Parameter</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>1</td>
+                    <td>Extra break time</td>
+                    <td><code>extra_break_time</code></td>
+                    <td><code>VoT</code></td>
+                    <td class="status-active">✓ ACTIVE</td>
+                </tr>
+                <tr>
+                    <td>2</td>
+                    <td>Fuel/energy</td>
+                    <td><code>s</code></td>
+                    <td><code>cost_per_kWh + emissions</code></td>
+                    <td class="status-active">✓ ACTIVE</td>
+                </tr>
+                <tr>
+                    <td>3</td>
+                    <td>Vehicle capital</td>
+                    <td><code>h_plus</code></td>
+                    <td><code>capital_cost - subsidy</code></td>
+                    <td class="status-active">✓ ACTIVE</td>
+                </tr>
+                <tr>
+                    <td>4</td>
+                    <td>Vehicle maintenance (annual)</td>
+                    <td><code>h</code></td>
+                    <td><code>maintenance_cost_annual</code></td>
+                    <td class="status-active">✓ ACTIVE</td>
+                </tr>
+                <tr>
+                    <td>5</td>
+                    <td>Intangible costs (travel time)</td>
+                    <td><code>f</code></td>
+                    <td><code>VoT × LOS</code></td>
+                    <td class="status-active">✓ ACTIVE</td>
+                </tr>
+                <tr>
+                    <td>6</td>
+                    <td>Vehicle maintenance (distance)</td>
+                    <td><code>f</code></td>
+                    <td><code>maintenance_cost_distance × length</code></td>
+                    <td class="status-active">✓ ACTIVE</td>
+                </tr>
+                <tr>
+                    <td>7</td>
+                    <td>Fuel infra capital</td>
+                    <td><code>q_fuel_infr_plus</code></td>
+                    <td><code>cost_per_kW</code></td>
+                    <td class="status-active">✓ ACTIVE</td>
+                </tr>
+                <tr>
+                    <td>8</td>
+                    <td>Fuel infra O&M (fuel)</td>
+                    <td><code>q_fuel_infr_plus</code></td>
+                    <td><code>fuel.om_costs</code></td>
+                    <td class="status-active">✓ ACTIVE</td>
+                </tr>
+                <tr>
+                    <td>9</td>
+                    <td>Fuel infra O&M (type)</td>
+                    <td><code>q_fuel_infr_plus</code></td>
+                    <td><code>infr_type.om_costs</code></td>
+                    <td class="status-active">✓ ACTIVE</td>
+                </tr>
+                <tr>
+                    <td>10</td>
+                    <td>Network connection</td>
+                    <td><code>q_fuel_infr_plus</code></td>
+                    <td><code>network_cost_per_kW</code></td>
+                    <td class="status-active">✓ ACTIVE</td>
+                </tr>
+                <tr>
+                    <td>A</td>
+                    <td>VoT detour time</td>
+                    <td><code>vot_dt</code></td>
+                    <td>-</td>
+                    <td class="status-inactive">✗ INACTIVE</td>
+                </tr>
+                <tr>
+                    <td>B</td>
+                    <td>Budget penalties</td>
+                    <td><code>budget_penalty_*</code></td>
+                    <td>-</td>
+                    <td class="status-inactive">✗ INACTIVE</td>
+                </tr>
+                <tr>
+                    <td>C</td>
+                    <td>Fueling time</td>
+                    <td><code>n_fueling</code></td>
+                    <td><code>VoT × fueling_time</code></td>
+                    <td class="status-inactive">✗ INACTIVE</td>
+                </tr>
+                <tr>
+                    <td>D</td>
+                    <td>Detour time</td>
+                    <td><code>detour_time</code></td>
+                    <td><code>VoT</code></td>
+                    <td class="status-inactive">✗ INACTIVE</td>
+                </tr>
+                <tr>
+                    <td>E</td>
+                    <td>Mode infrastructure</td>
+                    <td><code>q_mode_infr_plus</code></td>
+                    <td><code>infra_expansion_costs</code></td>
+                    <td class="status-inactive">✗ INACTIVE</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>Key Observations</h2>
+
+        <h3>1. Dominant Cost Components</h3>
+        <p>Based on the nested loop structure and complexity:</p>
+        <ul>
+            <li><strong>Most expensive to compute:</strong> Fuel/energy costs (deeply nested: y → v → r → g → k → geo → f_l)</li>
+            <li><strong>Simplest to compute:</strong> Vehicle capital costs (y → v → r → g)</li>
+        </ul>
+
+        <h3>2. Cost Categories Active in SM.jl</h3>
+        <ul>
+            <li>✓ Energy costs (fuel + infrastructure + emissions)</li>
+            <li>✓ Vehicle costs (capital + annual maintenance + distance maintenance)</li>
+            <li>✓ Time-based costs (intangible travel time + extra break penalties)</li>
+            <li>✓ Infrastructure costs (capital + O&M + network connection)</li>
+            <li>✗ Detour/fueling time NOT penalized (variables not defined)</li>
+            <li>✗ Budget constraints NOT active</li>
+        </ul>
+
+        <h3>3. Infrastructure Cost Structure</h3>
+        <p>Three separate O&M components for charging infrastructure:</p>
+        <ol>
+            <li>Fuel-specific O&M (<code>fuel.fueling_infrastructure_om_costs</code>)</li>
+            <li>Infrastructure-type-specific O&M (<code>fueling_infr_types.om_costs</code>)</li>
+            <li>Network connection costs (<code>network_connection_costs.network_cost_per_kW</code>)</li>
+        </ol>
+
+        <p>This allows modeling different cost structures for:</p>
+        <ul>
+            <li>Fast charging (higher O&M + network costs)</li>
+            <li>Slow charging (lower O&M + network costs)</li>
+            <li>Hydrogen refueling (different cost structure)</li>
+        </ul>
+
+        <h3>4. Discount Factor Application</h3>
+        <p>All costs properly discounted: <code>1 / (1 + discount_rate)^(y - y_init)</code></p>
+
+        <h3>5. Missing Behavioral Costs</h3>
+        <p>Not penalized in SM.jl:</p>
+        <ul>
+            <li>Number of fueling stops (<code>n_fueling</code>)</li>
+            <li>Time spent fueling</li>
+            <li>Detour to reach infrastructure</li>
+        </ul>
+        <p>This means the model doesn't account for inconvenience of charging frequency or location.</p>
+
+        <h2>Data Structure Requirements</h2>
+
+        <h3>Active Terms Require:</h3>
+        <ul>
+            <li><code>odpair_list</code> with <code>financial_status.VoT</code></li>
+            <li><code>techvehicle_list</code> with cost arrays</li>
+            <li><code>fuel_cost_list</code> (location-specific)</li>
+            <li><code>fueling_infr_types_list</code> (infrastructure types)</li>
+            <li><code>vehicle_subsidy_list</code> (optional subsidies)</li>
+            <li><code>speed_list</code> (mode × region)</li>
+            <li><code>network_connection_costs_list</code> (optional grid costs)</li>
+            <li><code>initialfuelinfr_list</code> (initial capacity)</li>
+            <li>Discount rate and time horizon parameters</li>
+        </ul>
+
+        <h3>Geographic Data:</h3>
+        <ul>
+            <li><code>geo.carbon_price[y]</code> for each geographic element</li>
+            <li>Path sequences and lengths</li>
+            <li>Location-fuel-infrastructure mappings</li>
+        </ul>
+
+        <hr style="margin-top: 40px; border: 1px solid #ccc;">
+        <p style="text-align: center; color: #7f8c8d; font-style: italic; margin-top: 20px;">End of Analysis</p>
+    </div>
+</body>
+</html>

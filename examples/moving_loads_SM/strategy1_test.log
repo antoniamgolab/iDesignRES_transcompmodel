@@ -1,0 +1,227 @@
+┌ Warning: Replacing docs for `Main.TransComp.Node :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.Edge :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.GeographicElement :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.Mode :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.Product :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.Path :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.MandatoryBreak :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.Fuel :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.Technology :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.FuelCost :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.NetworkConnectionCosts :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.Vehicletype :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.TechVehicle :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.SupplyType :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.InitialVehicleStock :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.FuelingInfrTypes :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.FuelingInfrastructureExpansion :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.InitialModeInfr :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.InitialSupplyInfr :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.InitDetourTime :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.FinancialStatus :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.InitialFuelingInfr :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.Regiontype :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.Odpair :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.TripRatio :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.Mode_share_max_by_year :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.Mode_share_min_by_year :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.Mode_share_max :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.Mode_share_min :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.Technology_share_max_by_year :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.Technology_share_min_by_year :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.Technology_share_max :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.Technology_share_min :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.VehicleType_share_max_by_year :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.VehicleType_share_min_by_year :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.VehicleType_share_max :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.VehicleType_share_min :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.TechVehicle_share_max_by_year :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.TechVehicle_share_min_by_year :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.TechVehicle_share_max :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.TechVehicle_share_min :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.Emission_constraints_by_mode :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.Emission_constraints_by_year :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.Transportation_speeds :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.VehicleSubsidy :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.SpatialFlexibilityEdges :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.MandatoryBreaks :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.check_input_file :: Tuple{String}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.check_required_keys :: Tuple{Dict, Vector{String}}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.check_model_parametrization :: Tuple{Dict, Vector{String}}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.check_required_sub_keys :: Tuple{Dict, Vector{String}, String}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.check_folder_writable :: Tuple{String}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.check_uniquness_of_ids :: Tuple{Dict, Any}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.check_correct_formats_GeographicElement :: Tuple{Dict, Any}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.check_correct_formats_FinancialStatus :: Tuple{Dict}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.check_correct_format_Mode :: Tuple{Dict, Any}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.check_correct_format_Product :: Tuple{Dict}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.check_correct_format_Path :: Tuple{Dict}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.check_correct_format_Fuel :: Tuple{Dict, Int64}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.check_correct_format_Technology :: Tuple{Dict}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.check_correct_format_InitialModeInfr :: Tuple{Dict}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.check_correct_format_Odpair :: Tuple{Dict, Int64}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.check_correct_format_Speed :: Tuple{Dict}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+   Resolving package versions...
+  No Changes to `C:\Users\simuser\.julia\environments\v1.11\Project.toml`
+  No Changes to `C:\Users\simuser\.julia\environments\v1.11\Manifest.toml`
+Constructed file path: C:\Users\simuser\Documents\AntoniaGolab\Scand_Med_analysis\iDesignRES_transcompmodel\examples\moving_loads_SM\input_data\case_20251016_173003
+[ Info: C:\Users\simuser\Documents\AntoniaGolab\Scand_Med_analysis\iDesignRES_transcompmodel\examples\moving_loads_SM\input_data\case_20251016_173003
+[ Info: ================================================================================
+[ Info: Starting model run at 2025-10-16 21:23:17
+[ Info: ================================================================================
+[ Info: Step 1/5: Reading input data...
+[ Info: Reading input data from directory: C:\Users\simuser\Documents\AntoniaGolab\Scand_Med_analysis\iDesignRES_transcompmodel\examples\moving_loads_SM\input_data\case_20251016_173003
+[ Info:   Loaded Model.yaml
+[ Info:   Loaded TechVehicle.yaml
+[ Info:   Loaded GeographicElement.yaml
+[ Info:   Loaded FinancialStatus.yaml
+[ Info:   Loaded Vehicletype.yaml
+[ Info:   Loaded Mode.yaml
+[ Info:   Loaded Technology.yaml
+[ Info:   Loaded Speed.yaml
+[ Info:   Loaded Regiontype.yaml
+[ Info:   Loaded InitialModeInfr.yaml
+[ Info:   Loaded InitialFuelInfr.yaml
+[ Info:   Loaded Odpair.yaml
+[ Info:   Loaded Path.yaml
+[ Info:   Loaded Fuel.yaml
+[ Info:   Loaded FuelCost.yaml
+[ Info:   Loaded FuelingInfrTypes.yaml
+[ Info:   Loaded InitialVehicleStock.yaml
+[ Info:   Loaded NetworkConnectionCosts.yaml
+[ Info:   Loaded Product.yaml
+[ Info:   Loaded SpatialFlexibilityEdges.yaml
+[ Info:   Loaded MandatoryBreaks.yaml
+[ Info: ✓ Input data loaded in 2.86 seconds
+[ Info: Step 2/5: Parsing data structures...
+[ Info: Network connection costs data loaded: 573 entries
+[ Info: Mandatory breaks data loaded: 74 breaks defined
+[ Info: Creating vehicle stock lookup dictionary (1000 entries)...
+[ Info: ✓ Vehicle stock lookup dictionary created
+Number of Odpairs: 100
+[ Info: Building lookup dictionaries for fast O(1) access...
+[ Info: ✓ Lookup dictionaries created for 573 geo elements, 100 paths, 1 modes, 2 technologies, 2 fuels
+[ Info: Pre-age sell parameter set to: false
+[ Info: ✓ Lookup dictionaries added to data_structures for model-wide O(1) access
+[ Info: ✓ Data parsed in 3.44 seconds
+[ Info: Step 3/5: Creating optimization model...
+Set parameter Username
+Set parameter LicenseID to value 2693968
+Academic license - for non-commercial use only - expires 2026-08-06
+[ Info: Creating variables. Mode: SELECTIVE: f, h, h_plus, h_exist, h_minus, s, q_fuel_infr_plus, soc, travel_time, extra_break_time
+[ Info:   Creating vehicle stock variables (h, h_exist, h_plus, h_minus)
+[ Info:   Creating fuel infrastructure variables (q_fuel_infr_plus) - complex mode
+[ Info:   Creating energy consumption variables (s) - complex mode
+[ Info:   Creating state of charge variables (soc) with generation filtering (g < y)
+[ Info:   Creating travel time variables (travel_time) with generation filtering (g < y)
+[ Info:   Creating extra break time slack variables (extra_break_time) with generation filtering (g < y)
+[ Info:   Creating flow/transport variables (f)
+[ Info: Variable creation complete!
+[ Info: ✓ Model created in 16.49 seconds
+[ Info: Step 3.5/5: Configuring solver parameters...
+Set parameter Presolve to value 2
+Set parameter MIPFocus to value 1
+Set parameter Heuristics to value 0.1
+Set parameter NumericFocus to value 1
+Set parameter TimeLimit to value 3600
+[ Info: ✓ Solver parameters configured (balanced for speed)
+[ Info: Step 4.1/5: Adding core demand coverage constraint...
+[ Info: Constraint for demand coverage created successfully
+[ Info: ✓ Demand coverage constraint added in 0.76 seconds
+[ Info: Step 4.2/5: Adding vehicle fleet constraints...
+[ Info: Constraint for vehicle stock sizing created successfully
+[ Info: ✓ Vehicle sizing constraint added in 2.71 seconds
+[ Info: Pre-age sell disabled: h_minus constrained to 0 for 42000 vehicle combinations before reaching lifetime
+[ Info: ✓ Vehicle aging constraint added in 6.56 seconds
+[ Info: ✓ Vehicle stock shift constraint added in 1.56 seconds
+[ Info: Step 4.3/5: Adding fueling infrastructure constraints...
+[ Info: ✓ Fueling demand constraint added in 3.03 seconds
+[ Info: Pre-building p_r_k_g_by_geo dictionary for efficient filtering...
+[ Info: ✓ Pre-filtering complete: 573 geo elements indexed
+[ Info: ✓ Fueling infrastructure constraint added in 3.26 seconds
+[ Info: ✓ Fueling infrastructure expansion shift constraint added in 0.38 seconds
+[ Info: Step 4.4/5: Adding BEV-specific constraints...
+ERROR: LoadError: KeyError: key (2020, (0, 16, 16, 572), 0, (1, 0), 2020) not found
+Stacktrace:
+ [1] getindex(h::OrderedCollections.OrderedDict{Tuple{Int64, NTuple{4, Int64}, Int64, Tuple{Int64, Int64}, Int64}, VariableRef}, key::Tuple{Int64, NTuple{4, Int64}, Int64, Tuple{Int64, Int64}, Int64})
+   @ OrderedCollections C:\Users\simuser\.julia\packages\OrderedCollections\Xihhq\src\ordered_dict.jl:387
+ [2] getindex(::JuMP.Containers.SparseAxisArray{VariableRef, 5, Tuple{Int64, NTuple{4, Int64}, Int64, Tuple{Int64, Int64}, Int64}}, ::Int64, ::Vararg{Any}; kwargs::@Kwargs{})
+   @ JuMP.Containers C:\Users\simuser\.julia\packages\JuMP\LeM1m\src\Containers\SparseAxisArray.jl:189
+ [3] getindex(::JuMP.Containers.SparseAxisArray{VariableRef, 5, Tuple{Int64, NTuple{4, Int64}, Int64, Tuple{Int64, Int64}, Int64}}, ::Int64, ::NTuple{4, Int64}, ::Int64, ::Vararg{Any})
+   @ JuMP.Containers C:\Users\simuser\.julia\packages\JuMP\LeM1m\src\Containers\SparseAxisArray.jl:167
+ [4] macro expansion
+   @ C:\Users\simuser\.julia\packages\MutableArithmetics\tNSBd\src\rewrite.jl:371 [inlined]
+ [5] macro expansion
+   @ C:\Users\simuser\.julia\packages\JuMP\LeM1m\src\macros.jl:264 [inlined]
+ [6] macro expansion
+   @ C:\Users\simuser\.julia\packages\JuMP\LeM1m\src\macros\@constraint.jl:171 [inlined]
+ [7] macro expansion
+   @ C:\Users\simuser\.julia\packages\JuMP\LeM1m\src\macros.jl:402 [inlined]
+ [8] constraint_soc_track(model::Model, data_structures::Dict{String, Any})
+   @ Main.TransComp C:\Users\simuser\Documents\AntoniaGolab\Scand_Med_analysis\iDesignRES_transcompmodel\src\model_functions.jl:3350
+ [9] top-level scope
+   @ C:\Users\simuser\Documents\AntoniaGolab\Scand_Med_analysis\iDesignRES_transcompmodel\examples\moving_loads_SM\SM.jl:117
+in expression starting at C:\Users\simuser\Documents\AntoniaGolab\Scand_Med_analysis\iDesignRES_transcompmodel\examples\moving_loads_SM\SM.jl:117

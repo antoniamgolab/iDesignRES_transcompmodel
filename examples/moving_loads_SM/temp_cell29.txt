@@ -1,0 +1,56 @@
+# ============================================================================
+# CREATE OD-PAIRS AND PATHS FOR NUTS-3 DATA
+# ============================================================================
+print("="*80)
+print("CREATING NUTS-3 OD-PAIRS AND PATHS")
+print("="*80)
+
+# ADJUSTABLE PARAMETERS
+MAX_ODPAIRS = 1000  # Change this to None for full dataset
+
+# Auto-detect traffic variable
+traffic_var = None
+for var_name in ['long_haul_truck_traffic', 'filtered_truck_traffic', 'truck_traffic']:
+    if var_name in dir():
+        traffic_var = eval(var_name)
+        print(f"Using traffic data: {var_name} ({len(traffic_var):,} rows)")
+        break
+
+# Auto-detect nodes variable
+nodes_var = None
+for var_name in ['filtered_network_nodes', 'network_nodes']:
+    if var_name in dir():
+        nodes_var = eval(var_name)
+        print(f"Using network nodes: {var_name} ({len(nodes_var):,} nodes)")
+        break
+
+# Auto-detect edges variable
+edges_var = None
+for var_name in ['filtered_network_edges', 'network_edges']:
+    if var_name in dir():
+        edges_var = eval(var_name)
+        print(f"Using network edges: {var_name} ({len(edges_var):,} edges)")
+        break
+node_id_mapping = {}
+id = 0
+for index, row in filtered_network_nodes.iterrows():
+    network_node_id = int(row['Network_Node_ID'])
+    node_id_mapping[network_node_id] = id  # Map Network_Node_ID → sequential ID
+
+geographic_elements.append({
+    "id": id,  # Use sequential ID
+    "type": "node",
+    # ... rest of node fields
+})
+id += 1
+odpair_list, path_list, initial_vehicle_stock = create_nuts3_paths_from_traffic(
+    truck_traffic=traffic_var,
+    network_nodes=nodes_var,
+    network_edges=edges_var,
+    node_id_mapping=node_id_mapping,  # ← Pass the mapping here!
+    max_odpairs=MAX_ODPAIRS
+)
+
+print(f"[OK] Created {len(odpair_list)} OD-pairs")
+print(f"[OK] Created {len(path_list)} paths")
+print(f"[OK] Created {len(initial_vehicle_stock)} initial vehicle stock entries")

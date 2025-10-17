@@ -5,7 +5,7 @@ This module contains the main functions and structures for the TransComp package
 """
 
 module TransComp
-using YAML, JuMP, Gurobi, Printf, ProgressMeter
+using YAML, JuMP, Gurobi, Printf, ProgressMeter, Dates
 # export data types
 
 include("structs.jl")
@@ -93,6 +93,11 @@ export constraint_slow_fast_expansion
 export constraint_q_fuel_abs
 export constraint_n_fueling_upper_bound
 export constraint_to_fast_charging
+export constraint_soc_max
+export constraint_soc_track
+export constraint_spatial_flexibility
+export constraint_travel_time_track
+export constraint_mandatory_breaks
 export objective
 
 # exporting supporting functions

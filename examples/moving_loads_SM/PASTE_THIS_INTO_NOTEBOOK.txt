@@ -1,0 +1,160 @@
+# =============================================================================
+# PASTE THIS CELL INTO SM-preprocessing.ipynb
+# =============================================================================
+# This replaces the cells that create odpair_list, path_list, and
+# spatial_flex_range_list (around cells 37-38 in original notebook)
+#
+# BEFORE RUNNING:
+# 1. Make sure you've run all cells before this (data loading, filtering)
+# 2. Verify these variables exist: truck_traffic, network_nodes, network_edges
+# 3. Save notebook first (backup!)
+# =============================================================================
+
+print("="*80)
+print("NUTS-3 SIMPLIFIED OD-PAIR AND PATH CREATION")
+print("="*80)
+
+# Import the fix
+import sys
+sys.path.append('.')
+from preprocessing_fix_for_nuts3 import (
+    create_nuts3_paths_from_traffic,
+    create_simplified_spatial_flexibility
+)
+
+# Check what variables are available
+print("\nChecking available data variables...")
+traffic_var = None
+nodes_var = None
+edges_var = None
+
+# Find truck traffic variable
+for var_name in ['long_haul_truck_traffic', 'filtered_truck_traffic', 'truck_traffic']:
+    if var_name in dir():
+        traffic_var = eval(var_name)
+        print(f"  ✓ Found traffic data: {var_name}")
+        break
+
+if traffic_var is None:
+    print("  ✗ ERROR: Could not find truck traffic variable!")
+    print("  Available variables:", [v for v in dir() if 'truck' in v.lower() or 'traffic' in v.lower()])
+
+# Find network nodes variable
+for var_name in ['filtered_network_nodes', 'network_nodes']:
+    if var_name in dir():
+        nodes_var = eval(var_name)
+        print(f"  ✓ Found network nodes: {var_name}")
+        break
+
+if nodes_var is None:
+    print("  ✗ ERROR: Could not find network nodes variable!")
+
+# Find network edges variable
+for var_name in ['filtered_network_edges', 'network_edges']:
+    if var_name in dir():
+        edges_var = eval(var_name)
+        print(f"  ✓ Found network edges: {var_name}")
+        break
+
+if edges_var is None:
+    print("  ✗ ERROR: Could not find network edges variable!")
+
+# Proceed if all data found
+if traffic_var is not None and nodes_var is not None and edges_var is not None:
+    print(f"\n  Traffic rows: {len(traffic_var):,}")
+    print(f"  Network nodes: {len(nodes_var):,}")
+    print(f"  Network edges: {len(edges_var):,}")
+
+    # =========================================================================
+    # CONFIGURE THIS: Set max_odpairs for testing, or None for full dataset
+    # =========================================================================
+    MAX_ODPAIRS = 100  # Change to None for full dataset, or keep small for testing
+
+    if MAX_ODPAIRS:
+        print(f"\n[TEST MODE] Limiting to top {MAX_ODPAIRS} OD-pairs by traffic volume")
+    else:
+        print(f"\n[FULL MODE] Processing ALL OD-pairs (may take a while!)")
+
+    # Create OD-pairs and paths
+    odpair_list, path_list = create_nuts3_paths_from_traffic(
+        truck_traffic=traffic_var,
+        network_nodes=nodes_var,
+        network_edges=edges_var,
+        max_odpairs=MAX_ODPAIRS
+    )
+
+    print(f"\n✓ Created {len(odpair_list)} OD-pairs")
+    print(f"✓ Created {len(path_list)} paths")
+
+    # Create spatial flexibility
+    print("\n" + "="*80)
+    spatial_flex_range_list = create_simplified_spatial_flexibility(
+        path_list=path_list,
+        max_flexibility=5
+    )
+    print(f"✓ Created {len(spatial_flex_range_list)} spatial flexibility entries")
+
+    # Create vehicle stock (needed by rest of notebook)
+    print("\n" + "="*80)
+    print("Creating initial vehicle stock...")
+    initial_vehicle_stock = []
+    for i, odp in enumerate(odpair_list):
+        initial_vehicle_stock.extend(odp['vehicle_stock_init'])
+    print(f"✓ Created {len(initial_vehicle_stock)} vehicle stock entries")
+
+    # Skip mandatory breaks for simplified network (or keep if your calculation works)
+    print("\n" + "="*80)
+    print("Handling mandatory breaks...")
+    # OPTION 1: Skip (uncomment this):
+    mandatory_breaks_list = []
+    print("✓ Skipping mandatory breaks for NUTS-3 simplified network")
+
+    # OPTION 2: Calculate (uncomment this if you want to try):
+    # try:
+    #     from mandatory_breaks_calculation import create_mandatory_breaks_list
+    #     mandatory_breaks_list = create_mandatory_breaks_list(path_list, speed=80)
+    #     print(f"✓ Created {len(mandatory_breaks_list)} mandatory break entries")
+    # except Exception as e:
+    #     print(f"⚠ Mandatory breaks calculation failed: {e}")
+    #     mandatory_breaks_list = []
+
+    # Summary
+    print("\n" + "="*80)
+    print("SUMMARY")
+    print("="*80)
+    print(f"  OD-pairs: {len(odpair_list):,}")
+    print(f"  Paths: {len(path_list):,}")
+    print(f"  Spatial flexibility: {len(spatial_flex_range_list):,}")
+    print(f"  Mandatory breaks: {len(mandatory_breaks_list):,}")
+    print(f"  Vehicle stock: {len(initial_vehicle_stock):,}")
+
+    if len(odpair_list) > 0:
+        print(f"\n  Sample OD-pair:")
+        sample_odp = odpair_list[0]
+        print(f"    ID: {sample_odp['id']}")
+        print(f"    From: {sample_odp['from']} → To: {sample_odp['to']}")
+        print(f"    Traffic (2030): {sample_odp['F'][0]:,.0f} trucks")
+
+        sample_path = path_list[0]
+        print(f"\n  Sample path:")
+        print(f"    ID: {sample_path['id']}")
+        print(f"    Length: {sample_path['length']:.2f} km")
+        print(f"    Nodes in path: {len(sample_path['sequence'])}")
+
+    print("\n" + "="*80)
+    print("✓ READY TO PROCEED TO YAML EXPORT")
+    print("="*80)
+    print("\nNext steps:")
+    print("  1. If this looks good, continue running remaining cells")
+    print("  2. If you want full dataset, change MAX_ODPAIRS = None and re-run")
+    print("  3. YAML export cells should now create non-empty files!")
+
+else:
+    print("\n" + "="*80)
+    print("✗ ERROR: Required data not found!")
+    print("="*80)
+    print("\nPlease ensure these variables are defined before this cell:")
+    print("  - truck_traffic (or long_haul_truck_traffic, or filtered_truck_traffic)")
+    print("  - network_nodes (or filtered_network_nodes)")
+    print("  - network_edges (or filtered_network_edges)")
+    print("\nRun the data loading and filtering cells first!")

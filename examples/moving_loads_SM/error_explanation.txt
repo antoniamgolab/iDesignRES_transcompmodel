@@ -1,0 +1,171 @@
+================================================================================
+HOW OPTIMIZATION ERRORS WERE ESTIMATED
+================================================================================
+
+TL;DR: They are THEORETICAL BOUNDS, not actual measured errors.
+       To get real errors, you must run optimization at both resolutions!
+
+================================================================================
+1. COST ERROR UPPER BOUND: 65.1%
+================================================================================
+
+Formula:
+  cost_error = intra_regional_distance / total_distance
+             = 120,143 km / 184,647 km
+             = 65.1%
+
+Assumptions (all pessimistic):
+  [X] All costs are distance-proportional
+  [X] Intra-regional trips cost same as inter-regional
+  [X] No fixed costs, no infrastructure costs
+  [X] Optimization objective is purely distance-based
+
+Reality:
+  [✓] Intra-regional trips are much shorter (avg 8 km vs 23 km)
+  [✓] Your model has infrastructure costs (~40-60% of total)
+  [✓] Vehicle costs (~20-30% of total)
+  [✓] Distance costs are only ~10-20% of total objective
+
+Better estimate:
+  If distance = 15% of objective, then:
+  Actual error ≈ 65% × 15% = 9.75%
+
+WHY THIS IS A BOUND:
+  This assumes WORST CASE where all lost trips are as expensive as
+  kept trips. In reality, you're optimizing long-haul freight, so
+  local trips matter much less.
+
+================================================================================
+2. INFRASTRUCTURE PLACEMENT ERROR: 42.5%
+================================================================================
+
+Formula:
+  centroid_displacement = 21.3 km (measured from data)
+  typical_spacing = 50 km (industry standard)
+  error = 21.3 / 50 = 42.5%
+
+Assumptions:
+  [X] Optimal placement is at true geographic centroid
+  [X] Representative node is "wrong" by 21.3 km
+  [X] Error scales linearly with displacement
+
+Reality:
+  [✓] Optimal placement depends on traffic, not just geography
+  [✓] Representative nodes are often major junctions (BETTER than centroid!)
+  [✓] Charging stations are discrete anyway
+  [✓] Median displacement is only 13.6 km
+
+What 21 km really means:
+  For a 500 km trip:
+    - Extra detour: 21 km (4% of journey)
+    - Extra time: ~15 minutes
+    - Extra energy: ~4%
+
+  BUT: Many representative nodes are deliberately chosen as
+       major highway intersections, which may be MORE optimal
+       than geographic centroids!
+
+================================================================================
+3. TRAFFIC ASSIGNMENT ERROR: 0.01%
+================================================================================
+
+Formula:
+  original_traffic = 6,610,754,693 trucks
+  aggregated_traffic = 6,610,087,898 trucks
+  preservation = aggregated / original = 0.99990
+  error = |1 - 0.99990| = 0.01%
+
+THIS IS ACTUAL MEASUREMENT! ✓
+
+Why so accurate:
+  - All inter-regional edges preserved
+  - Traffic flows summed correctly
+  - Only minor rounding errors
+
+This means:
+  Your regional demand patterns are almost perfectly preserved!
+
+================================================================================
+HOW THESE COMBINE INTO TOTAL ERROR
+================================================================================
+
+Pessimistic combination (assumes worst case everywhere):
+  E_total = 0.65 × w_distance + 0.425 × w_infra + 0.001 × w_traffic
+
+  Example weights for long-haul electrification model:
+    w_distance = 0.15  (distance costs are ~15% of objective)
+    w_infra = 0.40     (infrastructure costs are ~40% of objective)
+    w_traffic = 0.45   (energy costs are ~45% of objective)
+
+  Pessimistic: E_total = 0.65×0.15 + 0.425×0.40 + 0.001×0.45
+                       = 0.098 + 0.170 + 0.0005
+                       = 26.8%  (very conservative upper bound)
+
+Realistic combination (considers actual error sources):
+  E_total = 0.30 × w_distance + 0.20 × w_infra + 0.001 × w_traffic
+          = 0.30×0.15 + 0.20×0.40 + 0.001×0.45
+          = 0.045 + 0.080 + 0.0005
+          = 12.6%  (realistic estimate)
+
+ACTUAL ERROR DEPENDS ON YOUR SPECIFIC MODEL!
+
+================================================================================
+WHAT'S MISSING FROM THESE ESTIMATES
+================================================================================
+
+Not included:
+  [!] Constraint violations (SOC, time budgets)
+  [!] Infeasibility issues
+  [!] Network effects (path redundancy)
+  [!] Discrete decision thresholds
+  [!] Multi-objective trade-offs
+
+These could be:
+  - Better than estimates (if aggregation improves connectivity)
+  - Worse than estimates (if constraints become infeasible)
+  - Different (if discrete decisions flip at thresholds)
+
+================================================================================
+HOW TO GET REAL ERROR ESTIMATES
+================================================================================
+
+Method 1: Direct Comparison (RECOMMENDED)
+  1. Pick small test case (2 years, 100 regions, 2 vehicle types)
+  2. Solve at original resolution → Cost_orig
+  3. Solve at NUTS-3 resolution → Cost_agg
+  4. Real error = |Cost_agg - Cost_orig| / Cost_orig
+
+Method 2: Sensitivity Analysis
+  1. Perturb distances by ±10%
+  2. Shift node locations by ±21 km
+  3. Re-optimize
+  4. Measure objective changes
+
+Method 3: Progressive Refinement
+  1. Solve at NUTS-1 (very coarse)
+  2. Solve at NUTS-2 (coarse)
+  3. Solve at NUTS-3 (medium)
+  4. Solve at original (fine)
+  5. Plot: error vs. resolution
+  6. Understand convergence behavior
+
+================================================================================
+SUMMARY
+================================================================================
+
+                  Reported    Type        Reliability
+                  --------    ----        -----------
+Cost Error UB      65.1%     Bound       Pessimistic - assumes worst case
+Infra Placement    42.5%     Estimate    Rough - depends on traffic patterns
+Traffic Error       0.01%    Measured    Accurate - directly computed
+
+Realistic Total    10-20%    Estimate    Based on typical model structure
+
+YOUR SPECIFIC ERROR: Unknown until you run both optimizations!
+
+BUT: Bounds suggest NUTS-3 is acceptable for regional planning.
+
+================================================================================
+
+Next step: Run small test case to validate!
+

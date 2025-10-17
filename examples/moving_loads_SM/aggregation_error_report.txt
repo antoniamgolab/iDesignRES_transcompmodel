@@ -1,0 +1,85 @@
+================================================================================
+NUTS-3 AGGREGATION ERROR ANALYSIS REPORT
+================================================================================
+
+EXECUTIVE SUMMARY
+--------------------------------------------------------------------------------
+
+Spatial Resolution Reduction:
+  Nodes:  17,435 -> 1,675 (90.4% reduction)
+  Edges:  18,449 -> 2,277 (87.7% reduction)
+
+Key Error Metrics:
+  Intra-regional distance lost:     65.1%
+  Intra-regional traffic lost:      82.2%
+  Mean centroid displacement:       21.3 km
+  Cost error upper bound:           65.1%
+  Infrastructure placement error:   21.3 km
+
+
+================================================================================
+DETAILED ANALYSIS
+================================================================================
+
+1. DISTANCE ERRORS
+--------------------------------------------------------------------------------
+
+  intra_regional_distance_km: 120142.662
+  inter_regional_distance_km: 64504.437000000005
+  total_distance_km: 184647.099
+  intra_regional_fraction: 0.6506609778905869
+  agg_inter_regional_distance_km: 64075.060000000005
+  distance_ratio: 0.9933434501567698
+  centroid_displacement_mean_km: 21.273300898002866
+  centroid_displacement_median_km: 13.609972169110291
+  centroid_displacement_max_km: 371.7004417046375
+  centroid_displacement_std_km: 28.06280056804986
+
+2. TRAFFIC FLOW ERRORS
+--------------------------------------------------------------------------------
+
+  total_traffic_2019: 28180784616
+  intra_traffic_2019: 23187570190
+  inter_traffic_2019: 4993214426
+  intra_fraction_2019: 0.8228149253457961
+  agg_traffic_2019: 4992825766
+  traffic_preserved_2019: 0.9999221623653941
+  total_traffic_2030: 37241380570
+  intra_traffic_2030: 30630625877
+  inter_traffic_2030: 6610754693
+  intra_fraction_2030: 0.8224890003587748
+  agg_traffic_2030: 6610087898
+  traffic_preserved_2030: 0.9998991348142586
+
+3. NETWORK TOPOLOGY
+--------------------------------------------------------------------------------
+
+  orig_avg_degree: 2.1163177516489817
+  agg_avg_degree: 3.3168244719592135
+  degree_ratio: 1.567262037742124
+  orig_density: 0.00012139025763731685
+  agg_density: 0.001624137377627989
+  density_ratio: 13.379470554222708
+
+4. OPTIMIZATION IMPACT
+--------------------------------------------------------------------------------
+
+  cost_error_lower_bound: 0.0
+  cost_error_upper_bound: 0.6506609778905869
+  infra_placement_error_km: 21.273300898002866
+  infra_placement_error_relative: 0.42546601796005734
+  traffic_assignment_error: 0.00010086518574137227
+
+================================================================================
+RECOMMENDATIONS
+================================================================================
+
+[-] High intra-regional fraction (>40%) - aggregation may introduce significant errors
+[~] Moderate centroid displacement (10-25km) - representative nodes are ACCEPTABLE
+
+Use Cases:
+  - Regional infrastructure planning:    [+] SUITABLE
+  - Long-term policy analysis:           [+] SUITABLE
+  - Inter-regional traffic flows:        [+] SUITABLE
+  - Local routing optimization:          [-] NOT SUITABLE
+  - Precise facility siting:             [-] NOT SUITABLE

@@ -9,19 +9,70 @@ using YAML, JuMP, Gurobi, Printf
 using MathOptInterface
 
 """
-	get_input_data(path_to_source_file::String)
+	get_input_data(path_to_source::String)
 
-This function reads the input data and checks requirements for the content of the file.
+This function reads input data either from a single YAML file or from a directory
+structure where each component is stored in a separate YAML file.
 
 # Arguments
-- path_to_source_file::String: path to the source file
+- path_to_source::String: path to either a YAML file or a directory containing component YAML files
 
 # Returns
 - data_dict::Dict: dictionary with the input data
 """
-function get_input_data(path_to_source_file::String)
-    check_input_file(path_to_source_file)
-    data_dict = YAML.load_file(path_to_source_file)
+function get_input_data(path_to_source::String)
+    # Check if input is a directory or file
+    if isdir(path_to_source)
+        # Read from directory structure (new modular format)
+        @info "Reading input data from directory: $path_to_source"
+
+        # Define expected component files
+        component_files = [
+            "Model", "TechVehicle", "GeographicElement", "FinancialStatus",
+            "Vehicletype", "Mode", "Technology", "Speed", "Regiontype",
+            "InitialModeInfr", "InitialFuelInfr", "Odpair", "Path",
+            "Fuel", "FuelCost", "FuelingInfrTypes", "InitialVehicleStock",
+            "NetworkConnectionCosts", "Product", "SpatialFlexibilityEdges",
+            "MandatoryBreaks",
+        ]
+
+        # Initialize data dictionary
+        data_dict = Dict{String, Any}()
+
+        # Read each component file
+        for component in component_files
+            filepath = joinpath(path_to_source, "$component.yaml")
+
+            if isfile(filepath)
+                component_data = YAML.load_file(filepath)
+                data_dict[component] = component_data
+                @info "  Loaded $component.yaml"
+            else
+                @warn "  Missing file: $component.yaml"
+            end
+        end
+
+        # Validate that required components were loaded
+        required_components = ["Model", "GeographicElement", "Odpair", "Path"]
+        for comp in required_components
+            if !haskey(data_dict, comp)
+                error("Required component missing: $comp")
+            end
+        end
+
+        # Add alias: InitialFuelingInfr -> InitialFuelInfr (for backward compatibility)
+        if haskey(data_dict, "InitialFuelInfr") && !haskey(data_dict, "InitialFuelingInfr")
+            data_dict["InitialFuelingInfr"] = data_dict["InitialFuelInfr"]
+        end
+
+        return data_dict
+    else
+        # Read from single YAML file (legacy format)
+        @info "Reading input data from file: $path_to_source"
+        check_input_file(path_to_source)
+        data_dict = YAML.load_file(path_to_source)
+        return data_dict
+    end
     # check_required_keys(data_dict, struct_names_base)
     # # checking completion of model parametrization 
     # check_model_parametrization(
@@ -238,6 +289,8 @@ function parse_data(data_dict::Dict)
                     geographic_element_list,
                 )] for el ∈ path["sequence"]
             ],
+            get(path, "cumulative_distance", zeros(Float64, length(path["sequence"]))),
+            get(path, "distance_from_previous", zeros(Float64, length(path["sequence"]))),
         ) for path ∈ data_dict["Path"]
     ]
     fuel_list = [
@@ -250,6 +303,54 @@ function parse_data(data_dict::Dict)
             fuel["fueling_infrastructure_om_costs"],
         ) for fuel ∈ data_dict["Fuel"]
     ]
+    if haskey(data_dict, "FuelCost")
+        fuel_cost_list = [
+            FuelCost(
+                item["id"],
+                geographic_element_list[findfirst(ge -> ge.id == item["location"], geographic_element_list)],
+                fuel_list[findfirst(f -> f.name == item["fuel"], fuel_list)],
+                item["cost_per_kWh"],
+            ) for item ∈ data_dict["FuelCost"]
+        ]
+    else
+        fuel_cost_list = []
+    end
+
+    # Parse NetworkConnectionCosts if present
+    if haskey(data_dict, "NetworkConnectionCosts")
+        network_connection_costs_list = [
+            NetworkConnectionCosts(
+                item["id"],
+                geographic_element_list[findfirst(ge -> ge.id == item["location"], geographic_element_list)],
+                item["network_cost_per_kW"],
+            ) for item ∈ data_dict["NetworkConnectionCosts"]
+        ]
+        @info "Network connection costs data loaded: $(length(network_connection_costs_list)) entries"
+    else
+        network_connection_costs_list = []
+    end
+
+    # Parse MandatoryBreaks if present
+    if haskey(data_dict, "MandatoryBreaks")
+        mandatory_break_list = [
+            MandatoryBreak(
+                idx,  # Generate ID from index
+                mb["path_id"],
+                mb["path_length"],
+                mb["total_driving_time"],
+                mb["break_number"],
+                mb["latest_node_idx"],
+                mb["latest_geo_id"],
+                mb["cumulative_distance"],
+                mb["cumulative_driving_time"],
+                mb["time_with_breaks"],
+            ) for (idx, mb) ∈ enumerate(data_dict["MandatoryBreaks"])
+        ]
+        @info "Mandatory breaks data loaded: $(length(mandatory_break_list)) breaks defined"
+    else
+        mandatory_break_list = []
+    end
+
     technology_list = [
         Technology(
             technology["id"],
@@ -286,8 +387,8 @@ function parse_data(data_dict::Dict)
                 technology_list,
             )],
             techvehicle["capital_cost"],
-            techvehicle["maintnanace_cost_annual"],
-            techvehicle["maintnance_cost_distance"],
+            techvehicle["maintenance_cost_annual"],
+            techvehicle["maintenance_cost_distance"],
             techvehicle["W"],
             techvehicle["spec_cons"],
             techvehicle["Lifetime"],
@@ -312,7 +413,13 @@ function parse_data(data_dict::Dict)
             initvehiclestock["stock"],
         ) for initvehiclestock ∈ data_dict["InitialVehicleStock"]
     ]
-    
+
+    # PERFORMANCE OPTIMIZATION: Create fast O(1) lookup dictionary for vehicle stock
+    # This dramatically speeds up OD-pair parsing when there are millions of vehicle stock entries
+    @info "Creating vehicle stock lookup dictionary ($(length(initvehiclestock_list)) entries)..."
+    initvehiclestock_dict = Dict(ivs.id => ivs for ivs ∈ initvehiclestock_list)
+    @info "✓ Vehicle stock lookup dictionary created"
+
     initialmodeinfr_list = [
         InitialModeInfr(
             initialmodeinfr["id"],
@@ -373,12 +480,7 @@ function parse_data(data_dict::Dict)
             [path_list[findfirst(p -> p.id == odpair["path_id"], path_list)]],
             odpair["F"],
             product_list[findfirst(p -> p.name == odpair["product"], product_list)],
-            [
-                initvehiclestock_list[findfirst(
-                    ivs -> ivs.id == vsi,
-                    initvehiclestock_list,
-                )] for vsi ∈ odpair["vehicle_stock_init"]
-            ],
+            [initvehiclestock_dict[vsi] for vsi ∈ odpair["vehicle_stock_init"]],
             financial_status_list[findfirst(
                 fs -> fs.name == odpair["financial_status"],
                 financial_status_list,
@@ -480,6 +582,9 @@ function parse_data(data_dict::Dict)
         mode_shares_list = []
     end
 
+    # Spatial flexibility edges disabled - not being used
+    spatial_flexibility_edges_list = []
+
     if haskey(data_dict, "Mode_share_max_by_year")
         max_mode_shares_list = [
             ModeShare(
@@ -535,7 +640,32 @@ function parse_data(data_dict::Dict)
         vehicle_subsidy_list = []
     end
 
-    
+    # ===== PERFORMANCE OPTIMIZATION: Build lookup dictionaries for O(1) access =====
+    @info "Building lookup dictionaries for fast O(1) access..."
+    geo_element_dict = Dict(geo.id => geo for geo in geographic_element_list)
+    path_dict = Dict(p.id => p for p in path_list)
+    mode_dict = Dict(m.id => m for m in mode_list)
+    tech_dict = Dict(t.id => t for t in technology_list)
+    fuel_dict = Dict(f.id => f for f in fuel_list)
+    vehicle_dict = Dict(v.id => v for v in vehicle_type_list)
+    techvehicle_dict = Dict(tv.id => tv for tv in techvehicle_list)
+    regiontype_dict = Dict(rt.id => rt for rt in regiontype_list)
+    financial_status_dict = Dict(fs.id => fs for fs in financial_status_list)
+    product_dict = Dict(p.id => p for p in product_list)
+
+    # Build name-based dictionaries for lookups by name
+    geo_element_by_name = Dict(geo.name => geo for geo in geographic_element_list)
+    fuel_by_name = Dict(f.name => f for f in fuel_list)
+    mode_by_name = Dict(m.name => m for m in mode_list)
+    vehicle_by_name = Dict(v.name => v for v in vehicle_type_list)
+    product_by_name = Dict(p.name => p for p in product_list)
+    regiontype_by_name = Dict(rt.name => rt for rt in regiontype_list)
+    financial_status_by_name = Dict(fs.name => fs for fs in financial_status_list)
+
+    @info "✓ Lookup dictionaries created for $(length(geo_element_dict)) geo elements, $(length(path_dict)) paths, $(length(mode_dict)) modes, $(length(tech_dict)) technologies, $(length(fuel_dict)) fuels"
+    # =================================================================================
+
+
 
 
 
@@ -637,6 +767,7 @@ function parse_data(data_dict::Dict)
                 item["gamma"],
                 item["cost_per_kW"],
                 item["cost_per_kWh_network"],
+                item["om_costs"],
             ) for item ∈ data_dict["FuelingInfrTypes"]
         ]
     else
@@ -669,7 +800,7 @@ function parse_data(data_dict::Dict)
                         geographic_element_list,
                     )],
                     init_detour_time["detour_time"],
-                    FuelingInfrTypes(0, fuel_list[1], "none", 0, 0, 0, false, 0, [0.0]),
+                    FuelingInfrTypes(0, fuel_list[1], "none", [0.0], false, 0.0, false, false, [0.0], [0.0], [0.0], [0.0]),
                 ) for init_detour_time ∈ data_dict["InitDetourTime"]
             ]
         end
@@ -694,14 +825,14 @@ function parse_data(data_dict::Dict)
                 )],
             ) for initalfuelinginfr ∈ data_dict["InitialFuelingInfr"]
         ]
-    else 
+    else
         initalfuelinginfr_list = [
             InitialFuelingInfr(
                 initalfuelinginfr["id"],
                 fuel_list[findfirst(f -> f.name == initalfuelinginfr["fuel"], fuel_list)],
                 initalfuelinginfr["allocation"],
                 initalfuelinginfr["installed_kW"],
-                FuelingInfrTypes(0, fuel_list[1], "none", 0, 0, 0, false, 0, 0, [0]),
+                FuelingInfrTypes(0, fuel_list[1], "none", [0.0], false, 0.0, false, false, [0.0], [0.0], [0.0], [0.0]),
                 initalfuelinginfr["by_income_class"],
                 financial_status_list[findfirst(
                     fs -> fs.name == initalfuelinginfr["income_class"],
@@ -781,7 +912,7 @@ function parse_data(data_dict::Dict)
                     detour_time_reduction["detour_time_reduction"],
                     detour_time_reduction["fueling_cap_lb"],
                     detour_time_reduction["fueling_cap_ub"],
-                    FuelingInfrTypes(0, fuel_list[1], "none", 0, 0, 0, false, 0, 0, [0]),
+                    FuelingInfrTypes(0, fuel_list[1], "none", [0.0], false, 0.0, false, false, [0.0], [0.0], [0.0], [0.0]),
                 ) for detour_time_reduction ∈ data_dict["DetourTimeReduction"]
             ]
         else
@@ -828,6 +959,8 @@ function parse_data(data_dict::Dict)
         "product_list" => product_list,
         "path_list" => path_list,
         "fuel_list" => fuel_list,
+        "fuel_cost_list" => fuel_cost_list,
+        "network_connection_costs_list" => network_connection_costs_list,
         "technology_list" => technology_list,
         "vehicletype_list" => vehicle_type_list,
         "regiontype_list" => regiontype_list,
@@ -854,8 +987,19 @@ function parse_data(data_dict::Dict)
         "fueling_infr_types_list" => fueling_infr_types,
         "maximum_fueling_capacity_by_fuel_list" => maximum_fueling_capacity_by_fuel,
         "maximum_fueling_capacity_by_fuel_by_year_list" => maximum_fueling_capacity_by_fuel_by_year,
+        "spatial_flexibility_edges_list" => spatial_flexibility_edges_list,
+        "mandatory_break_list" => mandatory_break_list,
     )
 
+    # Read pre_age_sell parameter from Model (defaults to true for backward compatibility)
+    if haskey(data_dict["Model"], "pre_age_sell")
+        pre_age_sell = data_dict["Model"]["pre_age_sell"]
+        @info "Pre-age sell parameter set to: $pre_age_sell"
+    else
+        pre_age_sell = true
+        @info "Pre-age sell parameter not specified, defaulting to: true (allows early retirement)"
+    end
+    data_structures["pre_age_sell"] = pre_age_sell
 
     for key ∈ keys(default_data)
         if haskey(data_dict["Model"], key)
@@ -868,6 +1012,26 @@ function parse_data(data_dict::Dict)
     data_structures["G"] = data_dict["Model"]["pre_y"] + data_dict["Model"]["Y"]
     data_structures["g_init"] = data_dict["Model"]["y_init"] - data_dict["Model"]["pre_y"]
     data_structures["Y_end"] = data_dict["Model"]["y_init"] + data_dict["Model"]["Y"] - 1
+
+    # Add lookup dictionaries for fast O(1) access throughout the model
+    data_structures["geo_element_dict"] = geo_element_dict
+    data_structures["path_dict"] = path_dict
+    data_structures["mode_dict"] = mode_dict
+    data_structures["tech_dict"] = tech_dict
+    data_structures["fuel_dict"] = fuel_dict
+    data_structures["vehicle_dict"] = vehicle_dict
+    data_structures["techvehicle_dict"] = techvehicle_dict
+    data_structures["regiontype_dict"] = regiontype_dict
+    data_structures["financial_status_dict"] = financial_status_dict
+    data_structures["product_dict"] = product_dict
+    data_structures["geo_element_by_name"] = geo_element_by_name
+    data_structures["fuel_by_name"] = fuel_by_name
+    data_structures["mode_by_name"] = mode_by_name
+    data_structures["vehicle_by_name"] = vehicle_by_name
+    data_structures["product_by_name"] = product_by_name
+    data_structures["regiontype_by_name"] = regiontype_by_name
+    data_structures["financial_status_by_name"] = financial_status_by_name
+    @info "✓ Lookup dictionaries added to data_structures for model-wide O(1) access"
 
     return data_structures
 end
@@ -924,12 +1088,6 @@ function create_blocks(y_init::Int, Y_end::Int; block_size::Int=2)
     end
     return blocks
 end
-
-# Example usage:
-println(create_blocks(2021, 2025))          # Odd horizon
-println(create_blocks(2021, 2026))          # Even horizon
-println(create_blocks(2021, 2029, block_size=3))  # 3-year blocks
-
 
 """
 	create_m_tv_pairs(techvehicle_list::Vector{TechVehicle}, mode_list::Vector{Mode})
@@ -1115,21 +1273,32 @@ function create_r_k_set(odpairs::Vector{Odpair})
 end
 
 """
-	create_model(model::JuMP.Model, data_structures::Dict)
+    create_model(data_structures, case_name::String; include_vars::Vector{String}=String[])
 
-Definition of JuMP.model and adding of variables.
+Create a JuMP optimization model with conditionally defined variables.
 
 # Arguments
-- model::JuMP.Model: JuMP model
-- data_structures::Dict: dictionary with the input data and parsing of the input parameters
+- data_structures: Dictionary containing model input data
+- case_name: Name of the case study
+- include_vars: Vector of variable groups to include. Options:
+    - "f" - Flow/transport variables
+    - "h" - Vehicle stock variables (h, h_exist, h_plus, h_minus)
+    - "s" - Energy consumption variables
+    - "n_fueling" - Fueling event variables
+    - "detour_time" - Detour time variables
+    - "budget_penalties" - Budget penalty variables
+    - "q_mode_infr" - Mode infrastructure expansion variables
+    - "q_fuel_infr" - Fuel infrastructure expansion variables
+    - "q_supply_infr" - Supply infrastructure expansion variables
+  If empty, all variables are created (default behavior)
 
 # Returns
-- model::JuMP.Model: JuMP model with the variables added
-- data_structures::Dict: dictionary with the input data
+- model: JuMP model with conditionally defined variables
+- data_structures: Updated data structures dictionary
 """
-function create_model(data_structures, case_name::String)
+function create_model(data_structures, case_name::String; include_vars::Vector{String}=String[])
     model = Model(Gurobi.Optimizer)
-    base_define_variables(model, data_structures)
+    base_define_variables(model, data_structures, include_vars=include_vars)
     return model, data_structures
 end
 
@@ -1245,6 +1414,20 @@ function create_detour_time_reduction_for_relevant(fuelinfr_type_list)
     return detour_time_for_fueling_type
 end
 
+function extract_geoelements_from_paths(path_list)
+    """
+    Extract all unique geographic elements that appear in any path sequence.
+    This is used to limit iterations in the objective function to only relevant geographic elements.
+    """
+    geo_elements_in_paths = Set()
+    for path in path_list
+        for geo_elem in path.sequence
+            push!(geo_elements_in_paths, geo_elem)
+        end
+    end
+    return collect(geo_elements_in_paths)
+end
+
 function stringify_keys(dict::Dict)
     return Dict(
         string(k) => (v isa Float64 ? @sprintf("%.6f", v) : string(v)) for (k, v) ∈ dict
@@ -1267,8 +1450,11 @@ function save_results(
     data_structures::Dict,
     write_to_file::Bool = true,
     folder_for_results::String = "results",
+    folder_for_logs::String = "logs",
 )
     check_folder_writable(folder_for_results)
+
+    @info "Saving results for defined variables only..."
 
     y_init = data_structures["y_init"]
     Y_end = data_structures["Y_end"]
@@ -1285,37 +1471,39 @@ function save_results(
     g_init = data_structures["g_init"]
     investment_period = data_structures["investment_period"]
     if data_structures["detour_time_reduction_list"] != []
-        # geo_i_pairs = data_structures["geo_i_pairs"]
         geo_i_f = data_structures["geo_i_f_pairs"]
     end
 
+    # ------------------------
+    # Collect variables
+    # ------------------------
+
     f_dict = Dict()
-    for y ∈ y_init:Y_end, (p, r, k) ∈ p_r_k_pairs, mv ∈ m_tv_pairs, g ∈ g_init:y
-        if haskey(object_dictionary(model), :f)
+    if haskey(object_dictionary(model), :f)
+        @info "  Saving f (flow/transport) variable..."
+        for y ∈ y_init:Y_end, (p, r, k) ∈ p_r_k_pairs, mv ∈ m_tv_pairs, g ∈ g_init:y
             val = value(model[:f][y, (p, r, k), mv, g])
-            if !isnan(val)
+            if !isnan(val) && val > 1e-6
                 f_dict[(y, (p, r, k), mv, g)] = val
             end
         end
     end
-    
-    if data_structures["fueling_infr_types_list"] != []
-        f_l_pairs = data_structures["f_l_pairs"]
-        s_dict = Dict()
-        for y ∈ y_init:Y_end, (p, r, k, g) ∈ p_r_k_g_pairs, tv_id ∈ tech_vehicle_ids, f_l in f_l_pairs, gen ∈ g_init:y
-            if haskey(object_dictionary(model), :s)
+
+    s_dict = Dict()
+    if haskey(object_dictionary(model), :s)
+        @info "  Saving s (energy consumption) variable..."
+        if data_structures["fueling_infr_types_list"] != []
+            f_l_pairs = data_structures["f_l_pairs"]
+            for y ∈ y_init:Y_end, (p, r, k, g) ∈ p_r_k_g_pairs, tv_id ∈ tech_vehicle_ids, f_l in f_l_pairs, gen ∈ g_init:y
                 val = value(model[:s][y, (p, r, k, g), tv_id, f_l, gen])
-                if !isnan(val)
+                if !isnan(val) && val > 1e-6
                     s_dict[(y, (p, r, k, g), tv_id, f_l, gen)] = val
                 end
             end
-        end
-    else
-        s_dict = Dict()
-        for y ∈ y_init:Y_end, (p, r, k, g) ∈ p_r_k_g_pairs, tv_id ∈ tech_vehicle_ids, gen ∈ g_init:y
-            if haskey(object_dictionary(model), :s)
+        else
+            for y ∈ y_init:Y_end, (p, r, k, g) ∈ p_r_k_g_pairs, tv_id ∈ tech_vehicle_ids, gen ∈ g_init:y
                 val = value(model[:s][y, (p, r, k, g), tv_id, gen])
-                if !isnan(val) && round(val, digits=6) != 0.0
+                if !isnan(val) && val > 1e-6
                     s_dict[(y, (p, r, k, g), tv_id, gen)] = val
                 end
             end
@@ -1323,155 +1511,174 @@ function save_results(
     end
 
     h_dict = Dict()
-    for y ∈ y_init:Y_end, r ∈ odpairs, tv ∈ techvehicles, g ∈ g_init:y
-        if haskey(object_dictionary(model), :h)
+    if haskey(object_dictionary(model), :h)
+        @info "  Saving h (vehicle stock) variable..."
+        for y ∈ y_init:Y_end, r ∈ odpairs, tv ∈ techvehicles, g ∈ g_init:y
             val = value(model[:h][y, r.id, tv.id, g])
-            if !isnan(val)
+            if !isnan(val) && val > 1e-6
                 h_dict[(y, r.id, tv.id, g)] = val
             end
         end
     end
 
     h_exist_dict = Dict()
-    for y ∈ y_init:Y_end, r ∈ odpairs, tv ∈ techvehicles, g ∈ g_init:y
-        if haskey(object_dictionary(model), :h_exist)
+    if haskey(object_dictionary(model), :h_exist)
+        @info "  Saving h_exist variable..."
+        for y ∈ y_init:Y_end, r ∈ odpairs, tv ∈ techvehicles, g ∈ g_init:y
             val = value(model[:h_exist][y, r.id, tv.id, g])
-            if !isnan(val)
+            if !isnan(val) && val > 1e-6
                 h_exist_dict[(y, r.id, tv.id, g)] = val
             end
         end
     end
 
     h_plus_dict = Dict()
-    for y ∈ y_init:Y_end, r ∈ odpairs, tv ∈ techvehicles, g ∈ g_init:y
-        if haskey(object_dictionary(model), :h_plus)
+    if haskey(object_dictionary(model), :h_plus)
+        @info "  Saving h_plus variable..."
+        for y ∈ y_init:Y_end, r ∈ odpairs, tv ∈ techvehicles, g ∈ g_init:y
             val = value(model[:h_plus][y, r.id, tv.id, g])
-            if !isnan(val)
+            if !isnan(val) && val > 1e-6
                 h_plus_dict[(y, r.id, tv.id, g)] = val
             end
         end
     end
 
     h_minus_dict = Dict()
-    for y ∈ y_init:Y_end, r ∈ odpairs, tv ∈ techvehicles, g ∈ g_init:y
-        if haskey(object_dictionary(model), :h_minus)
+    if haskey(object_dictionary(model), :h_minus)
+        @info "  Saving h_minus variable..."
+        for y ∈ y_init:Y_end, r ∈ odpairs, tv ∈ techvehicles, g ∈ g_init:y
             val = value(model[:h_minus][y, r.id, tv.id, g])
-            if !isnan(val)
+            if !isnan(val) && val > 1e-6
                 h_minus_dict[(y, r.id, tv.id, g)] = val
             end
         end
     end
 
+    q_fuel_infr_plus_dict = Dict()
+    if haskey(object_dictionary(model), :q_fuel_infr_plus)
+        @info "  Saving q_fuel_infr_plus (fuel infrastructure) variable..."
+        saved_count = 0
+        total_count = 0
+        if haskey(data_structures, "f_l_not_by_route")
+            # Complex mode: with fueling infrastructure types (only for non-by-route types)
+            f_l_not_by_route = data_structures["f_l_not_by_route"]
+            @info "    Using f_l_not_by_route set with $(length(f_l_not_by_route)) pairs"
+            for y ∈ y_init:investment_period:Y_end, f_l ∈ f_l_not_by_route, geo ∈ geographic_element_list
+                total_count += 1
+                val = value(model[:q_fuel_infr_plus][y, f_l, geo.id])
+                if !isnan(val) && val > 1e-6  # Only save non-zero values
+                    q_fuel_infr_plus_dict[(y, f_l, geo.id)] = val
+                    saved_count += 1
+                end
+            end
+        elseif haskey(data_structures, "f_l_pairs")
+            # Complex mode but no by_route split: use all f_l_pairs
+            f_l_pairs = data_structures["f_l_pairs"]
+            @info "    Using f_l_pairs set with $(length(f_l_pairs)) pairs"
+            for y ∈ y_init:investment_period:Y_end, f_l ∈ f_l_pairs, geo ∈ geographic_element_list
+                total_count += 1
+                val = value(model[:q_fuel_infr_plus][y, f_l, geo.id])
+                if !isnan(val) && val > 1e-6  # Only save non-zero values
+                    q_fuel_infr_plus_dict[(y, f_l, geo.id)] = val
+                    saved_count += 1
+                end
+            end
+        else
+            # Simple mode: without fueling infrastructure types
+            @info "    Using simple mode (fuel_list)"
+            for y ∈ y_init:investment_period:Y_end, f ∈ fuel_list, geo ∈ geographic_element_list
+                total_count += 1
+                val = value(model[:q_fuel_infr_plus][y, f.id, geo.id])
+                if !isnan(val) && val > 1e-6  # Only save non-zero values
+                    q_fuel_infr_plus_dict[(y, f.id, geo.id)] = val
+                    saved_count += 1
+                end
+            end
+        end
+        @info "    Saved $saved_count non-zero values out of $total_count total variables"
+    end
+
     q_mode_infr_plus_dict = Dict()
-    for y ∈ y_init:investment_period:Y_end, m ∈ mode_list, geo ∈ geographic_element_list
-        if haskey(object_dictionary(model), :q_mode_infr_plus)
+    if haskey(object_dictionary(model), :q_mode_infr_plus)
+        @info "  Saving q_mode_infr_plus (mode infrastructure) variable..."
+        for y ∈ y_init:investment_period:Y_end, m ∈ mode_list, geo ∈ geographic_element_list
             val = value(model[:q_mode_infr_plus][y, m.id, geo.id])
-            if !isnan(val)
+            if !isnan(val) && val > 1e-6
                 q_mode_infr_plus_dict[(y, m.id, geo.id)] = val
             end
         end
     end
 
-    if data_structures["fueling_infr_types_list"] != []
-
-        q_fuel_infr_plus_dict = Dict()
-        f_l_not_by_route = data_structures["f_l_not_by_route"]
-        
-        f_l_by_route = data_structures["f_l_by_route"]
-        for y ∈ y_init:investment_period:Y_end, f_l ∈ f_l_not_by_route, geo ∈ geographic_element_list
-            if haskey(object_dictionary(model), :q_fuel_infr_plus)
-                val = value(model[:q_fuel_infr_plus][y, f_l, geo.id])
-                if !isnan(val)
-                    q_fuel_infr_plus_dict[(y, f_l, geo.id)] = val
+    # NEW: Save soc (state of charge) variable
+    soc_dict = Dict()
+    if haskey(object_dictionary(model), :soc)
+        @info "  Saving soc (state of charge) variable..."
+        if data_structures["fueling_infr_types_list"] != []
+            f_l_pairs = data_structures["f_l_pairs"]
+            for y ∈ y_init:Y_end, (p, r, k, g) ∈ p_r_k_g_pairs, tv_id ∈ tech_vehicle_ids, f_l in f_l_pairs, gen ∈ g_init:y
+                val = value(model[:soc][y, (p, r, k, g), tv_id, f_l, gen])
+                if !isnan(val) && val > 1e-6
+                    soc_dict[(y, (p, r, k, g), tv_id, f_l, gen)] = val
                 end
-            end
-        end
-        q_fuel_infr_plus_by_route_dict = Dict()
-        if length(f_l_by_route) > 0
-            for y ∈ y_init:investment_period:Y_end, r in odpairs, f_l ∈ f_l_by_route, geo ∈ geographic_element_list
-                if haskey(object_dictionary(model), :q_fuel_infr_plus_by_route)
-                    val = value(model[:q_fuel_infr_plus_by_route][y, r.id, f_l, geo.id])
-                    if !isnan(val)
-                        q_fuel_infr_plus_by_route_dict[(y, r.id, f_l, geo.id)] = val
-                    end
-                end
-            end
-        end
-        q_fuel_infr_plus_diff_dict = Dict()
-        f_l_for_dt = data_structures["f_l_for_dt"]
-
-        for y ∈ y_init:investment_period:Y_end, f_l ∈ f_l_for_dt, geo ∈ geographic_element_list
-            if haskey(object_dictionary(model), :q_fuel_infr_plus_diff)
-                val = value(model[:q_fuel_infr_plus_diff][y, f_l, geo.id])
-                if !isnan(val)
-                    q_fuel_infr_plus_diff_dict[(y, f_l, geo.id)] = val
-                end
-            end
-        end
-
-    else 
-        q_supply_infr_plus_dict = Dict()
-        for y ∈ y_init:investment_period:Y_end, st ∈ data_structures["supplytype_list"], geo ∈ geographic_element_list
-            if haskey(object_dictionary(model), :q_supply_infr_plus)
-                val = value(model[:q_supply_infr_plus][y, st.id, geo.id])
-                if !isnan(val)
-                    q_supply_infr_plus_dict[(y, st.id, geo.id)] = val
-                end
-            end
-        end
-
-        q_fuel_infr_plus_dict = Dict()
-        for y ∈ y_init:investment_period:Y_end, f ∈ fuel_list, geo ∈ geographic_element_list
-            if haskey(object_dictionary(model), :q_fuel_infr_plus)
-                val = value(model[:q_fuel_infr_plus][y, f.id, geo.id])
-                if !isnan(val)
-                    q_fuel_infr_plus_dict[(y, f.id, geo.id)] = val
-                end
-            end
-        end 
-    end
-
-    budget_penalty_plus_dict = Dict()
-    for y ∈ y_init:Y_end, r ∈ odpairs
-        if haskey(object_dictionary(model), :budget_penalty_plus)
-            val = value(model[:budget_penalty_plus][y, r.id])
-            if !isnan(val)
-                budget_penalty_plus_dict[(y, r.id)] = val
             end
         end
     end
 
-    budget_penalty_minus_dict = Dict()
-    for y ∈ y_init:Y_end, r ∈ odpairs
-        if haskey(object_dictionary(model), :budget_penalty_minus)
-            val = value(model[:budget_penalty_minus][y, r.id])
-            if !isnan(val)
-                budget_penalty_minus_dict[(y, r.id)] = val
+    # NEW: Save q_fuel_abs variable
+    q_fuel_abs_dict = Dict()
+    if haskey(object_dictionary(model), :q_fuel_abs)
+        @info "  Saving q_fuel_abs variable..."
+        if data_structures["fueling_infr_types_list"] != []
+            f_l_not_by_route = [f_l for f_l in data_structures["f_l_pairs"] if !data_structures["fueling_infr_types_dict"][f_l].by_route]
+            for y ∈ y_init:investment_period:Y_end, (p, r, k, g) ∈ p_r_k_g_pairs, f_l in f_l_not_by_route, gen ∈ g_init:y
+                val = value(model[:q_fuel_abs][y, (p, r, k, g), f_l, gen])
+                if !isnan(val) && val > 1e-6
+                    q_fuel_abs_dict[(y, (p, r, k, g), f_l, gen)] = val
+                end
             end
         end
     end
 
-    budget_penalty_plus_yearly_dict = Dict()
-    for y ∈ y_init:Y_end, r ∈ odpairs
-        if haskey(object_dictionary(model), :budget_penalty_yearly_plus)
-            val = value(model[:budget_penalty_yearly_plus][y, r.id])
-            if !isnan(val)
-                budget_penalty_plus_yearly_dict[(y, r.id)] = val
+    travel_time_dict = Dict()
+    if haskey(object_dictionary(model), :travel_time)
+        @info "  Saving travel_time variable..."
+        if data_structures["fueling_infr_types_list"] != []
+            f_l_pairs = data_structures["f_l_pairs"]
+            for y ∈ y_init:Y_end, (p, r, k, g) ∈ p_r_k_g_pairs, tv_id ∈ tech_vehicle_ids, f_l in f_l_pairs, gen ∈ g_init:y
+                val = value(model[:travel_time][y, (p, r, k, g), tv_id, f_l, gen])
+                if !isnan(val) && val > 1e-6
+                    travel_time_dict[(y, (p, r, k, g), tv_id, f_l, gen)] = val
+                end
+            end
+        else
+            for y ∈ y_init:Y_end, (p, r, k, g) ∈ p_r_k_g_pairs, tv_id ∈ tech_vehicle_ids, gen ∈ g_init:y
+                val = value(model[:travel_time][y, (p, r, k, g), tv_id, gen])
+                if !isnan(val) && val > 1e-6
+                    travel_time_dict[(y, (p, r, k, g), tv_id, gen)] = val
+                end
             end
         end
     end
 
-    budget_penalty_minus_yearly_dict = Dict()
-    for y ∈ y_init:Y_end, r ∈ odpairs
-        if haskey(object_dictionary(model), :budget_penalty_yearly_minus)
-            val = value(model[:budget_penalty_yearly_minus][y, r.id])
-            if !isnan(val)
-                budget_penalty_minus_yearly_dict[(y, r.id)] = val
+    # NEW: Save extra_break_time slack variable
+    extra_break_time_dict = Dict()
+    if haskey(object_dictionary(model), :extra_break_time)
+        @info "  Saving extra_break_time variable..."
+        if data_structures["fueling_infr_types_list"] != []
+            f_l_pairs = data_structures["f_l_pairs"]
+            for y ∈ y_init:Y_end, (p, r, k, g) ∈ p_r_k_g_pairs, tv_id ∈ tech_vehicle_ids, f_l in f_l_pairs, gen ∈ g_init:y
+                val = value(model[:extra_break_time][y, (p, r, k, g), tv_id, f_l, gen])
+                if !isnan(val) && val > 1e-6  # Only save non-zero slack values
+                    extra_break_time_dict[(y, (p, r, k, g), tv_id, f_l, gen)] = val
+                end
             end
         end
     end
 
-    @info "Saving results..."
+    # ------------------------
+    # Prepare dicts for saving
+    # ------------------------
+
     f_dict_str = stringify_keys(f_dict)
     h_dict_str = stringify_keys(h_dict)
     h_exist_dict_str = stringify_keys(h_exist_dict)
@@ -1480,209 +1687,163 @@ function save_results(
     s_dict_str = stringify_keys(s_dict)
     q_fuel_infr_plus_dict_str = stringify_keys(q_fuel_infr_plus_dict)
     q_mode_infr_plus_dict_str = stringify_keys(q_mode_infr_plus_dict)
+    soc_dict_str = stringify_keys(soc_dict)
+    q_fuel_abs_dict_str = stringify_keys(q_fuel_abs_dict)
+    travel_time_dict_str = stringify_keys(travel_time_dict)
+    extra_break_time_dict_str = stringify_keys(extra_break_time_dict)
+    # ------------------------
+    # Save to YAML only if not empty
+    # ------------------------
 
-    budget_penalty_plus_dict_str = stringify_keys(budget_penalty_plus_dict)
-    budget_penalty_minus_dict_str = stringify_keys(budget_penalty_minus_dict)
-
-    budget_penalty_plus_yearly_dict_str = stringify_keys(budget_penalty_plus_yearly_dict)
-    budget_penalty_minus_yearly_dict_str = stringify_keys(budget_penalty_minus_yearly_dict)
-
-    if data_structures["detour_time_reduction_list"] != []
-        if data_structures["fueling_infr_types_list"] == []
-            n_fueling_dict = Dict()
-            for y ∈ y_init:Y_end, (p, r, k, g) ∈ p_r_k_g_pairs, f ∈ fuel_list, gen ∈ g_init:y
-                val = value(model[:n_fueling][y, (p, r, k, g), f.id, gen])
-                if round(val, digits=6) != 0.0
-                    n_fueling_dict[(y, (p, r, k, g), f.id, gen)] = val
-                end
-            end
-
-            detour_time_dict = Dict()
-            for y ∈ y_init:Y_end, p_r_k ∈ p_r_k_g_pairs, f ∈ fuel_list
-                detour_time_dict[(y, p_r_k, f.id)] = value(model[:detour_time][y, p_r_k, f.id])
-            end
-
-            detour_time_dict_str = stringify_keys(detour_time_dict)
-
-            x_c_dict = Dict()
-            for y ∈ y_init:investment_period:Y_end, g ∈ geo_i_f
-                x_c_dict[(y, g)] = value(model[:x_c][y, g])
-            end
-            x_c_dict_str = stringify_keys(x_c_dict)
-            
-            z_str = Dict()
-            for y ∈ y_init:Y_end, (p, r, k, g) ∈ p_r_k_g_pairs, geo ∈ geo_i_f
-                z_str[(y, geo, (p, r, k, g))] = value(model[:z][y, geo, (p, r, k, g)])
-            end
-            z_str = stringify_keys(z_str)
-        else
-            n_fueling_dict = Dict()
-            f_l_pairs = data_structures["f_l_pairs"]
-            for y ∈ y_init:Y_end, (p, r, k, g) ∈ p_r_k_g_pairs, f_l ∈ f_l_pairs, gen ∈ g_init:y
-                val = value(model[:n_fueling][y, (p, r, k, g), f_l, gen])
-                if round(val, digits=6) != 0.0
-                    n_fueling_dict[(y, (p, r, k, g), f_l, gen)] = val
-                end
-            end
-
-            f_l_for_dt = data_structures["f_l_for_dt"]
-            detour_time_dict = Dict()
-            for y ∈ y_init:Y_end, p_r_k ∈ p_r_k_g_pairs, f_l ∈ f_l_for_dt
-                detour_time_dict[(y, p_r_k, f_l)] = value(model[:detour_time][y, p_r_k, f_l])
-            end
-            detour_time_dict_str = stringify_keys(detour_time_dict)
-            
-            geo_i_f_l_pairs = data_structures["geo_i_f_l"]
-            x_c_dict = Dict()
-            for y ∈ y_init:investment_period:Y_end, g ∈ geo_i_f_l_pairs
-                x_c_dict[(y, g)] = value(model[:x_c][y, g])
-            end
-            x_c_dict_str = stringify_keys(x_c_dict)
-            vot_dt_dict = Dict()
-            for y ∈ y_init:Y_end, geo ∈ geo_i_f_l_pairs
-                vot_dt_dict[(y, geo)] = value(model[:vot_dt][y, geo])
-            end
-            z_str = Dict()
-            for y ∈ y_init:Y_end, (p, r, k, g) ∈ p_r_k_g_pairs, geo ∈ geo_i_f_l_pairs
-                z_str[(y, geo, (p, r, k, g))] = value(model[:z][y, geo, (p, r, k, g)])
-            end
-            z_str = stringify_keys(z_str)
-            q_fuel_infr_plus_by_route_dict_str = stringify_keys(q_fuel_infr_plus_by_route_dict)
-            q_fuel_infr_plus_diff_dict_str = stringify_keys(q_fuel_infr_plus_diff_dict)
-            
-        end 
-        
-    end
-
-    if data_structures["supplytype_list"] != []
-        supplytype_list = data_structures["supplytype_list"]
-        q_supply_infr_dict = Dict()
-        for y ∈ y_init:investment_period:Y_end, st ∈ supplytype_list, geo ∈ geographic_element_list
-            q_supply_infr_dict[(y, st.id, geo.id)] = value(model[:q_supply_infr][y, st.id, geo.id])
-        end
-        q_supply_infr_dict_str = stringify_keys(q_supply_infr_dict)
-    end
     if write_to_file
-        YAML.write_file(joinpath(folder_for_results, case * "_f_dict.yaml"), f_dict_str)
-        @info "f_dict.yaml written successfully"
-
-        YAML.write_file(joinpath(folder_for_results, case * "_h_dict.yaml"), h_dict_str)
-        @info "h_dict.yaml written successfully"
-
-        YAML.write_file(
-            joinpath(folder_for_results, case * "_h_exist_dict.yaml"),
-            h_exist_dict_str,
-        )
-        @info case * "_h_exist_dict.yaml written successfully"
-
-        YAML.write_file(
-            joinpath(folder_for_results, case * "_h_plus_dict.yaml"),
-            h_plus_dict_str,
-        )
-        @info case * "_h_plus_dict.yaml written successfully"
-
-        YAML.write_file(
-            joinpath(folder_for_results, case * "_h_minus_dict.yaml"),
-            h_minus_dict_str,
-        )
-        @info "h_minus_dict.yaml written successfully"
-
-        YAML.write_file(
-            joinpath(folder_for_results, case * "_q_fuel_infr_plus_dict.yaml"),
-            q_fuel_infr_plus_dict_str,
-        )
-        @info "q_fuel_infr_plus_dict.yaml written successfully"
-
-        YAML.write_file(
-            joinpath(folder_for_results, case * "_q_mode_infr_plus_dict.yaml"),
-            q_mode_infr_plus_dict_str,
-        )
-        @info "q_mode_infr_dict.yaml written successfully"
-
-        YAML.write_file(
-            joinpath(folder_for_results, case * "_budget_penalty_plus_dict.yaml"),
-            budget_penalty_plus_dict_str,
-        )
-        @info "budget_penalty_plus_dict.yaml written successfully"
-
-        YAML.write_file(
-            joinpath(folder_for_results, case * "_budget_penalty_minus_dict.yaml"),
-            budget_penalty_minus_dict_str,
-        )
-        @info "budget_penalty_minus_dict.yaml written successfully"
-
-        YAML.write_file(
-            joinpath(folder_for_results, case * "_budget_penalty_plus_yearly_dict.yaml"),
-            budget_penalty_plus_yearly_dict_str,
-        )
-        @info "budget_penalty_plus_yearly_dict.yaml written successfully"
-        YAML.write_file(
-            joinpath(folder_for_results, case * "_budget_penalty_minus_yearly_dict.yaml"),
-            budget_penalty_minus_yearly_dict_str,
-        )
-        @info "budget_penalty_minus_yearly_dict.yaml written successfully"
-        YAML.write_file(joinpath(folder_for_results, case * "_s.yaml"), s_dict_str)
-        @info "s.yaml written successfully"
-        if data_structures["detour_time_reduction_list"] != []
-            YAML.write_file(
-                joinpath(folder_for_results, case * "_detour_time_dict.yaml"),
-                detour_time_dict_str,
-            )
-            @info "detour_time_dict.yaml written successfully"
-
-            @info "x_b_dict.yaml written successfully"
-            YAML.write_file(
-                joinpath(folder_for_results, case * "_x_c_dict.yaml"),
-                x_c_dict_str,
-            )
-            @info "x_c_dict.yaml written successfully"
-            YAML.write_file(
-                joinpath(folder_for_results, case * "_vot_dt_dict.yaml"),
-                vot_dt_dict,
-            )
-            @info "vot_dt_dict.yaml written successfully"
-            YAML.write_file(
-                joinpath(folder_for_results, case * "_n_fueling_dict.yaml"),
-                n_fueling_dict,
-            )
-            YAML.write_file(joinpath(folder_for_results, case * "_z_dict.yaml"), z_str)
+        if !isempty(f_dict_str)
+            YAML.write_file(joinpath(folder_for_results, case * "_f_dict.yaml"), f_dict_str)
+            @info "f_dict.yaml written successfully"
         end
-        if data_structures["supplytype_list"] != []
-            YAML.write_file(
-                joinpath(folder_for_results, case * "_q_supply_infr_dict.yaml"),
-                q_supply_infr_dict_str,
-            )
-            @info "q_supply_infr_dict.yaml written successfully"
+
+        if !isempty(h_dict_str)
+            YAML.write_file(joinpath(folder_for_results, case * "_h_dict.yaml"), h_dict_str)
+            @info "h_dict.yaml written successfully"
         end
-        if data_structures["fueling_infr_types_list"] != []
 
-            if length(data_structures["f_l_by_route"]) != 0 
-                q_fuel_infr_plus_by_route_dict_str = stringify_keys(q_fuel_infr_plus_by_route_dict)
+        if !isempty(h_exist_dict_str)
+            YAML.write_file(joinpath(folder_for_results, case * "_h_exist_dict.yaml"), h_exist_dict_str)
+            @info "h_exist_dict.yaml written successfully"
+        end
 
-                YAML.write_file(
-                    joinpath(folder_for_results, case * "_q_fuel_infr_plus_by_route_dict.yaml"),
-                    q_fuel_infr_plus_by_route_dict_str,
-                )
-                @info "q_fuel_infr_plus_by_route_dict.yaml written successfully"
-                YAML.write_file(
-                    joinpath(folder_for_results, case * "_q_fuel_infr_plus_diff_dict.yaml"),
-                    q_fuel_infr_plus_diff_dict_str,
-                )
-                @info "q_fuel_infr_plus_diff_dict.yaml written successfully"
-            end
+        if !isempty(h_plus_dict_str)
+            YAML.write_file(joinpath(folder_for_results, case * "_h_plus_dict.yaml"), h_plus_dict_str)
+            @info "h_plus_dict.yaml written successfully"
+        end
+
+        if !isempty(h_minus_dict_str)
+            YAML.write_file(joinpath(folder_for_results, case * "_h_minus_dict.yaml"), h_minus_dict_str)
+            @info "h_minus_dict.yaml written successfully"
+        end
+
+        if !isempty(s_dict_str)
+            YAML.write_file(joinpath(folder_for_results, case * "_s_dict.yaml"), s_dict_str)
+            @info "s.yaml written successfully"
+        end
+
+        if !isempty(q_fuel_infr_plus_dict_str)
+            YAML.write_file(joinpath(folder_for_results, case * "_q_fuel_infr_plus_dict.yaml"), q_fuel_infr_plus_dict_str)
+            @info "q_fuel_infr_plus.yaml written successfully"
+        end
+
+        if !isempty(q_mode_infr_plus_dict_str)
+            YAML.write_file(joinpath(folder_for_results, case * "_q_mode_infr_plus_dict.yaml"), q_mode_infr_plus_dict_str)
+            @info "q_mode_infr_plus_dict.yaml written successfully"
+        end
+
+        if !isempty(soc_dict_str)
+            YAML.write_file(joinpath(folder_for_results, case * "_soc_dict.yaml"), soc_dict_str)
+            @info "soc_dict.yaml written successfully"
+        end
+
+        if !isempty(q_fuel_abs_dict_str)
+            YAML.write_file(joinpath(folder_for_results, case * "_q_fuel_abs_dict.yaml"), q_fuel_abs_dict_str)
+            @info "q_fuel_abs_dict.yaml written successfully"
+        end
+
+        if !isempty(travel_time_dict_str)
+            YAML.write_file(joinpath(folder_for_results, case * "_travel_time_dict.yaml"), travel_time_dict_str)
+            @info "travel_time_dict.yaml written successfully"
+        end
+
+        if !isempty(extra_break_time_dict_str)
+            YAML.write_file(joinpath(folder_for_results, case * "_extra_break_time_dict.yaml"), extra_break_time_dict_str)
+            @info "extra_break_time_dict.yaml written successfully"
         end
     end
+
+    # Save constraint summary information
+    @info "Writing constraint summary file..."
+    constraint_summary_path = joinpath(folder_for_results, case * "_constraints_applied.txt")
+
+    open(constraint_summary_path, "w") do io
+        println(io, "="^80)
+        println(io, "CONSTRAINT SUMMARY FOR MODEL RUN: $case")
+        println(io, "="^80)
+        println(io, "Generated: $(Dates.format(Dates.now(), "yyyy-mm-dd HH:MM:SS"))")
+        println(io, "")
+
+        # Model statistics
+        println(io, "MODEL STATISTICS:")
+        println(io, "  Total constraints: $(num_constraints(model; count_variable_in_set_constraints=false))")
+        println(io, "  Total variables: $(num_variables(model))")
+        println(io, "")
+
+        # List all constraint types in the model
+        println(io, "CONSTRAINTS APPLIED:")
+        println(io, "")
+
+        constraint_type_list = list_of_constraint_types(model)
+
+        for (idx, (func_type, set_type)) in enumerate(constraint_type_list)
+            # Count constraints of this type
+            count = num_constraints(model, func_type, set_type)
+
+            # Format the constraint type name
+            type_name = "$(func_type) in $(set_type)"
+
+            println(io, "  $idx. $type_name")
+            println(io, "     Number of constraints: $count")
+            println(io, "")
+        end
+
+        # Variables present in the model
+        println(io, "="^80)
+        println(io, "DECISION VARIABLES:")
+        println(io, "")
+
+        var_idx = 1
+        for var_symbol in [:f, :h, :h_plus, :h_minus, :h_exist, :s, :q_fuel_infr_plus,
+                          :q_mode_infr_plus, :soc, :q_fuel_abs, :detour_time, :n_fueling,
+                          :budget_penalties]
+            if haskey(object_dictionary(model), var_symbol)
+                var = model[var_symbol]
+                println(io, "  $var_idx. $(var_symbol)")
+                println(io, "     Number of variables: $(length(var))")
+                println(io, "")
+                var_idx += 1
+            end
+        end
+
+        # Model parameters
+        println(io, "="^80)
+        println(io, "MODEL PARAMETERS:")
+        println(io, "  Time horizon: $(data_structures["y_init"]) - $(data_structures["Y_end"])")
+        println(io, "  Initial year: $(data_structures["y_init"])")
+        println(io, "  Final year: $(data_structures["Y_end"])")
+        println(io, "  Investment period: $(data_structures["investment_period"]) years")
+        println(io, "  Number of OD pairs: $(length(data_structures["odpair_list"]))")
+        println(io, "  Number of paths: $(length(data_structures["path_list"]))")
+        println(io, "  Number of geographic elements: $(length(data_structures["geographic_element_list"]))")
+        println(io, "  Number of tech vehicles: $(length(data_structures["techvehicle_list"]))")
+
+        if haskey(data_structures, "spatial_flexibility_edges_list")
+            println(io, "  Spatial flexibility entries: $(length(data_structures["spatial_flexibility_edges_list"]))")
+        end
+
+        println(io, "")
+        println(io, "="^80)
+        println(io, "END OF CONSTRAINT SUMMARY")
+        println(io, "="^80)
+    end
+
+    @info "✓ Constraint summary written to: $(constraint_summary_path)"
 
     return f_dict,
-    h_dict,
-    h_exist_dict,
-    h_plus_dict,
-    h_minus_dict,
-    s_dict,
-    q_fuel_infr_plus_dict,
-    q_mode_infr_plus_dict,
-    budget_penalty_plus_dict,
-    budget_penalty_minus_dict
+           h_dict,
+           h_exist_dict,
+           h_plus_dict,
+           h_minus_dict,
+           s_dict,
+           q_fuel_infr_plus_dict,
+           q_mode_infr_plus_dict,
+           soc_dict,
+           q_fuel_abs_dict
 end
 
 

@@ -1,0 +1,66 @@
+================================================================================
+PATH DISTANCE COMPARISON REPORT
+Traffic Data vs NUTS-3 Network Distances
+================================================================================
+
+RESEARCH QUESTION
+--------------------------------------------------------------------------------
+Is there a difference in path lengths between the routes in truck traffic
+data (original) and the NUTS-3 aggregated network?
+
+METHODOLOGY
+--------------------------------------------------------------------------------
+1. Load truck traffic data with reported Total_distance
+2. Load NUTS-3 aggregated network with edge distances
+3. For each OD-pair, compare:
+   - Traffic reported distance (from CSV)
+   - Network edge distance (from NUTS-3 graph)
+4. Calculate absolute and relative errors
+
+RESULTS
+--------------------------------------------------------------------------------
+
+Total OD-pairs analyzed: 1,514,573
+
+Network Connectivity:
+  OD-pairs with DIRECT edge:    3,146 (0.2%)
+  OD-pairs WITHOUT direct edge: 1,511,427 (99.8%)
+
+Distance Comparison (Direct Edges Only):
+  Mean traffic distance:       127.85 km
+  Mean network distance:       26.64 km
+  Mean absolute error:         102.88 km
+  Mean relative error:         81.45%
+  Median relative error:       87.12%
+  Traffic-weighted error:      96.46 km
+
+  Exact matches (< 0.1 km):    0 (0.0%)
+
+KEY FINDINGS
+--------------------------------------------------------------------------------
+
+[!] MODERATE/HIGH error (>15% average)
+    Significant differences between traffic and network distances.
+    May need to review network edge distance calculations.
+
+[!] MANY indirect routes (>50%)
+    More than half of OD-pairs lack direct edges in NUTS-3 network.
+    Paths require intermediate nodes (multi-hop routing).
+    This is EXPECTED for sparse NUTS-3 aggregation.
+
+INTERPRETATION
+--------------------------------------------------------------------------------
+
+The NUTS-3 aggregation creates a simplified network where:
+
+1. 0.2% of OD-pairs have DIRECT connections
+   - These use actual edge distances from the network
+   - Average error: 81.4%
+
+2. 99.8% of OD-pairs require MULTI-HOP routing
+   - These use pathfinding (BFS) or fallback to traffic distance
+   - More computation needed during preprocessing
+
+ANSWER TO RESEARCH QUESTION:
+YES, there is a SIGNIFICANT difference (>81.4% on average).
+Network distances differ notably from traffic reported distances.

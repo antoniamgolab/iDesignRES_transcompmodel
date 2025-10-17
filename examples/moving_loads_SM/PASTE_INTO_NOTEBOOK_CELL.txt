@@ -1,0 +1,70 @@
+# ============================================================================
+# PASTE THIS CELL TO REPLACE THE OD-PAIR CREATION CELL IN YOUR NOTEBOOK
+# ============================================================================
+# This cell detects whether you're using NUTS-3 or original data
+# and automatically uses the right preprocessing method
+# ============================================================================
+
+if resolution == "reduced":
+    print("="*80)
+    print("USING NUTS-3 PREPROCESSING")
+    print("="*80)
+
+    # Import fix
+    import sys
+    sys.path.append('.')
+    from preprocessing_fix_for_nuts3 import create_nuts3_paths_from_traffic
+
+    # ADJUSTABLE PARAMETER
+    MAX_ODPAIRS = None  # Change to 100 for testing, None for all
+
+    # Auto-detect variables
+    if 'long_haul_truck_traffic' in dir():
+        traffic_var = long_haul_truck_traffic
+    elif 'filtered_truck_traffic' in dir():
+        traffic_var = filtered_truck_traffic
+    else:
+        traffic_var = truck_traffic
+
+    if 'filtered_network_nodes' in dir():
+        nodes_var = filtered_network_nodes
+    else:
+        nodes_var = network_nodes
+
+    if 'filtered_network_edges' in dir():
+        edges_var = filtered_network_edges
+    else:
+        edges_var = network_edges
+
+    print(f"Using: {len(traffic_var):,} traffic rows")
+    print(f"       {len(nodes_var):,} nodes")
+    print(f"       {len(edges_var):,} edges")
+
+    if MAX_ODPAIRS:
+        print(f"[TEST MODE] Limiting to {MAX_ODPAIRS} OD-pairs")
+
+    # Create OD-pairs and paths
+    odpair_list, path_list = create_nuts3_paths_from_traffic(
+        truck_traffic=traffic_var,
+        network_nodes=nodes_var,
+        network_edges=edges_var,
+        max_odpairs=MAX_ODPAIRS
+    )
+
+    print(f"\n[OK] Created {len(odpair_list)} OD-pairs")
+    print(f"[OK] Created {len(path_list)} paths")
+
+    # Create vehicle stock
+    initial_vehicle_stock = []
+    for odp in odpair_list:
+        initial_vehicle_stock.extend(odp['vehicle_stock_init'])
+
+    print(f"[OK] Created {len(initial_vehicle_stock)} vehicle stock entries")
+
+else:
+    print("="*80)
+    print("USING ORIGINAL HIGH-RESOLUTION PREPROCESSING")
+    print("="*80)
+    print("ERROR: Original preprocessing code was removed by auto-patcher.")
+    print("Please restore from backup or set resolution = 'reduced'")
+    raise ValueError("Original preprocessing not available in this version")

@@ -13,3 +13,4 @@ examples/moving_loads_SM/results/
 
 # Keep only the current working case for reference (small enough)
 !examples/moving_loads_SM/input_data/case_20251017_105556/
+nul

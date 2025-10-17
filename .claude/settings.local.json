@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python:*)",
+      "Bash(timeout:*)",
+      "Bash(julia:*)",
+      "Bash(dir:*)",
+      "Bash(python3:*)"
+    ],
+    "deny": [
+      "Bash(git:*)"
+    ],
+    "ask": [
+      "Bash(rm:*)"
+    ]
+  }
+}
