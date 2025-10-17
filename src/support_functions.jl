@@ -635,6 +635,8 @@ function parse_data(data_dict::Dict)
                 item["by_route"],
                 item["track_detour_time"],
                 item["gamma"],
+                item["cost_per_kW"],
+                item["cost_per_kWh_network"],
             ) for item ∈ data_dict["FuelingInfrTypes"]
         ]
     else
@@ -667,7 +669,7 @@ function parse_data(data_dict::Dict)
                         geographic_element_list,
                     )],
                     init_detour_time["detour_time"],
-                    FuelingInfrTypes(0, fuel_list[1], "none", 0, 0, 0, false, 0),
+                    FuelingInfrTypes(0, fuel_list[1], "none", 0, 0, 0, false, 0, [0.0]),
                 ) for init_detour_time ∈ data_dict["InitDetourTime"]
             ]
         end
@@ -685,6 +687,11 @@ function parse_data(data_dict::Dict)
                     f -> f.fueling_type == initalfuelinginfr["type"],
                     fueling_infr_types,
                 )],
+                initalfuelinginfr["by_income_class"],
+                financial_status_list[findfirst(
+                    fs -> fs.name == initalfuelinginfr["income_class"],
+                    financial_status_list,
+                )],
             ) for initalfuelinginfr ∈ data_dict["InitialFuelingInfr"]
         ]
     else 
@@ -694,7 +701,12 @@ function parse_data(data_dict::Dict)
                 fuel_list[findfirst(f -> f.name == initalfuelinginfr["fuel"], fuel_list)],
                 initalfuelinginfr["allocation"],
                 initalfuelinginfr["installed_kW"],
-                FuelingInfrTypes(0, fuel_list[1], "none", 0, 0, 0, false, 0),
+                FuelingInfrTypes(0, fuel_list[1], "none", 0, 0, 0, false, 0, 0, [0]),
+                initalfuelinginfr["by_income_class"],
+                financial_status_list[findfirst(
+                    fs -> fs.name == initalfuelinginfr["income_class"],
+                    financial_status_list,
+                )],
             ) for initalfuelinginfr ∈ data_dict["InitialFuelingInfr"]
         ]
     end
@@ -711,6 +723,11 @@ function parse_data(data_dict::Dict)
                 fueling_infr_types[findfirst(
                     f -> f.fueling_type == item["fueling_type"],
                     fueling_infr_types,
+                )],
+                item["by_income_class"],
+                financial_status_list[findfirst(
+                    fs -> fs.name == item["income_class"],
+                    financial_status_list,
                 )],
             ) for item ∈ data_dict["MaximumFuelingCapacityByTypeByYear"]
         ]
@@ -764,7 +781,7 @@ function parse_data(data_dict::Dict)
                     detour_time_reduction["detour_time_reduction"],
                     detour_time_reduction["fueling_cap_lb"],
                     detour_time_reduction["fueling_cap_ub"],
-                    FuelingInfrTypes(0, fuel_list[1], "none", 0, 0, 0, false, 0),
+                    FuelingInfrTypes(0, fuel_list[1], "none", 0, 0, 0, false, 0, 0, [0]),
                 ) for detour_time_reduction ∈ data_dict["DetourTimeReduction"]
             ]
         else
@@ -874,6 +891,45 @@ function generate_exact_length_subsets(start_year::Int, end_year::Int, delta_y::
 
     return subsets
 end
+
+"""
+    create_blocks(start_year::Int, end_year::Int, delta_y::Int)
+
+Generates a list of subsets of years with a fixed length.
+
+# Arguments
+- `start_year::Int`: The first year.
+- `end_year::Int`: The last year.
+- `delta_y::Int`: The length of the subsets.
+"""
+function create_blocks(y_init::Int, Y_end::Int; block_size::Int=2)
+    """
+    Create non-overlapping blocks within a spending horizon in Julia.
+    Last block may be shorter if remaining years < block_size.
+
+    Args:
+        y_init: Starting year of horizon
+        Y_end: Ending year of horizon (inclusive)
+        block_size: Number of years per block (default 2)
+
+    Returns:
+        Array of tuples, each containing the years in the block
+    """
+    blocks = []
+    year = y_init
+    while year <= Y_end
+        block_end = min(year + block_size - 1, Y_end)
+        push!(blocks, tuple(year:block_end...))
+        year += block_size
+    end
+    return blocks
+end
+
+# Example usage:
+println(create_blocks(2021, 2025))          # Odd horizon
+println(create_blocks(2021, 2026))          # Even horizon
+println(create_blocks(2021, 2029, block_size=3))  # 3-year blocks
+
 
 """
 	create_m_tv_pairs(techvehicle_list::Vector{TechVehicle}, mode_list::Vector{Mode})

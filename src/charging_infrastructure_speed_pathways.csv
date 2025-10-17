@@ -1,0 +1,37 @@
+region,strategy,charging_type,year,nb_cp
+ES211,overshoot,fast,2030,160
+ES211,overshoot,fast,2040,296
+ES211,overshoot,slow,2030,731
+ES211,overshoot,slow,2040,1353
+ES211,EU target,fast,2030,112
+ES211,EU target,fast,2040,149
+ES211,EU target,slow,2030,511
+ES211,EU target,slow,2040,685
+ES211,undershoot,fast,2030,208
+ES211,undershoot,fast,2040,544
+ES211,undershoot,slow,2030,951
+ES211,undershoot,slow,2030,2487
+ES212,overshoot,fast,2030,350
+ES212,overshoot,fast,2040,648
+ES212,overshoot,slow,2030,1602
+ES212,overshoot,slow,2040,2966
+ES212,EU target,fast,2030,245
+ES212,EU target,fast,2040,328
+ES212,EU target,slow,2030,1121
+ES212,EU target,slow,2040,1501
+ES212,undershoot,fast,2030,455
+ES212,undershoot,fast,2040,1192
+ES212,undershoot,slow,2030,2084
+ES212,undershoot,slow,2030,5451
+ES213,overshoot,fast,2030,556
+ES213,overshoot,fast,2040,1029
+ES213,overshoot,slow,2030,2543
+ES213,overshoot,slow,2040,4708
+ES213,EU target,fast,2030,389
+ES213,EU target,fast,2040,521
+ES213,EU target,slow,2030,1780
+ES213,EU target,slow,2040,2383
+ES213,undershoot,fast,2030,723
+ES213,undershoot,fast,2040,1892
+ES213,undershoot,slow,2030,3307
+ES213,undershoot,slow,2030,8651

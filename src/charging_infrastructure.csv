@@ -1,3 +1,3 @@
 region,charging_speed,init_detour_time (min),init_installed_power (kW)
-ES21,slow,21.37318413339482,0
-ES21,fast,39.02191691857283,0
+ES21,slow,34.19709461343171,0
+ES21,fast,62.43506706971652,0
