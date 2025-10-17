@@ -4,3 +4,12 @@ temp_data/
 examples/Basque country/data/
 examples/Basque country/results/
 examples/Basque country/*.ipynb
+
+# Moving Loads SM - Large data files (>100MB, cannot be in git)
+examples/moving_loads_SM/data/
+examples/moving_loads_SM/input_data/
+examples/moving_loads_SM/output_data/
+examples/moving_loads_SM/results/
+
+# Keep only the current working case for reference (small enough)
+!examples/moving_loads_SM/input_data/case_20251017_105556/
