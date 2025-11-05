@@ -1,0 +1,31 @@
+Loading case study: case_20251103_114421
+================================================================================
+Loading GeographicElement.yaml...
+Loading Odpair.yaml...
+Loading Path.yaml...
+Loading flow data from: results/case_20251103_114421\case_20251103_114421_cs_2025-11-03_16-49-35_f_dict.yaml
+Loaded 151087 flow entries
+================================================================================
+
+Analyzing freight flows through Italian NUTS2 regions...
+--------------------------------------------------------------------------------
+
+Italian NUTS2 regions sorted by total TKM:
+--------------------------------------------------------------------------------
+NUTS2       Lat         Intl       Import       Export     Domestic        Total
+--------------------------------------------------------------------------------
+
+================================================================================
+TOP 5 ITALIAN REGIONS - OD PAIR BREAKDOWN
+================================================================================
+
+================================================================================
+SUMMARY
+================================================================================
+
+Total TKM passing through Italian NUTS2 regions:
+Traceback (most recent call last):
+  File "C:\Github\SM\iDesignRES_transcompmodel\examples\moving_loads_SM\investigate_italy_tkm.py", line 220, in <module>
+    print(f"  International (non-IT to non-IT): {total_italy_tkm['international']:>15,.0f} ({100*total_italy_tkm['international']/grand_total:.1f}%)")
+                                                                                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~
+ZeroDivisionError: division by zero

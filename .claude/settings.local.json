@@ -5,7 +5,17 @@
       "Bash(timeout:*)",
       "Bash(julia:*)",
       "Bash(dir:*)",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "Bash(~/anaconda3/envs/transcomp/python.exe --version)",
+      "Bash(~/anaconda3/envs/transcomp/python.exe -c \"import pandas, numpy, yaml, geopandas, shapely; print(''✓ All required packages available in transcomp environment'')\")",
+      "Bash(/c/Users/golab/miniconda3/envs/transcomp/python.exe SM_preprocessing_nuts2_complete.py)",
+      "Bash(/c/Users/golab/miniconda3/envs/transcomp/python.exe -m pip install --upgrade fiona)",
+      "Bash(tee preprocessing_output.log)",
+      "Bash(cat -A)",
+      "Bash(/c/Users/golab/miniconda3/envs/transcomp/python.exe:*)",
+      "Bash(~/miniconda3/envs/transcomp/python.exe:*)",
+      "Bash(cat:*)",
+      "Bash(tee:*)"
     ],
     "deny": [
       "Bash(git:*)"

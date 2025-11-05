@@ -1,0 +1,104 @@
+
+================================================================================
+SM PARAMETER GENERATOR - CONFIGURATION
+================================================================================
+Input directory:      input_data/nuts2_international_360_tol_one_third
+Case name:            Auto-generated with timestamp
+Electricity pricing:  Location-specific (variable)
+Network costs:        Location-specific (variable)
+================================================================================
+
+================================================================================
+LOADING PREPROCESSED NUTS-3 DATA
+================================================================================
+Source: C:\Github\SM\iDesignRES_transcompmodel\examples\moving_loads_SM\input_data\nuts2_international_360_tol_one_third
+
+[OK] Loaded 75 geographic elements (before filtering)
+[OK] Loaded 2928 paths (before filtering)
+[OK] Loaded 2928 OD-pairs (before filtering)
+
+Applying NUTS region filter...
+  Filtering by countries: ['AT', 'DE', 'DK', 'IT', 'NO', 'SE']
+  Found 75 nodes in relevant countries
+  Found 2928 OD-pairs with valid paths and nodes
+[FILTERED] 75 geographic elements
+[FILTERED] 2928 paths
+[FILTERED] 2928 OD-pairs
+[OK] Loaded 14640 initial vehicle stock entries
+[OK] Loaded 2930 mandatory breaks
+
+================================================================================
+GENERATING PARAMETER FILES
+================================================================================
+Output: C:\Github\SM\iDesignRES_transcompmodel\examples\moving_loads_SM\input_data\case_20251029_105650
+
+Loading electricity price data from GENeSYS-MOD...
+  Countries (codes): ['AT', 'DE', 'DK', 'IT', 'NO', 'SE']
+  Countries (names): ['Austria', 'Denmark', 'Germany', 'Italy', 'Norway', 'Sweden']
+  Average electricity tax: 0.0576 EUR/kWh
+  Network costs loaded for 6 countries
+{'AT': 14.688000000000002, 'DK': 12.8, 'DE': 16.768, 'IT': 8.96, 'SE': 12.192, 'NO': 8.576}
+  Network cost range: 8.58 - 16.77 EUR/kW
+  Average network cost: 12.33 EUR/kW
+  Loaded 54 electricity price entries
+  Countries: ['AT', 'DE', 'DK', 'IT', 'NO', 'SE']
+  Years: [np.int64(2018), np.int64(2025), np.int64(2030), np.int64(2035), np.int64(2040), np.int64(2045), np.int64(2050), np.int64(2055), np.int64(2060)]
+Created 225 fuel cost entries for 75 geo elements
+Electricity pricing mode: location-specific
+
+Calculating mandatory breaks using advanced EU regulations...
+  Speed: 80.0 km/h
+  Generated 9560 mandatory breaks/rests across 2928 paths
+  Break types: 7381 breaks (B), 2179 rests (R)
+[OK] Technology.yaml (82 bytes)
+[OK] Fuel.yaml (3,185 bytes)
+[OK] FuelCost.yaml (204,927 bytes)
+[OK] FuelingInfrTypes.yaml (7,806 bytes)
+[OK] Mode.yaml (1,848 bytes)
+[OK] Vehicletype.yaml (65 bytes)
+[OK] TechVehicle.yaml (118,480 bytes)
+[OK] Product.yaml (26 bytes)
+[OK] FinancialStatus.yaml (297 bytes)
+[OK] Regiontype.yaml (2,372 bytes)
+[OK] Speed.yaml (260 bytes)
+[OK] Model.yaml (259 bytes)
+[OK] NetworkConnectionCosts.yaml (40,466 bytes)
+[OK] InitialModeInfr.yaml (65 bytes)
+[OK] InitialFuelInfr.yaml (11,455 bytes)
+[OK] SpatialFlexibilityEdges.yaml (820,360 bytes)
+[OK] GeographicElement.yaml (56,157 bytes)
+[OK] Path.yaml (738,479 bytes)
+[OK] Odpair.yaml (3,498,893 bytes)
+[OK] InitialVehicleStock.yaml (1,085,378 bytes)
+[OK] MandatoryBreaks.yaml (3,180,949 bytes)
+
+================================================================================
+SUCCESS!
+================================================================================
+
+Complete input data set created in:
+  input_data\case_20251029_105650
+
+To use in Julia:
+  input_path = joinpath(@__DIR__, "input_data\case_20251029_105650")
+
+
+[INFO] Case successfully generated with timestamp-based name!
+
+Usage:
+  python SM_preprocessing.py [input_dir] [elec_mode] [network_mode]
+
+Arguments:
+  input_dir    : Path to input data directory (default: nuts_2_360_complete_test_time_step_2)
+  elec_mode    : Electricity pricing mode (default: variable)
+Traceback (most recent call last):
+  File "C:\Github\SM\iDesignRES_transcompmodel\examples\moving_loads_SM\SM_preprocessing.py", line 1463, in <module>
+    main()
+    ~~~~^^
+  File "C:\Github\SM\iDesignRES_transcompmodel\examples\moving_loads_SM\SM_preprocessing.py", line 1435, in main
+    print("                 - 'true', 'variable', 'yes', '1' \u2192 Location-specific (by country)")
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\golab\miniconda3\envs\transcomp\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2192' in position 50: character maps to <undefined>

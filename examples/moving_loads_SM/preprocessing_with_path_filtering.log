@@ -1,0 +1,152 @@
+
+================================================================================
+SM PARAMETER GENERATOR - CONFIGURATION
+================================================================================
+Input directory:      input_data/fixed_nuts_2
+Case name:            Auto-generated with timestamp
+Electricity pricing:  Location-specific (variable)
+Network costs:        Location-specific (variable)
+Transport modes:      Road only
+Low-volume filter:    ENABLED (threshold: 1,000 trucks/year)
+                      Reduces MandatoryBreaks.yaml size while keeping >99% of freight
+================================================================================
+
+================================================================================
+LOADING PREPROCESSED NUTS-3 DATA
+================================================================================
+Source: C:\Github\SM\iDesignRES_transcompmodel\examples\moving_loads_SM\input_data\fixed_nuts_2
+
+[OK] Loaded 81 geographic elements (before filtering)
+[OK] Loaded 6055 paths (before filtering)
+[OK] Loaded 6055 OD-pairs (before filtering)
+
+Applying NUTS region filter...
+  Filtering by countries: ['AT', 'DE', 'DK', 'IT', 'NO', 'SE']
+
+  FREIGHT STATISTICS (Initial):
+    Total OD-pairs: 6,055
+    Total freight volume: 43,290,663,748.23 tkm
+
+  Found 80 nodes in relevant countries
+
+  FREIGHT STATISTICS (After filtering):
+    Retained OD-pairs: 5,950 (98.3%)
+    Retained freight volume: 43,128,648,944.11 tkm (99.6%)
+
+  REMOVED FREIGHT BY FILTER TYPE:
+    Local routes (O==D): 0 OD-pairs, 0.00 tkm (0.0%)
+    Geographic filter: 105 OD-pairs, 162,014,804.12 tkm (0.4%)
+    TOTAL REMOVED: 162,014,804.12 tkm (0.4%)
+[FILTERED] 80 geographic elements
+[FILTERED] 5950 paths
+[FILTERED] 5950 OD-pairs
+
+================================================================================
+LOW-VOLUME FREIGHT FILTERING
+================================================================================
+Threshold: 1,000 trucks/year (first year demand)
+
+RESULTS:
+  Removed OD-pairs: 3,210 (53.9%)
+  Retained OD-pairs: 2,740 (46.1%)
+
+  Removed freight: 789,022 trucks/year (0.41%)
+  Retained freight: 189,587,335 trucks/year (99.59%)
+
+  Removed freight volume: 968,042,351 tkm (2.24%)
+  Retained freight volume: 42,160,606,593 tkm (97.76%)
+
+[SUCCESS] Filtered 3,210 low-volume OD-pairs
+          This will significantly reduce MandatoryBreaks.yaml size
+          while preserving 99.59% of freight volume
+================================================================================
+
+
+[FILTERED] Paths by OD-pair filter:
+           Removed: 3,210 (53.9%)
+           Retained: 2,740 (46.1%)
+[OK] Loaded 30275 initial vehicle stock entries (before filtering)
+[FILTERED] Initial vehicle stock by node filter:
+           Removed: 30,197 (99.7%)
+           Retained: 78 (0.3%)
+[OK] Loaded 8260 mandatory breaks (before filtering)
+[FILTERED] Mandatory breaks by path filter:
+           Removed: 5,634 (68.2%)
+           Retained: 2,626 (31.8%)
+
+================================================================================
+GENERATING PARAMETER FILES
+================================================================================
+Output: C:\Github\SM\iDesignRES_transcompmodel\examples\moving_loads_SM\input_data\case_20251104_171624
+
+Loading electricity price data from GENeSYS-MOD...
+  Countries (codes): ['AT', 'DE', 'DK', 'IT', 'NO', 'SE']
+  Countries (names): ['Austria', 'Denmark', 'Germany', 'Italy', 'Norway', 'Sweden']
+  Average electricity tax: 0.0576 EUR/kWh
+  Network costs loaded for 6 countries
+{'AT': 14.688000000000002, 'DK': 12.8, 'DE': 16.768, 'IT': 8.96, 'SE': 12.192, 'NO': 8.576}
+  Network cost range: 8.58 - 16.77 EUR/kW
+  Average network cost: 12.33 EUR/kW
+  Loaded 54 electricity price entries
+  Countries: ['AT', 'DE', 'DK', 'IT', 'NO', 'SE']
+  Years: [np.int64(2018), np.int64(2025), np.int64(2030), np.int64(2035), np.int64(2040), np.int64(2045), np.int64(2050), np.int64(2055), np.int64(2060)]
+Created 240 fuel cost entries for 80 geo elements
+Electricity pricing mode: location-specific
+
+Calculating mandatory breaks using advanced EU regulations...
+  Speed: 80.0 km/h
+  Generated 3472 mandatory breaks/rests across 1862 paths
+  Break types: 3066 breaks (B), 406 rests (R)
+[OK] Technology.yaml (82 bytes)
+[OK] Fuel.yaml (3,185 bytes)
+[OK] FuelCost.yaml (218,651 bytes)
+[OK] FuelingInfrTypes.yaml (7,806 bytes)
+[OK] Mode.yaml (2,327 bytes)
+[OK] Vehicletype.yaml (65 bytes)
+[OK] TechVehicle.yaml (118,480 bytes)
+[OK] Product.yaml (26 bytes)
+[OK] FinancialStatus.yaml (296 bytes)
+[OK] Regiontype.yaml (2,372 bytes)
+[OK] Speed.yaml (260 bytes)
+[OK] Model.yaml (315 bytes)
+[OK] NetworkConnectionCosts.yaml (43,094 bytes)
+[OK] InitialModeInfr.yaml (65 bytes)
+[OK] InitialFuelInfr.yaml (12,220 bytes)
+[OK] SpatialFlexibilityEdges.yaml (76,310 bytes)
+[OK] MaxModeShare.yaml (4 bytes)
+[OK] GeographicElement.yaml (59,890 bytes)
+[OK] Path.yaml (1,262,180 bytes)
+[OK] Odpair.yaml (3,284,948 bytes)
+[OK] InitialVehicleStock.yaml (5,583 bytes)
+[OK] MandatoryBreaks.yaml (1,220,920 bytes)
+
+================================================================================
+SUCCESS!
+================================================================================
+
+Complete input data set created in:
+  input_data\case_20251104_171624
+
+To use in Julia:
+  input_path = joinpath(@__DIR__, "input_data\case_20251104_171624")
+
+
+[INFO] Case successfully generated with timestamp-based name!
+
+Usage:
+  python SM_preprocessing.py [input_dir] [elec_mode] [network_mode] [price_reversal] [rail_mode] [filter_mode] [threshold]
+
+Arguments:
+  input_dir       : Path to input data directory (default: nuts_2_360_complete_test_time_step_2)
+  elec_mode       : Electricity pricing mode (default: variable)
+Traceback (most recent call last):
+  File "C:\Github\SM\iDesignRES_transcompmodel\examples\moving_loads_SM\SM_preprocessing.py", line 1902, in <module>
+    main()
+    ~~~~^^
+  File "C:\Github\SM\iDesignRES_transcompmodel\examples\moving_loads_SM\SM_preprocessing.py", line 1855, in main
+    print("                    - 'true', 'variable', 'yes', '1' \u2192 Location-specific (by country)")
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\golab\miniconda3\envs\transcomp\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2192' in position 53: character maps to <undefined>

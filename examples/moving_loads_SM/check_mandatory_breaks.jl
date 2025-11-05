@@ -73,51 +73,48 @@ else
                 # Check travel_time for this location
                 if haskey(model.obj_dict, :travel_time)
                     for tv in techvehicle_list
-                        for f_l in f_l_pairs
-                            if tv.technology.fuel.id == f_l[1]
-                                for g in g_init:test_year  # Check all generations up to test year
-                                    key = (test_year, (product.id, odpair.id, path_id, geo_id), tv.id, f_l, g)
+                        for g in g_init:test_year  # Check all generations up to test year
+                            # travel_time no longer has f_l dimension
+                            key = (test_year, (product.id, odpair.id, path_id, geo_id), tv.id, g)
 
-                                    # Try to get travel_time value - skip if key doesn't exist
+                            # Try to get travel_time value - skip if key doesn't exist
+                            try
+                                actual_time = value(model[:travel_time][key...])
+                                global checks_performed += 1
+
+                                # Calculate number of vehicles for this key
+                                flow_key = (test_year, (product.id, odpair.id, path_id), (tv.vehicle_type.mode.id, tv.id), g)
+
+                                # Try to get flow value - skip if key doesn't exist
+                                flow_val = 0.0
+                                try
+                                    flow_val = value(model[:f][flow_key...])
+                                catch
+                                    continue  # Skip if flow not defined for this combination
+                                end
+
+                                num_vehicles = (path.length / (tv.W[g-g_init+1] * tv.AnnualRange[g-g_init+1])) * 1000 * flow_val
+                                required_fleet_time = required_time * num_vehicles
+
+                                if actual_time < required_fleet_time - 1e-6
+                                    global violations += 1
+                                end
+
+                                # Check extra break time if available (also no longer has f_l dimension)
+                                if haskey(model.obj_dict, :extra_break_time)
                                     try
-                                        actual_time = value(model[:travel_time][key...])
-                                        global checks_performed += 1
-
-                                        # Calculate number of vehicles for this key
-                                        flow_key = (test_year, (product.id, odpair.id, path_id), (tv.vehicle_type.mode.id, tv.id), g)
-
-                                        # Try to get flow value - skip if key doesn't exist
-                                        flow_val = 0.0
-                                        try
-                                            flow_val = value(model[:f][flow_key...])
-                                        catch
-                                            continue  # Skip if flow not defined for this combination
+                                        extra_time = value(model[:extra_break_time][key...])
+                                        if extra_time > 1e-6
+                                            global extra_break_total += extra_time
+                                            # println("        Extra break time: $(round(extra_time, digits=3))h")
                                         end
-
-                                        num_vehicles = (path.length / (tv.W[g-g_init+1] * tv.AnnualRange[g-g_init+1])) * 1000 * flow_val
-                                        required_fleet_time = required_time * num_vehicles
-
-                                        if actual_time < required_fleet_time - 1e-6
-                                            global violations += 1
-                                        end
-
-                                        # Check extra break time if available
-                                        if haskey(model.obj_dict, :extra_break_time)
-                                            try
-                                                extra_time = value(model[:extra_break_time][key...])
-                                                if extra_time > 1e-6
-                                                    global extra_break_total += extra_time
-                                                    # println("        Extra break time: $(round(extra_time, digits=3))h")
-                                                end
-                                            catch
-                                                # Extra break time not defined for this key, skip
-                                            end
-                                        end
-                                    catch e
-                                        # Key doesn't exist in travel_time variable, skip
-                                        continue
+                                    catch
+                                        # Extra break time not defined for this key, skip
                                     end
                                 end
+                            catch e
+                                # Key doesn't exist in travel_time variable, skip
+                                continue
                             end
                         end
                     end

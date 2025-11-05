@@ -1,0 +1,13 @@
+case_label,infr_name,driving_time_count,driving_time_mean,driving_time_median,driving_time_std,total_break_mean,total_break_median,charging_time_mean,extra_break_mean,energy_kwh_sum
+Base case,diesel,3858,61.42,8.35,146.93,192.6,7.07,192.53,0.07,7427798494.55
+Base case,fast_charging,40424,23.06,3.01,83.56,2.92,0.13,2.62,0.3,106042661.44
+Base case,slow_charging,39952,23.44,3.0,85.29,26.91,0.86,26.6,0.31,106254265.27
+Uniform electricity prices,diesel,4619,51.99,7.96,133.45,160.36,5.53,160.29,0.07,7403945737.92
+Uniform electricity prices,fast_charging,38758,22.78,2.76,84.52,3.03,0.12,2.72,0.3,105604624.1
+Uniform electricity prices,slow_charging,38643,24.0,2.95,86.28,27.84,0.9,27.53,0.31,106394702.84
+Uniform electricity prices and network fees,diesel,4827,50.88,7.64,133.13,152.53,5.18,152.46,0.07,7359449648.9
+Uniform electricity prices and network fees,fast_charging,39019,22.55,2.67,84.73,3.01,0.11,2.71,0.3,105589852.35
+Uniform electricity prices and network fees,slow_charging,39061,23.23,2.9,85.19,27.54,0.89,27.23,0.31,106365128.32
+Uniform network fees,diesel,3345,68.46,9.71,156.87,222.67,8.05,222.6,0.07,7446030813.34
+Uniform network fees,fast_charging,40819,22.92,3.01,83.38,2.88,0.13,2.58,0.3,105485261.63
+Uniform network fees,slow_charging,40407,23.14,2.98,84.88,26.42,0.87,26.11,0.31,105520514.18

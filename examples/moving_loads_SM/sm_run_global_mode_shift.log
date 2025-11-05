@@ -1,0 +1,42 @@
+  Activating project at `C:\Github\SM\iDesignRES_transcompmodel`
+ERROR: LoadError: At C:\Github\SM\iDesignRES_transcompmodel\src\model_functions.jl:1785: `@constraint(model, [y in filter((y->begin
+                    #= C:\Github\SM\iDesignRES_transcompmodel\src\model_functions.jl:1787 =#
+                    y >= rail_start_year
+                end), modeled_years) m in modes], sum(((model[:f])[y, (r.product.id, r.id, k.id), mv, g] for k = r.paths for mv = m_tv_pairs for g = g_init:timestep:y for r = odpairs if mv[1] == m.id)) - sum(((model[:f])[y - timestep, (r.product.id, r.id, k.id), mv, g] for k = r.paths for g = g_init:timestep:y - timestep for r = odpairs for mv = m_tv_pairs if mv[1] == m.id)) <= alpha_f * sum(((model[:f])[y, (r.product.id, r.id, k.id), mv, g] for k = r.paths for r = odpairs for g = g_init:timestep:y for mv = m_tv_pairs)) + beta_f * sum(((model[:f])[y - timestep, (r.product.id, r.id, k.id), mv, g] for k = r.paths for r = odpairs for mv = m_tv_pairs for g = g_init:timestep:y - timestep if mv[1] == m.id)))`: Unsupported constraint expression: we don't know how to parse constraints containing expressions of type :hcat.
+
+If you are writing a JuMP extension, implement `parse_constraint_head(::Function, ::Val{:hcat}, args...)
+Stacktrace:
+  [1] error(::String, ::String)
+    @ Base .\error.jl:44
+  [2] (::JuMP.Containers.var"#error_fn#98"{LineNumberNode, String})(str::String)
+    @ JuMP.Containers C:\Users\golab\.julia\packages\JuMP\N7h14\src\Containers\macro.jl:345
+  [3] parse_constraint_head(::JuMP.Containers.var"#error_fn#98"{LineNumberNode, String}, ::Val{:hcat}, ::Expr, ::Expr)
+    @ JuMP C:\Users\golab\.julia\packages\JuMP\N7h14\src\macros\@constraint.jl:416
+  [4] parse_constraint(error_fn::Function, expr::Expr)
+    @ JuMP C:\Users\golab\.julia\packages\JuMP\N7h14\src\macros\@constraint.jl:311
+  [5] var"@constraint"(__source__::LineNumberNode, __module__::Module, input_args::Vararg{Any})
+    @ JuMP C:\Users\golab\.julia\packages\JuMP\N7h14\src\macros\@constraint.jl:140
+  [6] #macroexpand#74
+    @ .\expr.jl:125 [inlined]
+  [7] macroexpand
+    @ .\expr.jl:123 [inlined]
+  [8] docm(source::LineNumberNode, mod::Module, meta::Any, ex::Any, define::Bool)
+    @ Base.Docs .\docs\Docs.jl:581
+  [9] (::DocStringExtensions.var"#33#34"{typeof(DocStringExtensions.template_hook)})(::LineNumberNode, ::Vararg{Any})
+    @ DocStringExtensions C:\Users\golab\.julia\packages\DocStringExtensions\zNis6\src\templates.jl:11
+ [10] var"@doc"(::LineNumberNode, ::Module, ::String, ::Vararg{Any})
+    @ Core .\boot.jl:646
+ [11] include(mod::Module, _path::String)
+    @ Base .\Base.jl:557
+ [12] include(x::String)
+    @ Main.TransComp C:\Github\SM\iDesignRES_transcompmodel\src\TransComp.jl:7
+ [13] top-level scope
+    @ C:\Github\SM\iDesignRES_transcompmodel\src\TransComp.jl:12
+ [14] include(fname::String)
+    @ Main .\sysimg.jl:38
+ [15] top-level scope
+    @ C:\Github\SM\iDesignRES_transcompmodel\examples\moving_loads_SM\SM.jl:6
+in expression starting at C:\Github\SM\iDesignRES_transcompmodel\src\model_functions.jl:1733
+in expression starting at C:\Github\SM\iDesignRES_transcompmodel\src\model_functions.jl:1733
+in expression starting at C:\Github\SM\iDesignRES_transcompmodel\src\TransComp.jl:7
+in expression starting at C:\Github\SM\iDesignRES_transcompmodel\examples\moving_loads_SM\SM.jl:6

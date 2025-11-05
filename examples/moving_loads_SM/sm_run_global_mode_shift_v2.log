@@ -1,0 +1,347 @@
+  Activating project at `C:\Github\SM\iDesignRES_transcompmodel`
+┌ Warning: Replacing docs for `Main.TransComp.Node :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.Edge :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.GeographicElement :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.Mode :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.Product :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.Path :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.MandatoryBreak :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.Fuel :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.Technology :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.FuelingInfrTypes :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.FuelCost :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.NetworkConnectionCosts :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.Vehicletype :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.TechVehicle :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.SupplyType :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.InitialVehicleStock :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.FuelingInfrastructureExpansion :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.InitialModeInfr :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.InitialSupplyInfr :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.InitDetourTime :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.FinancialStatus :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.InitialFuelingInfr :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.Regiontype :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.Odpair :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.TripRatio :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.Mode_share_max_by_year :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.Mode_share_min_by_year :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.Mode_share_max :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.Mode_share_min :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.Technology_share_max_by_year :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.Technology_share_min_by_year :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.Technology_share_max :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.Technology_share_min :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.VehicleType_share_max_by_year :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.VehicleType_share_min_by_year :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.VehicleType_share_max :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.VehicleType_share_min :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.TechVehicle_share_max_by_year :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.TechVehicle_share_min_by_year :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.TechVehicle_share_max :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.TechVehicle_share_min :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.Emission_constraints_by_mode :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.Emission_constraints_by_year :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.Transportation_speeds :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.VehicleSubsidy :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.SpatialFlexibilityEdges :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.MandatoryBreaks :: Union{}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.check_input_file :: Tuple{String}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.check_required_keys :: Tuple{Dict, Vector{String}}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.check_model_parametrization :: Tuple{Dict, Vector{String}}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.check_required_sub_keys :: Tuple{Dict, Vector{String}, String}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.check_folder_writable :: Tuple{String}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.check_uniquness_of_ids :: Tuple{Dict, Any}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.check_correct_formats_GeographicElement :: Tuple{Dict, Any}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.check_correct_formats_FinancialStatus :: Tuple{Dict}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.check_correct_format_Mode :: Tuple{Dict, Any}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.check_correct_format_Product :: Tuple{Dict}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.check_correct_format_Path :: Tuple{Dict}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.check_correct_format_Fuel :: Tuple{Dict, Int64}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.check_correct_format_Technology :: Tuple{Dict}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.check_correct_format_InitialModeInfr :: Tuple{Dict}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.check_correct_format_Odpair :: Tuple{Dict, Int64}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.check_correct_format_Speed :: Tuple{Dict}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Warning: Replacing docs for `Main.TransComp.validate_mandatory_breaks :: Tuple{Any, Dict}` in module `Main.TransComp`
+└ @ Base.Docs docs\Docs.jl:243
+┌ Error: curl_easy_setopt: 4
+└ @ Downloads.Curl C:\Users\golab\AppData\Local\Programs\Julia-1.11.3\share\julia\stdlib\v1.11\Downloads\src\Curl\utils.jl:50
+   Resolving package versions...
+      Compat entries added for 
+  No Changes to `C:\Github\SM\iDesignRES_transcompmodel\Project.toml`
+  No Changes to `C:\Github\SM\iDesignRES_transcompmodel\Manifest.toml`
+Precompiling project...
+   3580.5 ms  ? TransComp
+Constructed file path: C:\Github\SM\iDesignRES_transcompmodel\examples\moving_loads_SM\input_data\case_20251102_093733
+[ Info: C:\Github\SM\iDesignRES_transcompmodel\examples\moving_loads_SM\input_data\case_20251102_093733
+[ Info: ================================================================================
+[ Info: Starting model run at 2025-11-02 13:28:20
+[ Info: ================================================================================
+[ Info: Step 1/5: Reading input data...
+[ Info: Reading input data from directory: C:\Github\SM\iDesignRES_transcompmodel\examples\moving_loads_SM\input_data\case_20251102_093733
+[ Info:   Loaded Model.yaml
+[ Info:   Loaded TechVehicle.yaml
+[ Info:   Loaded GeographicElement.yaml
+[ Info:   Loaded FinancialStatus.yaml
+[ Info:   Loaded Vehicletype.yaml
+[ Info:   Loaded Mode.yaml
+[ Info:   Loaded Technology.yaml
+[ Info:   Loaded Speed.yaml
+[ Info:   Loaded Regiontype.yaml
+[ Info:   Loaded InitialModeInfr.yaml
+[ Info:   Loaded InitialFuelInfr.yaml
+[ Info:   Loaded Odpair.yaml
+[ Info:   Loaded Path.yaml
+[ Info:   Loaded Fuel.yaml
+[ Info:   Loaded FuelCost.yaml
+[ Info:   Loaded FuelingInfrTypes.yaml
+[ Info:   Loaded InitialVehicleStock.yaml
+[ Info:   Loaded NetworkConnectionCosts.yaml
+[ Info:   Loaded Product.yaml
+[ Info:   Loaded SpatialFlexibilityEdges.yaml
+[ Info:   Loaded MandatoryBreaks.yaml
+[ Info:   Loaded MaxModeShare.yaml
+[ Info: ✓ Input data loaded in 6.1 seconds
+[ Info: Step 2/5: Parsing data structures...
+[ Info: Network connection costs data loaded: 75 entries
+[ Info: Mandatory breaks data loaded: 9470 breaks defined
+[ Info: Creating vehicle stock lookup dictionary (14265 entries)...
+[ Info: ✓ Vehicle stock lookup dictionary created
+Number of Odpairs: 20
+[ Info: Building lookup dictionaries for fast O(1) access...
+[ Info: ✓ Lookup dictionaries created for 75 geo elements, 2853 paths, 3 modes, 2 technologies, 2 fuels
+[ Info: Pre-age sell parameter set to: false
+[ Info: MaxModeShare constraints loaded: 21 entries
+[ Info: Temporal resolution settings:
+[ Info:   time_step: 2 year(s)
+[ Info:   Modeled years: 21 years from 2020 to 2060
+[ Info:   Modeled generations: 26 generations from 2010 to 2060
+[ Info:   Investment years: 11 years: [2020, 2024, 2028, 2032, 2036, 2040, 2044, 2048, 2052, 2056, 2060]
+[ Info: ✓ Lookup dictionaries added to data_structures for model-wide O(1) access
+[ Info: ✓ Data parsed in 5.13 seconds
+[ Info: Step 3/5: Creating optimization model...
+[ Info: Memory before model creation: 39.67 GB free
+Set parameter Username
+Set parameter LicenseID to value 2620283
+Academic license - for non-commercial use only - expires 2026-02-10
+[ Info: Creating variables. Mode: SELECTIVE: f, h, h_plus, h_exist, h_minus, s, q_fuel_infr_plus, soc, travel_time, extra_break_time
+[ Info:   Creating vehicle stock variables (h, h_exist, h_plus, h_minus)
+[ Info:   Creating fuel infrastructure variables (q_fuel_infr_plus) - complex mode
+[ Info:   Creating energy consumption variables (s) - complex mode
+[ Info:   Creating state of charge variables (soc) with generation filtering (g <= y)
+[ Info:   Creating travel time variables (travel_time) with generation filtering (g <= y)
+[ Info:   Creating extra break time slack variables (extra_break_time) with generation filtering (g <= y)
+[ Info:   Creating flow/transport variables (f)
+[ Info: Variable creation complete!
+[ Info: ✓ Model created in 6.0 seconds
+[ Info: Memory after model creation: 39.55 GB free
+[ Info: Number of variables: 591987
+[ Info: Variable breakdown by name:
+[ Info:   f: 26880 variables
+[ Info:   h_exist: 26880 variables
+[ Info:   s: 281736 variables
+[ Info:   q_fuel_infr_plus: 2475 variables
+[ Info:   travel_time: 57792 variables
+[ Info:   h: 26880 variables
+[ Info:   h_plus: 26880 variables
+[ Info:   h_minus: 26880 variables
+[ Info:   extra_break_time: 57792 variables
+[ Info:   soc: 57792 variables
+[ Info: Step 3.5/5: Configuring solver parameters for memory efficiency...
+Set parameter NodefileStart to value 0.5
+Set parameter NodefileDir to value "."
+Set parameter Presolve to value 2
+Set parameter MIPFocus to value 1
+Set parameter Cuts to value 1
+Set parameter MIPGap to value 0.01
+Set parameter Threads to value 4
+[ Info: ✓ Solver configured for memory-efficient solving (disk-based nodes, 30GB limit, 4 threads)
+[ Info: Memory before constraints: 39.55 GB free
+[ Info: Adding mandatory breaks constraints for 9470 breaks on 2853 paths...
+[ Info: ✓ Mandatory breaks constraint added: 28896 constraints created
+[ Info: ✓ Mandatory breaks constraint added in 0.43 seconds
+[ Info:   Memory after: 39.51 GB free
+[ Info: Step 4.3/5: Adding fueling infrastructure constraints...
+[ Info: ✓ Fueling demand constraint added in 1.26 seconds
+[2020, 2024, 2028, 2032, 2036, 2040, 2044, 2048, 2052, 2056, 2060]
+[ Info: Pre-building p_r_k_g_by_geo dictionary for efficient filtering...
+[ Info: ✓ Pre-filtering complete: 75 geo elements indexed
+[ Info: ✓ Fueling infrastructure constraint added in 1.08 seconds
+[ Info: ✓ Fueling infrastructure expansion shift constraint added in 0.62 seconds
+[ Info: Step 4.4/5: Adding SOC constraints...
+[ Info: ✓ State of charge tracking constraints added in 0.51 seconds
+[ Info:   Memory after: 39.54 GB free
+[ Info: ✓ State of charge max constraints added in 0.69 seconds
+[ Info: ✓ Travel time tracking constraint added in 0.43 seconds
+[ Info: Step 4.5/5: Adding mode shift constraint (rail blocked before 2026)...
+[ Info: ✓ Mode shift constraint added in 0.7 seconds
+[ Info:   Memory after: 39.51 GB free
+[ Info: Step 4.6/5: Adding max mode share constraint...
+[ Info: ✓ Max mode share constraint added in 1.16 seconds
+[ Info: Step 4.1/5: Adding core demand coverage constraint...
+[ Info: Constraint for demand coverage created successfully
+[ Info: ✓ Demand coverage constraint added in 0.44 seconds
+[ Info:   Memory after: 39.48 GB free
+[ Info: Step 4.2/5: Adding vehicle fleet constraints...
+[ Info: Constraint for vehicle stock sizing created successfully
+[ Info: ✓ Vehicle sizing constraint added in 2.6 seconds
+[ Info: Pre-age sell disabled: h_minus constrained to 0 for 4200 vehicle combinations before reaching lifetime
+[ Info: ✓ Vehicle aging constraint added in 1.56 seconds
+[ Info: ✓ Vehicle stock shift constraint added in 0.46 seconds
+[ Info: Step 4.5/5: Adding objective...
+[ Info:   Objective: Initializing data structures...
+[ Info:   Defined decision variables: f, travel_time, h_plus, h, extra_break_time, s
+[ Info:   Skipping variables: vot_dt, q_mode_infr_plus, budget_penalty_yearly_plus, q_supply_infr_plus, budget_penalty_yearly_minus, budget_penalty_minus, detour_time, n_fueling, budget_penalty_plus
+[2020, 2024, 2028, 2032, 2036, 2040, 2044, 2048, 2052, 2056, 2060][ Info:     ✓ Data structures ready (0.15s)
+[ Info:   Objective: Building cost expression (Y=41 years, R=20 odpairs, V=2 vehicles)...
+[ Info:     Year 5/41: 0.6s elapsed, ~4.4s remaining
+[ Info:       VoT_DT=0.0s | Penalties=0.0s | FuelEnergy=0.1s | VehCap=0.0s | VehMaint=0.0s | FuelTime=0.0s | Intangible=0.0s | Detour=0.0s | ModeInfr=0.0s | FuelInfr=0.0s | ExtraBreak=0.0s | TravelTime=0.1s
+[ Info:     Year 10/41: 0.9s elapsed, ~2.8s remaining
+[ Info:       VoT_DT=0.0s | Penalties=0.0s | FuelEnergy=0.2s | VehCap=0.0s | VehMaint=0.0s | FuelTime=0.0s | Intangible=0.0s | Detour=0.0s | ModeInfr=0.0s | FuelInfr=0.0s | ExtraBreak=0.0s | TravelTime=0.1s
+[ Info:     Year 15/41: 1.4s elapsed, ~2.3s remaining
+[ Info:       VoT_DT=0.0s | Penalties=0.0s | FuelEnergy=0.2s | VehCap=0.0s | VehMaint=0.0s | FuelTime=0.0s | Intangible=0.0s | Detour=0.0s | ModeInfr=0.0s | FuelInfr=0.0s | ExtraBreak=0.0s | TravelTime=0.1s
+[ Info:     Year 20/41: 2.0s elapsed, ~2.1s remaining
+[ Info:       VoT_DT=0.0s | Penalties=0.0s | FuelEnergy=0.3s | VehCap=0.0s | VehMaint=0.0s | FuelTime=0.0s | Intangible=0.0s | Detour=0.0s | ModeInfr=0.0s | FuelInfr=0.0s | ExtraBreak=0.0s | TravelTime=0.1s
+[ Info:     ✓ Cost expression built (2.29s, 0.04 minutes)
+[ Info:   Objective: Setting objective in JuMP model...
+[ Info:     ✓ Objective set in JuMP (0.0s)
+[ Info:   ✓ Total objective function time: 2.45s (0.04 minutes)
+[ Info: ✓ Objective added in 3.56 seconds
+[ Info: Step 5/5: Solving optimization problem...
+Set parameter NodefileDir to value "."
+Set parameter Cuts to value 1
+Set parameter MIPGap to value 0.01
+Set parameter MIPFocus to value 1
+Set parameter Threads to value 4
+Set parameter NodefileStart to value 0.5
+Set parameter Presolve to value 2
+Gurobi Optimizer version 12.0.3 build v12.0.3rc0 (win64 - Windows 11+.0 (26200.2))
+
+CPU model: 13th Gen Intel(R) Core(TM) i7-1370P, instruction set [SSE2|AVX|AVX2]
+Thread count: 14 physical cores, 20 logical processors, using up to 4 threads
+
+Non-default parameters:
+MIPGap  0.01
+MIPFocus  1
+NodefileStart  0.5
+Cuts  1
+Presolve  2
+Threads  4
+
+Optimize a model with 283488 rows, 591987 columns and 984867 nonzeros
+Model fingerprint: 0x9ed72448
+Coefficient statistics:
+  Matrix range     [4e-02, 8e+05]
+  Objective range  [4e+00, 3e+06]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [4e-02, 5e+05]
+Presolve removed 266097 rows and 571629 columns
+Presolve time: 0.40s
+Presolved: 17391 rows, 20358 columns, 124999 nonzeros
+
+Concurrent LP optimizer: dual simplex and barrier
+Showing barrier log only...
+
+Ordering time: 0.03s
+
+Barrier performed 0 iterations in 0.44 seconds (0.66 work units)
+Barrier solve interrupted - model solved by another algorithm
+
+
+Solved with dual simplex
+
+Solved in 603 iterations and 0.44 seconds (0.68 work units)
+Infeasible model
+
+User-callback calls 141, time in user-callback 0.00 sec
+[ Info: ✓ Optimization complete in 1.53 seconds
+
+================================================================================
+RUNNING DIAGNOSTICS
+================================================================================
+┌ Warning: Assignment to `has_vehicle_flows` in soft scope is ambiguous because a global variable by the same name exists: `has_vehicle_flows` will be treated as a new local. Disambiguate by using `local has_vehicle_flows` to suppress this warning or `global has_vehicle_flows` to assign to the existing global variable.
+└ @ C:\Github\SM\iDesignRES_transcompmodel\examples\moving_loads_SM\SM.jl:216
+ERROR: LoadError: Result index of attribute MathOptInterface.VariablePrimal(1) out of bounds. There are currently 0 solution(s) in the model.
+Stacktrace:
+ [1] check_result_index_bounds
+   @ C:\Users\golab\.julia\packages\MathOptInterface\zq9bo\src\attributes.jl:207 [inlined]
+ [2] get(model::Gurobi.Optimizer, attr::MathOptInterface.VariablePrimal, x::MathOptInterface.VariableIndex)
+   @ Gurobi C:\Users\golab\.julia\packages\Gurobi\kyCGc\src\MOI_wrapper\MOI_wrapper.jl:3076
+ [3] get(b::MathOptInterface.Bridges.LazyBridgeOptimizer{Gurobi.Optimizer}, attr::MathOptInterface.VariablePrimal, index::MathOptInterface.VariableIndex)
+   @ MathOptInterface.Bridges C:\Users\golab\.julia\packages\MathOptInterface\zq9bo\src\Bridges\bridge_optimizer.jl:1401
+ [4] get(model::MathOptInterface.Utilities.CachingOptimizer{MathOptInterface.Bridges.LazyBridgeOptimizer{Gurobi.Optimizer}, MathOptInterface.Utilities.UniversalFallback{MathOptInterface.Utilities.Model{Float64}}}, attr::MathOptInterface.VariablePrimal, index::MathOptInterface.VariableIndex)
+   @ MathOptInterface.Utilities C:\Users\golab\.julia\packages\MathOptInterface\zq9bo\src\Utilities\cachingoptimizer.jl:951
+ [5] _moi_get_result(::MathOptInterface.Utilities.CachingOptimizer{MathOptInterface.Bridges.LazyBridgeOptimizer{Gurobi.Optimizer}, MathOptInterface.Utilities.UniversalFallback{MathOptInterface.Utilities.Model{Float64}}}, ::MathOptInterface.VariablePrimal, ::Vararg{Any})
+   @ JuMP C:\Users\golab\.julia\packages\JuMP\N7h14\src\optimizer_interface.jl:1199
+ [6] get(model::Model, attr::MathOptInterface.VariablePrimal, v::VariableRef)
+   @ JuMP C:\Users\golab\.julia\packages\JuMP\N7h14\src\optimizer_interface.jl:1239
+ [7] value(v::VariableRef; result::Int64)
+   @ JuMP C:\Users\golab\.julia\packages\JuMP\N7h14\src\variables.jl:2092
+ [8] value(v::VariableRef)
+   @ JuMP C:\Users\golab\.julia\packages\JuMP\N7h14\src\variables.jl:2091
+ [9] top-level scope
+   @ C:\Github\SM\iDesignRES_transcompmodel\examples\moving_loads_SM\SM.jl:212
+in expression starting at C:\Github\SM\iDesignRES_transcompmodel\examples\moving_loads_SM\SM.jl:211

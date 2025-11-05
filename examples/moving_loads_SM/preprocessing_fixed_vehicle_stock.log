@@ -1,0 +1,81 @@
+
+================================================================================
+SM PARAMETER GENERATOR - CONFIGURATION
+================================================================================
+Input directory:      input_data/fixed_nuts_2
+Case name:            Auto-generated with timestamp
+Electricity pricing:  Location-specific (variable)
+Network costs:        Location-specific (variable)
+Transport modes:      Road only
+Low-volume filter:    ENABLED (threshold: 1,000 trucks/year)
+                      Reduces MandatoryBreaks.yaml size while keeping >99% of freight
+================================================================================
+
+================================================================================
+LOADING PREPROCESSED NUTS-3 DATA
+================================================================================
+Source: C:\Github\SM\iDesignRES_transcompmodel\examples\moving_loads_SM\input_data\fixed_nuts_2
+
+[OK] Loaded 81 geographic elements (before filtering)
+[OK] Loaded 6055 paths (before filtering)
+[OK] Loaded 6055 OD-pairs (before filtering)
+
+Applying NUTS region filter...
+  Filtering by countries: ['AT', 'DE', 'DK', 'IT', 'NO', 'SE']
+
+  FREIGHT STATISTICS (Initial):
+    Total OD-pairs: 6,055
+    Total freight volume: 43,290,663,748.23 tkm
+
+  Found 80 nodes in relevant countries
+
+  FREIGHT STATISTICS (After filtering):
+    Retained OD-pairs: 5,950 (98.3%)
+    Retained freight volume: 43,128,648,944.11 tkm (99.6%)
+
+  REMOVED FREIGHT BY FILTER TYPE:
+    Local routes (O==D): 0 OD-pairs, 0.00 tkm (0.0%)
+    Geographic filter: 105 OD-pairs, 162,014,804.12 tkm (0.4%)
+    TOTAL REMOVED: 162,014,804.12 tkm (0.4%)
+[FILTERED] 80 geographic elements
+[FILTERED] 5950 paths
+[FILTERED] 5950 OD-pairs
+
+================================================================================
+LOW-VOLUME FREIGHT FILTERING
+================================================================================
+Threshold: 1,000 trucks/year (first year demand)
+
+RESULTS:
+  Removed OD-pairs: 3,210 (53.9%)
+  Retained OD-pairs: 2,740 (46.1%)
+
+  Removed freight: 789,022 trucks/year (0.41%)
+  Retained freight: 189,587,335 trucks/year (99.59%)
+
+  Removed freight volume: 968,042,351 tkm (2.24%)
+  Retained freight volume: 42,160,606,593 tkm (97.76%)
+
+[SUCCESS] Filtered 3,210 low-volume OD-pairs
+          This will significantly reduce MandatoryBreaks.yaml size
+          while preserving 99.59% of freight volume
+================================================================================
+
+
+[FILTERED] Paths by OD-pair filter:
+           Removed: 3,210 (53.9%)
+           Retained: 2,740 (46.1%)
+Traceback (most recent call last):
+  File "C:\Github\SM\iDesignRES_transcompmodel\examples\moving_loads_SM\SM_preprocessing.py", line 1903, in <module>
+    main()
+    ~~~~^^
+  File "C:\Github\SM\iDesignRES_transcompmodel\examples\moving_loads_SM\SM_preprocessing.py", line 1848, in main
+    preprocessor.run()
+    ~~~~~~~~~~~~~~~~^^
+  File "C:\Github\SM\iDesignRES_transcompmodel\examples\moving_loads_SM\SM_preprocessing.py", line 1713, in run
+    self.load_nuts3_data()
+    ~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Github\SM\iDesignRES_transcompmodel\examples\moving_loads_SM\SM_preprocessing.py", line 417, in load_nuts3_data
+    for geo in self.geo_elements:
+               ^^^^^^^^^^^^^^^^^
+AttributeError: 'SMParameterGenerator' object has no attribute 'geo_elements'

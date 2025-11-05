@@ -1,0 +1,73 @@
+NUTS2 Border Regions with Neighboring Regions in Dataset
+================================================================================
+
+AT31 (AT)
+  Foreign neighbors: DE21, DE22
+  All neighbors: DE21, DE22, AT32
+  Neighboring countries: DE
+
+AT32 (AT)
+  Foreign neighbors: DE21, ITH1
+  All neighbors: DE21, AT31, AT33, ITH1
+  Neighboring countries: IT, DE
+
+AT33 (AT)
+  Foreign neighbors: DE21, DE27, ITH1, ITH3
+  All neighbors: DE21, DE27, AT32, AT34, ITH1, ITH3
+  Neighboring countries: IT, DE
+
+AT34 (AT)
+  Foreign neighbors: DE14, DE27
+  All neighbors: DE14, DE27, AT33
+  Neighboring countries: DE
+
+DE14 (DE)
+  Foreign neighbors: AT34
+  All neighbors: DE11, DE12, DE13, DE27, AT34
+  Neighboring countries: AT
+
+DE21 (DE)
+  Foreign neighbors: AT31, AT32, AT33
+  All neighbors: DE22, DE23, DE25, DE27, AT31, AT32, AT33
+  Neighboring countries: AT
+
+DE22 (DE)
+  Foreign neighbors: AT31
+  All neighbors: DE21, DE23, AT31
+  Neighboring countries: AT
+
+DE27 (DE)
+  Foreign neighbors: AT33, AT34
+  All neighbors: DE11, DE14, DE21, DE25, AT33, AT34
+  Neighboring countries: AT
+
+DEF0 (DE)
+  Foreign neighbors: DK03
+  All neighbors: DK03, DE60, DE80, DE93
+  Neighboring countries: DK
+
+DK03 (DK)
+  Foreign neighbors: DEF0
+  All neighbors: DEF0, DK04
+  Neighboring countries: DE
+
+ITH1 (IT)
+  Foreign neighbors: AT32, AT33
+  All neighbors: AT32, AT33, ITH2, ITH3, ITC4
+  Neighboring countries: AT
+
+ITH3 (IT)
+  Foreign neighbors: AT33
+  All neighbors: AT33, ITH1, ITH2, ITH4, ITH5, ITC4
+  Neighboring countries: AT
+
+NO08 (NO)
+  Foreign neighbors: SE23
+  All neighbors: SE23, NO02, NO09, NO0A
+  Neighboring countries: SE
+
+SE23 (SE)
+  Foreign neighbors: NO08
+  All neighbors: SE12, SE21, SE22, NO08
+  Neighboring countries: NO
+

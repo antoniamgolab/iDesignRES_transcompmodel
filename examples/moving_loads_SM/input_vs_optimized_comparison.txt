@@ -1,0 +1,74 @@
+================================================================================
+COMPARING INPUT DEMAND (F) vs OPTIMIZED FLOWS (f)
+================================================================================
+
+Loading GeographicElement.yaml...
+Loading Odpair.yaml...
+Loading Path.yaml...
+Loading optimized flows from: results/case_20251103_114421\case_20251103_114421_cs_2025-11-03_16-49-35_f_dict.yaml
+Loaded 151087 optimized flow entries
+================================================================================
+
+NUTS2 nodes: 75
+Total nodes: 75
+OD pairs: 2853
+Paths: 2853
+
+================================================================================
+PART 1: INPUT DEMAND (F) - TKM BY NUTS2 REGION
+================================================================================
+
+NUTS2 regions with INPUT demand TKM: 75
+
+Top 10 NUTS2 regions by INPUT demand TKM:
+--------------------------------------------------------------------------------
+NUTS2      Country                     TKM
+--------------------------------------------------------------------------------
+ITC4       IT                  574,823,714
+ITH3       IT                  360,072,928
+ITC1       IT                  252,864,722
+ITH5       IT                  207,770,329
+DEA1       DE                  179,216,072
+DE94       DE                  143,146,253
+ITH4       IT                  140,064,088
+SE23       SE                  136,851,979
+SE22       SE                  136,121,508
+DEA2       DE                  135,425,070
+
+================================================================================
+PART 2: OPTIMIZED FLOWS (f) - TKM BY NUTS2 REGION
+================================================================================
+
+NUTS2 regions with OPTIMIZED flow TKM: 0
+
+================================================================================
+PART 3: NODE TYPE USAGE ANALYSIS
+================================================================================
+
+Node types in INPUT paths:
+  node: 6148
+
+Node types in OPTIMIZED flow paths:
+
+Unique nodes in INPUT paths: 75
+Unique nodes in OPTIMIZED paths: 0
+Unique paths in OPTIMIZED flows: 0
+
+NUTS2 nodes in INPUT paths: 75
+NUTS2 nodes in OPTIMIZED paths: 0
+
+================================================================================
+PART 4: SAMPLE PATH ANALYSIS
+================================================================================
+
+================================================================================
+SUMMARY AND DIAGNOSIS
+================================================================================
+
+Total TKM through NUTS2 regions:
+  INPUT demand (F):             5,008,498,113
+  OPTIMIZED flows (f):                      0
+  Difference:                   5,008,498,113
+
+DIAGNOSIS: Optimization re-routes ALL freight away from NUTS2 nodes!
+This suggests the model found cheaper/faster paths through non-NUTS2 nodes.

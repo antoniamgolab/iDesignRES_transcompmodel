@@ -1,0 +1,142 @@
+================================================================================
+GENERATING SAMPLE WITH FIXED MANDATORY BREAKS
+================================================================================
+
+Configuration:
+  - Tolerance: (1/2) * gap to limit
+  - Synthetic nodes for single-node paths
+  - Sample size: 200 OD-pairs for quick testing
+  - Cross-border only: False (includes domestic Italian routes)
+================================================================================
+
+[1/6] Initializing preprocessor...
+
+[2/6] Running preprocessing pipeline...
+
+================================================================================
+COMPLETE SM NUTS-2 PREPROCESSING
+================================================================================
+Input:  C:\Github\SM\iDesignRES_transcompmodel\examples\moving_loads_SM\data\Trucktraffic_NUTS3
+Output: C:\Github\SM\iDesignRES_transcompmodel\examples\moving_loads_SM\input_data
+================================================================================
+================================================================================
+LOADING DATA
+================================================================================
+[OK] Truck traffic (before filtering): 1,514,573 rows
+[OK] Network (before filtering): 1675 nodes, 2277 edges
+
+Applying NUTS-2 aggregation filtering with spatial join...
+  Loading NUTS shapefile: C:\Github\SM\iDesignRES_transcompmodel\examples\moving_loads_SM\data\NUTS_RG_20M_2021_4326.shp\NUTS_RG_20M_2021_4326.shp
+  Loaded 2010 NUTS regions
+  Filtering for NUTS codes: ['DE', 'DK', 'SE1', 'SE2', 'AT3', 'ITC', 'ITH', 'ITI', 'ITF', 'SE11', 'SE12', 'SE21', 'SE22', 'NO08', 'NO09', 'NO02', 'NO0A']
+  Found 75 NUTS-2 regions matching filter
+  Created GeoDataFrame with 1675 NUTS-3 zones
+    NUTS_0: 440 NUTS-3 zones
+    NUTS_1: 119 NUTS-3 zones
+    NUTS_2: 26 NUTS-3 zones
+  Total NUTS-3 zones after spatial filtering: 573
+  Mapping NUTS-3 zones to NUTS-2 regions...
+  Mapped 573 NUTS-3 zones to 75 NUTS-2 regions
+  Edges filtered: 2,277 -> 835 (removed 1,442)
+  Edge distance map: 835 edges
+  Traffic rows: 1,514,573 -> 1,030,907 (removed 483,666)
+    Internal routes (both inside): 244,719
+    Entering routes (origin outside): 368,111
+    Leaving routes (destination outside): 418,077
+
+[OK] NUTS-2 FILTERING COMPLETE:
+  NUTS-3 zones: 573
+  NUTS-2 regions: 75
+  Network nodes (after filtering): 573
+  Network edges (after filtering): 835
+  Truck traffic (after filtering): 1,030,907 rows
+
+================================================================================
+STEP 1: CREATING NUTS-2 GEOGRAPHIC ELEMENTS
+================================================================================
+  Found 75 unique NUTS-2 regions
+  Aggregating from 573 network nodes
+[OK] Created 75 NUTS-2 geographic elements
+     Reduction: 573 nodes -> 75 NUTS-2 regions
+
+================================================================================
+STEP 2: BUILDING EDGE TOPOLOGY
+================================================================================
+[OK] Built edge topology: 122 inter-regional edges
+
+================================================================================
+STEP 3: CREATING PATHS WITH COLLAPSED NODES + ORIGINAL DISTANCES
+================================================================================
+  Valid traffic rows: 902,626
+  Unique OD-pairs (before validation): 902,626
+  Validating OD-pairs (checking if endpoints can be mapped to NUTS-2 nodes)...
+  Valid OD-pairs (after validation): 902,626
+  Filtered out 0 OD-pairs with unmappable endpoints
+  [LIMIT] Selected top 200 OD-pairs by traffic flow from validated set
+  [LIMIT] Set max_odpairs = None to process all OD-pairs
+
+[SUCCESS] Created 200 OD-pairs and 200 paths
+  Average nodes per path: 1.61
+  Average path length: 151.4 km
+
+================================================================================
+SCALING TRANSPORT DEMAND (F)
+================================================================================
+Reference points: 2015=798,470, 2024=932,283
+Annual change: 14,868.11 per year
+Base year (2030) demand: 1,021,492
+Scaling range: 0.8544 (2020) to 1.4367 (2060)
+Original total demand (constant, base year): 41,026,164
+Scaled total demand (2020): 35,054,685
+Scaled total demand (2060): 58,940,600
+
+================================================================================
+AGGREGATING OD-PAIRS BY NUTS-2 REGIONS
+================================================================================
+  OD-pairs before aggregation: 200
+  Unique NUTS-2 OD-pairs: 95
+[OK] Aggregated to 95 OD-pairs
+     Vehicle stock entries: 475
+     Reduction: 95 individual routes -> 95 aggregated
+
+================================================================================
+STEP 4: CREATING MANDATORY BREAKS
+================================================================================
+[OK] Created 9 mandatory break points
+     Average breaks per path: 0.09
+
+================================================================================
+STEP 5: SAVING RESULTS
+================================================================================
+[OK] Saved GeographicElement.yaml (75 entries)
+[OK] Saved Path.yaml (95 entries)
+[OK] Saved Odpair.yaml (95 entries)
+[OK] Saved InitialVehicleStock.yaml (475 entries)
+[OK] Saved MandatoryBreaks.yaml (9 entries)
+
+[SUCCESS] All files saved to: C:\Github\SM\iDesignRES_transcompmodel\examples\moving_loads_SM\input_data
+
+================================================================================
+PREPROCESSING COMPLETE - SUMMARY
+================================================================================
+  Geographic elements (NUTS-2): 75
+  OD-pairs (NOT aggregated):    95
+  Paths (collapsed nodes):      95
+  Initial vehicle stock:        475
+  Mandatory breaks:             9
+================================================================================
+
+KEY FEATURES:
+  [OK] NUTS-2 aggregated nodes (MAXIMUM capacity planning efficiency)
+  [OK] Collapsed path sequences (minimal nodes in routes)
+  [OK] Original traffic distances (accuracy preserved)
+  [OK] Individual OD-pairs kept (demand detail preserved)
+  [OK] Mandatory breaks calculated correctly
+================================================================================
+
+
+[3/6] Generating complete input data for Julia...
+Traceback (most recent call last):
+  File "C:\Github\SM\iDesignRES_transcompmodel\examples\moving_loads_SM\generate_sample_with_fixes.py", line 47, in <module>
+    from SM_preprocessing import TransportPreprocessor
+ImportError: cannot import name 'TransportPreprocessor' from 'SM_preprocessing' (C:\Github\SM\iDesignRES_transcompmodel\examples\moving_loads_SM\SM_preprocessing.py)
