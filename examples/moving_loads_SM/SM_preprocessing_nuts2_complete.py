@@ -45,9 +45,11 @@ class CompleteSMNUTS2Preprocessor:
 
         # NUTS region filter (matching SM-preprocessing.ipynb lines 186-189)
         self.nuts_to_filter_for = {
-            "NUTS_0": ["DE", "DK"],
-            "NUTS_1": ["SE1", "SE2", "AT3", "ITC", "ITH", "ITI", "ITF"],
-            "NUTS_2": ["SE11", "SE12", "SE21", "SE22", "NO08", "NO09", "NO02", "NO0A"],
+            "NUTS_0": ["DE", "DK", "SE"],
+            "NUTS_1": ["AT3", "ITC", "ITH", "ITI", "ITF"],
+            "NUTS_2": ["NO08", "NO07", "FI1D", "NO09", "NO0A",
+                       "NO02", "NO06", "AT33", "AT34", "AT32"],
+
         }
 
         # Data storage
@@ -70,6 +72,51 @@ class CompleteSMNUTS2Preprocessor:
         self.initial_vehicle_stock = []
         self.geographic_elements = []
         self.mandatory_breaks = []
+
+        # Temporal resolution (1=annual, 2=biennial, 5=quinquennial, etc.)
+        self.time_step = 2  # Default: annual resolution
+
+        # Carbon price data (EUR/tCO2)
+        self.carbon_price_base = {
+            2018: 15.06,
+            2020: 30,
+            2025: 51.5871,
+            2030: 76.4254,
+            2035: 113.223,
+            2040: 167.737,
+            2045: 248.5,
+            2050: 355
+        }
+
+    def interpolate_carbon_price(self, year: int) -> float:
+        """
+        Interpolates the carbon price for a given year based on defined values.
+        Uses linear interpolation within the defined range and extrapolation outside.
+
+        Parameters:
+        -----------
+        year : int
+            The year for which to interpolate the carbon price
+
+        Returns:
+        --------
+        float
+            The interpolated carbon price in EUR/tCO2
+        """
+        years = np.array(list(self.carbon_price_base.keys()))
+        prices = np.array(list(self.carbon_price_base.values()))
+
+        if year < years.min():
+            # Extrapolate for years before the minimum defined year
+            slope = (prices[1] - prices[0]) / (years[1] - years[0])
+            return prices[0] + slope * (year - years[0])
+        elif year > years.max():
+            # Extrapolate for years after the maximum defined year
+            slope = (prices[-1] - prices[-2]) / (years[-1] - years[-2])
+            return prices[-1] + slope * (year - years[-1])
+        else:
+            # Interpolate for years within the defined range
+            return float(np.interp(year, years, prices))
 
     def load_data(self):
         """Load traffic and network data."""
@@ -214,6 +261,13 @@ class CompleteSMNUTS2Preprocessor:
                                           self.network_edges['Distance']))
         print(f"  Edge distance map: {len(self.edge_distance_map):,} edges")
 
+        # Calculate initial tkm BEFORE traffic filtering
+        traffic_before = self.truck_traffic.copy()
+        initial_tkm = (traffic_before['Traffic_flow_trucks_2030'] * traffic_before['Total_distance']).sum()
+        print(f"\n  FREIGHT STATISTICS (Initial):")
+        print(f"    Total traffic rows: {len(traffic_before):,}")
+        print(f"    Total freight volume: {initial_tkm:,.2f} tkm")
+
         # Filter traffic: keep routes where AT LEAST ONE endpoint is in filtered regions
         # This includes: internal routes, entering routes, leaving routes, and through routes
         rows_before = len(self.truck_traffic)
@@ -227,15 +281,52 @@ class CompleteSMNUTS2Preprocessor:
         self.truck_traffic['destination_inside'] = self.truck_traffic['ID_destination_region'].isin(filtered_region_ids)
 
         rows_after = len(self.truck_traffic)
-        print(f"  Traffic rows: {rows_before:,} -> {rows_after:,} (removed {rows_before - rows_after:,})")
+
+        # Calculate removed tkm
+        removed_traffic = traffic_before[
+            ~traffic_before.index.isin(self.truck_traffic.index)
+        ]
+        removed_tkm = (removed_traffic['Traffic_flow_trucks_2030'] * removed_traffic['Total_distance']).sum()
+
+        # Calculate final tkm after filtering
+        final_tkm = (self.truck_traffic['Traffic_flow_trucks_2030'] * self.truck_traffic['Total_distance']).sum()
+
+        # Calculate tkm by route type
+        internal_mask = (self.truck_traffic['origin_inside']) & (self.truck_traffic['destination_inside'])
+        entering_mask = (~self.truck_traffic['origin_inside']) & (self.truck_traffic['destination_inside'])
+        leaving_mask = (self.truck_traffic['origin_inside']) & (~self.truck_traffic['destination_inside'])
+
+        internal_tkm = (self.truck_traffic[internal_mask]['Traffic_flow_trucks_2030'] *
+                       self.truck_traffic[internal_mask]['Total_distance']).sum()
+        entering_tkm = (self.truck_traffic[entering_mask]['Traffic_flow_trucks_2030'] *
+                       self.truck_traffic[entering_mask]['Total_distance']).sum()
+        leaving_tkm = (self.truck_traffic[leaving_mask]['Traffic_flow_trucks_2030'] *
+                      self.truck_traffic[leaving_mask]['Total_distance']).sum()
 
         # Count route types
-        internal = ((self.truck_traffic['origin_inside']) & (self.truck_traffic['destination_inside'])).sum()
-        entering = ((~self.truck_traffic['origin_inside']) & (self.truck_traffic['destination_inside'])).sum()
-        leaving = ((self.truck_traffic['origin_inside']) & (~self.truck_traffic['destination_inside'])).sum()
-        print(f"    Internal routes (both inside): {internal:,}")
-        print(f"    Entering routes (origin outside): {entering:,}")
-        print(f"    Leaving routes (destination outside): {leaving:,}")
+        internal = internal_mask.sum()
+        entering = entering_mask.sum()
+        leaving = leaving_mask.sum()
+
+        # Calculate percentages
+        if initial_tkm > 0:
+            removed_pct = (removed_tkm / initial_tkm) * 100
+            retained_pct = (final_tkm / initial_tkm) * 100
+            internal_pct = (internal_tkm / final_tkm) * 100 if final_tkm > 0 else 0
+            entering_pct = (entering_tkm / final_tkm) * 100 if final_tkm > 0 else 0
+            leaving_pct = (leaving_tkm / final_tkm) * 100 if final_tkm > 0 else 0
+        else:
+            removed_pct = retained_pct = internal_pct = entering_pct = leaving_pct = 0.0
+
+        print(f"\n  FREIGHT STATISTICS (After filtering):")
+        print(f"    Retained traffic rows: {rows_after:,} ({rows_after/rows_before*100:.1f}%)")
+        print(f"    Retained freight volume: {final_tkm:,.2f} tkm ({retained_pct:.1f}%)")
+        print(f"\n  ROUTE TYPE BREAKDOWN (Retained freight):")
+        print(f"    Internal routes (both inside): {internal:,} rows, {internal_tkm:,.2f} tkm ({internal_pct:.1f}%)")
+        print(f"    Entering routes (origin outside): {entering:,} rows, {entering_tkm:,.2f} tkm ({entering_pct:.1f}%)")
+        print(f"    Leaving routes (destination outside): {leaving:,} rows, {leaving_tkm:,.2f} tkm ({leaving_pct:.1f}%)")
+        print(f"\n  REMOVED FREIGHT:")
+        print(f"    Geographic filter: {rows_before - rows_after:,} rows, {removed_tkm:,.2f} tkm ({removed_pct:.1f}%)")
 
         # Print comprehensive filtering summary
         print(f"\n[OK] NUTS-2 FILTERING COMPLETE:")
@@ -335,6 +426,9 @@ class CompleteSMNUTS2Preprocessor:
             country = max(set(countries), key=countries.count)
 
             # Create aggregated node for this NUTS-2 region
+            # Calculate carbon prices for all years (2020-2060)
+            carbon_prices = [self.interpolate_carbon_price(year) for year in range(2020, 2061)]
+
             geo_element = {
                 'id': new_node_id,
                 'name': f'nuts2_{nuts2_id}',
@@ -346,7 +440,7 @@ class CompleteSMNUTS2Preprocessor:
                 'from': 999999,
                 'to': 999999,
                 'length': 0.0,
-                'carbon_price': [0.0] * 21  # Placeholder
+                'carbon_price': carbon_prices  # EUR/tCO2, interpolated from base values
             }
 
             self.geographic_elements.append(geo_element)
@@ -369,22 +463,31 @@ class CompleteSMNUTS2Preprocessor:
         edges_df['nuts2_a'] = edges_df['Network_Node_A_ID'].map(self.node_to_nuts2)
         edges_df['nuts2_b'] = edges_df['Network_Node_B_ID'].map(self.node_to_nuts2)
 
-        # Filter to inter-regional edges only
-        inter_regional = edges_df[
+        # **FIXED**: Keep ALL edges (both inter-regional AND intra-regional)
+        # This preserves routing through intermediate regions (e.g., Austria)
+        # Previously filtered to inter-regional only (nuts2_a != nuts2_b), losing intra-regional edges
+        valid_edges = edges_df[
             (edges_df['nuts2_a'].notna()) &
-            (edges_df['nuts2_b'].notna()) &
-            (edges_df['nuts2_a'] != edges_df['nuts2_b'])
+            (edges_df['nuts2_b'].notna())
+            # No longer filtering out: (edges_df['nuts2_a'] != edges_df['nuts2_b'])
         ]
 
         # Build lookup dictionary
-        for row in inter_regional.itertuples(index=False):
+        for row in valid_edges.itertuples(index=False):
             a = self.nuts2_to_node.get(row.nuts2_a)
             b = self.nuts2_to_node.get(row.nuts2_b)
             if a is not None and b is not None:
                 self.edge_lookup[(a, b)] = row.Distance
                 self.edge_lookup[(b, a)] = row.Distance
 
-        print(f"[OK] Built edge topology: {len(self.edge_lookup)//2} inter-regional edges")
+        # Count edge types
+        inter_regional_count = len(valid_edges[valid_edges['nuts2_a'] != valid_edges['nuts2_b']])
+        intra_regional_count = len(valid_edges[valid_edges['nuts2_a'] == valid_edges['nuts2_b']])
+
+        print(f"[OK] Built edge topology: {len(self.edge_lookup)//2} edges total")
+        print(f"    • Inter-regional (cross-border): {inter_regional_count}")
+        print(f"    • Intra-regional (within NUTS2): {intra_regional_count}")
+        print(f"[FIXED] Now preserves routing through intermediate regions like Austria")
 
     def create_paths_with_original_distances(self, max_odpairs: int = None, min_distance_km: float = None, cross_border_only: bool = False):
         """
@@ -400,6 +503,9 @@ class CompleteSMNUTS2Preprocessor:
         """
         print("\n" + "="*80)
         print("STEP 3: CREATING PATHS WITH COLLAPSED NODES + ORIGINAL DISTANCES")
+        print("="*80)
+        print("WARNING: TEMPORARY - Local routes (origin == destination) are filtered out")
+        print("         This prevents infeasibility from multi-node travel time constraints")
         print("="*80)
 
         # Filter valid traffic
@@ -476,8 +582,15 @@ class CompleteSMNUTS2Preprocessor:
             # Apply same validation logic as path creation (lines 437-470)
             is_valid = False
 
+            # ====================================================================
+            # TEMPORARY FIX: Filter out local routes (origin == destination)
+            # These create infeasibility issues with multi-node travel time constraints
+            # TODO: Remove this filter once travel time constraint is improved
+            # ====================================================================
+            if origin_nuts2 == dest_nuts2:
+                is_valid = False
             # Skip if neither endpoint in filtered regions
-            if origin_node is None and dest_node is None:
+            elif origin_node is None and dest_node is None:
                 is_valid = False
             # Handle boundary-crossing routes
             elif not origin_inside or not destination_inside:
@@ -503,7 +616,8 @@ class CompleteSMNUTS2Preprocessor:
         od_groups = od_groups.drop('is_valid', axis=1)
 
         print(f"  Valid OD-pairs (after validation): {len(od_groups):,}")
-        print(f"  Filtered out {od_groups_before - len(od_groups):,} OD-pairs with unmappable endpoints")
+        print(f"  Filtered out {od_groups_before - len(od_groups):,} OD-pairs")
+        print(f"    (includes unmappable endpoints AND local routes where origin == destination)")
 
         # NOW select top N from validated OD-pairs
         if max_odpairs:
@@ -518,6 +632,7 @@ class CompleteSMNUTS2Preprocessor:
 
         # Create each OD-pair - OPTIMIZED with itertuples (5-10x faster than iterrows)
         init_veh_stock_id = 0
+        local_routes_filtered_at_path_creation = 0
 
         for row in od_groups.itertuples(index=True):
             origin_nuts3_zone = row.ID_origin_region  # NUTS-3 zone ID from traffic data
@@ -568,6 +683,15 @@ class CompleteSMNUTS2Preprocessor:
                     continue
                 path_sequence = self._find_nuts2_path(origin_node, dest_node)
 
+            # ====================================================================
+            # CRITICAL FIX: Skip local routes created by boundary-crossing logic
+            # Even though we filter origin_nuts2 == dest_nuts2 earlier,
+            # the boundary-crossing logic can set origin_node = dest_node
+            # ====================================================================
+            if origin_node == dest_node:
+                local_routes_filtered_at_path_creation += 1
+                continue
+
             # Distribute distance across path segments
             segment_distances = self._distribute_distance(
                 path_sequence, total_distance
@@ -604,7 +728,7 @@ class CompleteSMNUTS2Preprocessor:
                 'purpose': 'long-haul',
                 'region_type': 'highway',
                 'financial_status': 'any',
-                'F': [float(traffic_flow)] * 21,  # 21 years
+                'F': [float(traffic_flow)] * 41,  # 41 years
                 'vehicle_stock_init': vehicle_init_ids,
                 'travel_time_budget': 0.0
             }
@@ -616,6 +740,9 @@ class CompleteSMNUTS2Preprocessor:
                 print(f"  Created {row.Index+1} OD-pairs...")
 
         print(f"\n[SUCCESS] Created {len(self.odpair_list)} OD-pairs and {len(self.path_list)} paths")
+        if local_routes_filtered_at_path_creation > 0:
+            print(f"  Filtered out {local_routes_filtered_at_path_creation:,} local routes at path creation stage")
+            print(f"  (These were created by boundary-crossing logic setting origin_node = dest_node)")
 
         # Statistics
         avg_nodes = np.mean([len(p['sequence']) for p in self.path_list])
@@ -623,8 +750,49 @@ class CompleteSMNUTS2Preprocessor:
         print(f"  Average nodes per path: {avg_nodes:.2f}")
         print(f"  Average path length: {avg_dist:.1f} km")
 
-    def _find_nuts2_path(self, origin: int, dest: int, max_depth: int = 5) -> List[int]:
-        """Find path using BFS through NUTS-2 network."""
+    def _is_node_in_corridor(self, node_id: int) -> bool:
+        """
+        Check if a NUTS2 node is within the defined corridor.
+
+        Corridor definition (from lines 46-51):
+        - NUTS_0: ["DE", "DK"]
+        - NUTS_1: ["SE1", "SE2", "AT3", "ITC", "ITH", "ITI", "ITF"]
+        - NUTS_2: ["SE11", "SE12", "SE21", "SE22", "NO08", "NO09", "NO02", "NO0A"]
+        """
+        # Get NUTS2 code for this node
+        nuts2_code = None
+        for code, nid in self.nuts2_to_node.items():
+            if nid == node_id:
+                nuts2_code = code
+                break
+
+        if nuts2_code is None:
+            return False
+
+        # Check against corridor filters
+        # NUTS_0 level (e.g., "DE", "DK")
+        for nuts0 in self.nuts_to_filter_for.get("NUTS_0", []):
+            if nuts2_code.startswith(nuts0):
+                return True
+
+        # NUTS_1 level (e.g., "SE1", "AT3", "ITC")
+        for nuts1 in self.nuts_to_filter_for.get("NUTS_1", []):
+            if nuts2_code.startswith(nuts1):
+                return True
+
+        # NUTS_2 level (exact match, e.g., "SE11", "NO08")
+        if nuts2_code in self.nuts_to_filter_for.get("NUTS_2", []):
+            return True
+
+        return False
+
+    def _find_nuts2_path(self, origin: int, dest: int, max_depth: int = 15) -> List[int]:
+        """
+        Find path using BFS through NUTS-2 network.
+
+        **FIXED**: Now uses actual network topology (edge_lookup) for pathfinding.
+        **ADDED**: Corridor filtering - only returns paths that stay within corridor.
+        """
         if origin == dest:
             return [origin]
 
@@ -635,7 +803,7 @@ class CompleteSMNUTS2Preprocessor:
                 adjacency[a] = []
             adjacency[a].append(b)
 
-        # BFS
+        # BFS with corridor filtering
         queue = deque([(origin, [origin])])
         visited = {origin}
 
@@ -646,14 +814,22 @@ class CompleteSMNUTS2Preprocessor:
                 continue
 
             if node == dest:
-                return path
+                # **CORRIDOR FILTER**: Validate that entire path stays within corridor
+                all_in_corridor = all(self._is_node_in_corridor(n) for n in path)
+                if all_in_corridor:
+                    return path
+                # If path leaves corridor, continue searching for alternative
+                continue
 
             for neighbor in adjacency.get(node, []):
                 if neighbor not in visited:
-                    visited.add(neighbor)
-                    queue.append((neighbor, path + [neighbor]))
+                    # **CORRIDOR FILTER**: Only explore neighbors within corridor
+                    if self._is_node_in_corridor(neighbor):
+                        visited.add(neighbor)
+                        queue.append((neighbor, path + [neighbor]))
 
-        # No path - direct connection
+        # No path found within corridor - return direct connection
+        # Note: This will be filtered out later if it leaves corridor
         return [origin, dest]
 
     def _distribute_distance(
@@ -711,14 +887,24 @@ class CompleteSMNUTS2Preprocessor:
         prey_y: int = 10,
         occ: float = 0.5
     ) -> List[int]:
-        """Create initial vehicle stock for an OD-pair."""
+        """Create initial vehicle stock for an OD-pair, respecting temporal resolution."""
+        # Get temporal resolution from configuration
+        time_step = getattr(self, 'time_step', 1)  # Default to annual if not set
+
         # Calculate number of vehicles
-        nb_vehicles = traffic_flow * (distance / (13.6 * 136750))
-        factor = 1 / prey_y
+        nb_vehicles = traffic_flow * (distance / (13.6 * (1-0.25) * 136750))
+
+        # Get list of modeled years in pre-period
+        modeled_years = list(range(y_init-prey_y, y_init, time_step))
+
+        # IMPORTANT: Distribute stock evenly across modeled years (not all years)
+        # Example: time_step=1 → 10 years → factor=1/10 (each year gets 10%)
+        #          time_step=2 → 5 years → factor=1/5 (each year gets 20%)
+        factor = 1 / len(modeled_years)
 
         vehicle_ids = []
 
-        for g in range(y_init-prey_y, y_init):
+        for g in modeled_years:
             stock = nb_vehicles * factor
 
             # Diesel truck (ICEV) - only create entries with stock
@@ -817,12 +1003,101 @@ class CompleteSMNUTS2Preprocessor:
 
         print(f"\n[SUCCESS] All files saved to: {self.output_dir}")
 
+    def _convert_numpy_types(self, obj):
+        """Recursively convert numpy types to native Python types."""
+        if isinstance(obj, np.integer):
+            return int(obj)
+        elif isinstance(obj, np.floating):
+            return float(obj)
+        elif isinstance(obj, np.ndarray):
+            return obj.tolist()
+        elif isinstance(obj, dict):
+            return {key: self._convert_numpy_types(value) for key, value in obj.items()}
+        elif isinstance(obj, list):
+            return [self._convert_numpy_types(item) for item in obj]
+        else:
+            return obj
+
     def _save_yaml(self, data: List[dict], filename: str):
-        """Save data to YAML file."""
+        """Save data to YAML file, converting numpy types to native Python types."""
         filepath = self.output_dir / filename
+        # Convert numpy types before saving
+        data_clean = self._convert_numpy_types(data)
         with open(filepath, 'w') as f:
-            yaml.dump(data, f, default_flow_style=False, sort_keys=False)
+            yaml.dump(data_clean, f, default_flow_style=False, sort_keys=False)
         print(f"[OK] Saved {filename} ({len(data)} entries)")
+
+    def scale_transport_demand(self,
+                                base_year: int = 2030,
+                                ref_year_1: int = 2015,
+                                ref_demand_1: float = 798470,
+                                ref_year_2: int = 2024,
+                                ref_demand_2: float = 932283,
+                                years: list = None):
+        """
+        Scale transport demand (F) based on linear extrapolation from reference points.
+
+        The current F values represent demand for the base_year (2030 by default).
+        This method scales them for all years based on linear growth.
+
+        Parameters:
+        -----------
+        base_year : int
+            Year that the current F data represents (default: 2030)
+        ref_year_1 : int
+            First reference year (default: 2015)
+        ref_demand_1 : float
+            Total demand in first reference year (default: 798470)
+        ref_year_2 : int
+            Second reference year (default: 2024)
+        ref_demand_2 : float
+            Total demand in second reference year (default: 932283)
+        years : list
+            Years to scale for (default: 2020-2060, 41 years)
+        """
+        print("\n" + "="*80)
+        print("SCALING TRANSPORT DEMAND (F)")
+        print("="*80)
+
+        if years is None:
+            years = list(range(2020, 2061))  # 41 years: 2020-2060
+
+        # Calculate annual change based on reference points
+        annual_change = (ref_demand_2 - ref_demand_1) / (ref_year_2 - ref_year_1)
+        print(f"Reference points: {ref_year_1}={ref_demand_1:,.0f}, {ref_year_2}={ref_demand_2:,.0f}")
+        print(f"Annual change: {annual_change:,.2f} per year")
+
+        # Calculate demand for base year
+        demand_base_year = ref_demand_1 + (base_year - ref_year_1) * annual_change
+        print(f"Base year ({base_year}) demand: {demand_base_year:,.0f}")
+
+        # Calculate scaling factors for each year
+        scaling_factors = []
+        for year in years:
+            demand_year = ref_demand_1 + (year - ref_year_1) * annual_change
+            scaling_factor = demand_year / demand_base_year
+            scaling_factors.append(scaling_factor)
+
+        print(f"Scaling range: {min(scaling_factors):.4f} ({years[0]}) to {max(scaling_factors):.4f} ({years[-1]})")
+
+        # Apply scaling to all odpairs
+        total_original_demand = sum(od['F'][0] for od in self.odpair_list if 'F' in od and len(od['F']) > 0)
+
+        for odpair in self.odpair_list:
+            if 'F' in odpair:
+                # Get the base F value (assumed constant in original data for 2030)
+                base_F = odpair['F'][0] if odpair['F'] else 0
+
+                # Scale for each year
+                odpair['F'] = [base_F * factor for factor in scaling_factors]
+
+        # Verify scaling
+        total_scaled_demand_first = sum(od['F'][0] for od in self.odpair_list if 'F' in od and len(od['F']) > 0)
+        total_scaled_demand_last = sum(od['F'][-1] for od in self.odpair_list if 'F' in od and len(od['F']) > 0)
+
+        print(f"Original total demand (constant, base year): {total_original_demand:,.0f}")
+        print(f"Scaled total demand ({years[0]}): {total_scaled_demand_first:,.0f}")
+        print(f"Scaled total demand ({years[-1]}): {total_scaled_demand_last:,.0f}")
 
     def aggregate_odpairs_by_nuts2(self):
         """
@@ -856,7 +1131,8 @@ class CompleteSMNUTS2Preprocessor:
             paths = group['paths']
 
             # Sum traffic flows (F values) - element-wise sum across all years
-            total_F = [sum(od['F'][i] for od in odpairs) for i in range(21)]
+            # Note: F values are already scaled by year in _calculate_scaling_factors
+            total_F = [sum(od['F'][i] for od in odpairs) for i in range(41)]
 
             # Weighted average of distances (weight by traffic flow)
             total_flow = sum(od['F'][0] for od in odpairs)  # Use first year as weight
@@ -871,10 +1147,28 @@ class CompleteSMNUTS2Preprocessor:
             template_path['length'] = avg_distance
 
             # Recalculate segment distances proportionally
-            if sum(template_path['distance_from_previous']) > 0:
+            # FIX: Reconstruct path for single-node templates to ensure cumulative_distance is properly populated
+            if len(template_path['sequence']) == 1 and avg_distance > 0:
+                # Single-node template (e.g., intra-regional traffic 47->47)
+                # Create simple 2-node path: origin -> destination with full distance on single segment
+                origin = template_path['origin']
+                destination = template_path['destination']
+
+                # Reconstruct as 2-node path
+                template_path['sequence'] = [origin, destination]
+                template_path['distance_from_previous'] = [0.0, avg_distance]
+                template_path['cumulative_distance'] = [0.0, avg_distance]
+
+            elif sum(template_path['distance_from_previous']) > 0:
+                # Multi-node template: scale distances proportionally
                 scale = avg_distance / sum(template_path['distance_from_previous'])
                 template_path['distance_from_previous'] = [d * scale for d in template_path['distance_from_previous']]
                 template_path['cumulative_distance'] = np.cumsum(template_path['distance_from_previous']).tolist()
+            else:
+                # Edge case: multi-node path with zero total distance
+                # This shouldn't happen, but handle it gracefully
+                print(f"  WARNING: Path {origin_node}->{dest_node} has multi-node sequence but zero distance!")
+                # Keep as-is but log the warning
 
             # Create aggregated vehicle stock
             vehicle_ids = self._create_vehicle_stock(total_flow, avg_distance, stock_id)
@@ -939,6 +1233,9 @@ class CompleteSMNUTS2Preprocessor:
             min_distance_km=min_distance_km,
             cross_border_only=cross_border_only
         )
+
+        # Scale transport demand F based on linear growth (2015-2024 reference points)
+        self.scale_transport_demand()
 
         # Aggregate OD-pairs by NUTS-2 if requested
         if aggregate_odpairs:

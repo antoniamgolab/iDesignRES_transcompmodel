@@ -528,6 +528,10 @@ function check_correct_format_InitialVehicleStock(
     y_init::Int,
     g_init::Int,
 )
+    # Get temporal resolution parameters
+    modeled_generations = data_structures["modeled_generations"]
+    time_step = data_structures["time_step"]
+
     for ij ∈ 1:length(data_structures["InitialVehicleStock"])
         ivs = data_structures["InitialVehicleStock"][ij]
 
@@ -535,6 +539,7 @@ function check_correct_format_InitialVehicleStock(
         @assert isa(ivs["techvehicle"], Int) "The key 'techvehicle' in 'InitialVehicleStock' must be a integer value. Error at $(ivs["id"])."
         @assert isa(ivs["year_of_purchase"], Int) "The key 'year_of_purchase' in 'InitialVehicleStock' must be a integer value. Error at $(ivs["id"])."
         @assert isa(ivs["stock"], Int) || isa(ivs["stock"], Float64) "The key 'number' in 'InitialVehicleStock' must be a float or integer value. Error at $(ivs["id"])."
+
         if ivs["year_of_purchase"] < g_init
             error(
                 "The year of purchase must not be earlier than the year of the first considered generation. Error at $(ivs["id"]).",
@@ -544,6 +549,14 @@ function check_correct_format_InitialVehicleStock(
         if ivs["year_of_purchase"] >= y_init
             error(
                 "The year of purchase must not be later than the year of the first considered year of the optimization horizon. Error at $(ivs["id"]).",
+            )
+        end
+
+        # NEW: Check if year aligns with time_step
+        if !(ivs["year_of_purchase"] in modeled_generations)
+            error(
+                "Initial vehicle stock year $(ivs["year_of_purchase"]) does not align with time_step=$(time_step). " *
+                "Valid years (modeled_generations): $(modeled_generations). Error at ID $(ivs["id"])."
             )
         end
     end
@@ -635,4 +648,269 @@ function check_correct_format_Speed(data_structures::Dict)
         @assert isa(s["vehicle_type"], String) "The key 'vehicle_type' in 'Speed' must be a string value. Error at $(s["id"])."
         @assert (isa(s["travel_speed"], Float64) || isa(s["travel_speed"], Int)) "The key 'speed' in 'Speed' must be a integer or float value. Error at $(s["id"])."
     end
+end
+
+"""
+    validate_mandatory_breaks(model::JuMP.Model, data_structures::Dict)
+
+Validate that mandatory break constraints are satisfied in the optimized model.
+Checks that travel_time at break locations meets the minimum required time with breaks.
+
+# Arguments
+- `model::JuMP.Model`: The solved optimization model
+- `data_structures::Dict`: Dictionary containing model data structures
+
+# Returns
+- `Dict`: Validation results including violations, statistics, and detailed breakdown
+"""
+function validate_mandatory_breaks(model, data_structures::Dict)
+    println("="^80)
+    println("VALIDATING MANDATORY BREAKS CONSTRAINTS")
+    println("="^80)
+
+    # Check if mandatory breaks data exists
+    if !haskey(data_structures, "mandatory_break_list")
+        @warn "No mandatory breaks data found. Skipping validation."
+        return Dict("status" => "skipped", "reason" => "no_data")
+    end
+
+    # Check if travel_time variable exists
+    if !haskey(model.obj_dict, :travel_time)
+        @warn "travel_time variable not found in model. Skipping validation."
+        return Dict("status" => "skipped", "reason" => "no_variable")
+    end
+
+    mandatory_breaks = data_structures["mandatory_break_list"]
+    modeled_years = data_structures["modeled_years"]
+    modeled_generations = data_structures["modeled_generations"]
+    techvehicle_list = data_structures["techvehicle_list"]
+    g_init = data_structures["g_init"]
+
+    println("\nTotal mandatory breaks to validate: $(length(mandatory_breaks))")
+    println("Years: $(modeled_years)")
+    println("Generations: $(modeled_generations)")
+    println("Tech vehicles: $(length(techvehicle_list))")
+
+    # Validation tracking
+    total_checks = 0
+    violations = []
+    close_calls = []  # Within 1% of minimum
+    good = 0
+
+    # Statistics
+    min_slack = Inf
+    max_slack = -Inf
+    total_slack = 0.0
+
+    # Detailed breakdown by break number
+    by_break_number = Dict()
+
+    for mb in mandatory_breaks
+        p_id = mb.product_id
+        r_id = mb.odpair_id
+        path_id = mb.path_id
+        break_geo_id = mb.latest_geo_id
+        break_number = mb.break_number
+        min_time_per_vehicle = mb.time_with_breaks  # Hours per vehicle
+
+        # Initialize break number tracking
+        if !haskey(by_break_number, break_number)
+            by_break_number[break_number] = Dict(
+                "count" => 0,
+                "violations" => 0,
+                "close_calls" => 0,
+                "min_slack" => Inf,
+                "max_slack" => -Inf,
+                "total_slack" => 0.0
+            )
+        end
+
+        for y in modeled_years
+            for tv in techvehicle_list
+                for g in modeled_generations
+                    if g <= y  # Only check valid generation-year combinations
+                        # Get the path to calculate number of vehicles
+                        path = nothing
+                        for odpair in data_structures["odpair_list"]
+                            if odpair.id == r_id
+                                for p in odpair.paths
+                                    if p.id == path_id
+                                        path = p
+                                        break
+                                    end
+                                end
+                                break
+                            end
+                        end
+
+                        if path === nothing
+                            @warn "Path $path_id not found for break validation"
+                            continue
+                        end
+
+                        # Calculate number of vehicles (fleet size)
+                        num_vehicles_expr = (
+                            path.length / (tv.W[g-g_init+1] * tv.AnnualRange[g-g_init+1])
+                        ) * 1000 * value(model[:f][y, (p_id, r_id, path_id), (tv.vehicle_type.mode.id, tv.id), g])
+
+                        # Skip if no flow
+                        if num_vehicles_expr < 1e-6
+                            continue
+                        end
+
+                        # Minimum fleet travel time required
+                        min_fleet_travel_time = min_time_per_vehicle * num_vehicles_expr
+
+                        # Actual travel time from model (no f_l dimension)
+                        actual_travel_time = value(model[:travel_time][y, (p_id, r_id, path_id, break_geo_id), tv.id, g])
+
+                        # Calculate slack (positive = constraint satisfied)
+                        slack = actual_travel_time - min_fleet_travel_time
+                        slack_percent = (slack / min_fleet_travel_time) * 100
+
+                        total_checks += 1
+
+                        # Update statistics
+                        min_slack = min(min_slack, slack)
+                        max_slack = max(max_slack, slack)
+                        total_slack += slack
+
+                        # Update break number statistics
+                        by_break_number[break_number]["count"] += 1
+                        by_break_number[break_number]["min_slack"] = min(by_break_number[break_number]["min_slack"], slack)
+                        by_break_number[break_number]["max_slack"] = max(by_break_number[break_number]["max_slack"], slack)
+                        by_break_number[break_number]["total_slack"] += slack
+
+                        # Check for violations or close calls
+                        if slack < -1e-6  # Violation (accounting for numerical tolerance)
+                            violations_entry = Dict(
+                                "year" => y,
+                                "product_id" => p_id,
+                                "odpair_id" => r_id,
+                                "path_id" => path_id,
+                                "break_geo_id" => break_geo_id,
+                                "break_number" => break_number,
+                                "techvehicle_id" => tv.id,
+                                "generation" => g,
+                                "num_vehicles" => num_vehicles_expr,
+                                "min_required_time" => min_fleet_travel_time,
+                                "actual_time" => actual_travel_time,
+                                "slack" => slack,
+                                "slack_percent" => slack_percent
+                            )
+                            push!(violations, violations_entry)
+                            by_break_number[break_number]["violations"] += 1
+                        elseif slack < min_fleet_travel_time * 0.01  # Within 1% - close call
+                            close_call_entry = Dict(
+                                "year" => y,
+                                "product_id" => p_id,
+                                "odpair_id" => r_id,
+                                "path_id" => path_id,
+                                "break_geo_id" => break_geo_id,
+                                "break_number" => break_number,
+                                "techvehicle_id" => tv.id,
+                                "generation" => g,
+                                "num_vehicles" => num_vehicles_expr,
+                                "min_required_time" => min_fleet_travel_time,
+                                "actual_time" => actual_travel_time,
+                                "slack" => slack,
+                                "slack_percent" => slack_percent
+                            )
+                            push!(close_calls, close_call_entry)
+                            by_break_number[break_number]["close_calls"] += 1
+                        else
+                            good += 1
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    # Finalize break number statistics
+    for (bn, stats) in by_break_number
+        if stats["count"] > 0
+            stats["avg_slack"] = stats["total_slack"] / stats["count"]
+        end
+    end
+
+    # Print summary
+    println("\n" * "="^80)
+    println("VALIDATION SUMMARY")
+    println("="^80)
+    println("Total checks performed: $total_checks")
+    println("Violations (slack < 0): $(length(violations))")
+    println("Close calls (slack < 1%): $(length(close_calls))")
+    println("Good (slack >= 1%): $(good)")
+    println("")
+
+    if total_checks > 0
+        avg_slack = total_slack / total_checks
+        println("Slack statistics:")
+        println("  Minimum slack: $(round(min_slack, digits=4)) hours")
+        println("  Maximum slack: $(round(max_slack, digits=4)) hours")
+        println("  Average slack: $(round(avg_slack, digits=4)) hours")
+    end
+
+    # Print violations
+    if length(violations) > 0
+        println("\n⚠ CONSTRAINT VIOLATIONS FOUND!")
+        println("The following mandatory break constraints are violated:")
+        for (i, v) in enumerate(violations)
+            println("  Violation $i:")
+            println("    Break #$(v["break_number"]) - Year $(v["year"]), Gen $(v["generation"])")
+            println("    Path $(v["path_id"]), Geo $(v["break_geo_id"]), TV $(v["techvehicle_id"])")
+            println("    Required: $(round(v["min_required_time"], digits=2))h")
+            println("    Actual: $(round(v["actual_time"], digits=2))h")
+            println("    Slack: $(round(v["slack"], digits=4))h ($(round(v["slack_percent"], digits=2))%)")
+        end
+    else
+        println("\n✓ No violations found - all mandatory breaks are respected!")
+    end
+
+    # Print close calls
+    if length(close_calls) > 0
+        println("\nClose calls (within 1% of minimum):")
+        for (i, cc) in enumerate(close_calls[1:min(10, length(close_calls))])
+            println("  Close call $i: Break #$(cc["break_number"]), slack=$(round(cc["slack"], digits=4))h ($(round(cc["slack_percent"], digits=2))%)")
+        end
+        if length(close_calls) > 10
+            println("  ... and $(length(close_calls)-10) more")
+        end
+    end
+
+    # Print by break number
+    println("\n" * "="^80)
+    println("BREAKDOWN BY BREAK NUMBER")
+    println("="^80)
+    for bn in sort(collect(keys(by_break_number)))
+        stats = by_break_number[bn]
+        println("Break #$bn:")
+        println("  Total checks: $(stats["count"])")
+        println("  Violations: $(stats["violations"])")
+        println("  Close calls: $(stats["close_calls"])")
+        if stats["count"] > 0
+            println("  Slack range: [$(round(stats["min_slack"], digits=4)), $(round(stats["max_slack"], digits=4))] hours")
+            println("  Average slack: $(round(stats["avg_slack"], digits=4)) hours")
+        end
+    end
+
+    println("\n" * "="^80)
+    println("VALIDATION COMPLETE")
+    println("="^80)
+
+    # Return results
+    return Dict(
+        "status" => length(violations) == 0 ? "passed" : "failed",
+        "total_checks" => total_checks,
+        "violations" => violations,
+        "close_calls" => close_calls,
+        "good" => good,
+        "statistics" => Dict(
+            "min_slack" => min_slack,
+            "max_slack" => max_slack,
+            "avg_slack" => total_checks > 0 ? total_slack / total_checks : 0.0
+        ),
+        "by_break_number" => by_break_number
+    )
 end

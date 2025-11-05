@@ -80,6 +80,7 @@ struct Mode
     name::String
     quantify_by_vehs::Bool
     cost_per_ukm::Array{Float64,1}
+    terminal_cost_per_tonne::Array{Float64,1} # €/tonne, distance-independent terminal handling costs
     emission_factor::Array{Float64,1} # gCO2/ukm
     infrastructure_expansion_costs::Array{Float64,1}
     infrastructure_om_costs::Array{Float64,1}
@@ -191,6 +192,39 @@ struct Technology
 end
 
 """
+    struct FuelingInfrTypes
+
+A 'FuelingInfrTypes' represents the fueling infrastructure types that are used for transportation. This includes the fuel type, the supply type, the allocation, and the installed capacity.
+
+# Fields
+- `id::Int`: unique identifier of the fueling infrastructure type
+- `fuel::Fuel`: fuel type of the fueling infrastructure
+- `fueling_type::String`: type of the fueling infrastructure (e.g. battery charging, hydrogen refueling, etc.)
+- `fueling_power::Array{Float64}`: fueling power in kW
+- `additional_fueling_time::Bool`: if additional fueling time is considered
+- `max_occupancy_rate_veh_per_year::Float64`: maximum occupancy rate of the vehicle per year
+- `by_route::Bool`: if the fueling infrastructure is considered by route
+- `track_detour_time::Bool`: if the detour time to reach the fueling station is tracked
+- `gamma::Float64`: ratio between peak demand and annual demandfor fueling
+- `om_costs::Array{Float64}`: operation and maintenance costs in €/year
+
+"""
+struct FuelingInfrTypes
+    id::Int
+    fuel::Fuel
+    fueling_type::String
+    fueling_power::Array{Float64}
+    additional_fueling_time::Bool
+    max_occupancy_rate_veh_per_year::Float64
+    by_route::Bool
+    track_detour_time::Bool
+    gamma::Array{Float64}
+    cost_per_kW::Array{Float64}
+    cost_per_kWh_network::Array{Float64}
+    om_costs::Array{Float64}
+end
+
+"""
     FuelCost
 
 A 'FuelCost' represents the cost of a fuel at a specific location.
@@ -198,6 +232,7 @@ A 'FuelCost' represents the cost of a fuel at a specific location.
 - `id::Int`: unique identifier of the fuel cost
 - `location::GeographicElement`: location where the fuel cost is valid
 - `fuel::Fuel`: fuel for which the cost is valid
+- `fueling_infr_type::Union{FuelingInfrTypes, Nothing}`: fueling infrastructure type (Nothing for non-infrastructure-specific costs)
 - `cost_per_kWh::Array{Float64,1}`: cost per kWh of the fuel in € for each year
 
 """
@@ -205,6 +240,7 @@ struct FuelCost
     id::Int
     location::GeographicElement
     fuel::Fuel
+    fueling_infr_type::Union{FuelingInfrTypes, Nothing}
     cost_per_kWh::Array{Float64,1}
 end
 
@@ -318,40 +354,6 @@ struct InitialVehicleStock
     techvehicle::TechVehicle
     year_of_purchase::Int
     stock::Float64
-end
-
-
-"""
-    struct FuelingInfrTypes
-
-A 'FuelingInfrTypes' represents the fueling infrastructure types that are used for transportation. This includes the fuel type, the supply type, the allocation, and the installed capacity.
-
-# Fields
-- `id::Int`: unique identifier of the fueling infrastructure type
-- `fuel::Fuel`: fuel type of the fueling infrastructure
-- `fueling_type::String`: type of the fueling infrastructure (e.g. battery charging, hydrogen refueling, etc.)
-- `fueling_power::Array{Float64}`: fueling power in kW
-- `additional_fueling_time::Bool`: if additional fueling time is considered
-- `max_occupancy_rate_veh_per_year::Float64`: maximum occupancy rate of the vehicle per year
-- `by_route::Bool`: if the fueling infrastructure is considered by route
-- `track_detour_time::Bool`: if the detour time to reach the fueling station is tracked
-- `gamma::Float64`: ratio between peak demand and annual demandfor fueling
-- `om_costs::Array{Float64}`: operation and maintenance costs in €/year
-
-"""
-struct FuelingInfrTypes
-    id::Int
-    fuel::Fuel
-    fueling_type::String
-    fueling_power::Array{Float64}
-    additional_fueling_time::Bool
-    max_occupancy_rate_veh_per_year::Float64
-    by_route::Bool
-    track_detour_time::Bool
-    gamma::Array{Float64}
-    cost_per_kW::Array{Float64}
-    cost_per_kWh_network::Array{Float64}
-    om_costs::Array{Float64}
 end
 
 
@@ -1172,5 +1174,5 @@ global struct_names_extended = [
 ]
 
 global default_data =
-    Dict("alpha_f" => 0.1, "beta_f" => 0.1, "alpha_h" => 0.1, "beta_h" => 0.1, "alpha_h_t" => 0.1, "beta_h_t" => 0.1)
+    Dict("alpha_f" => 0.001, "beta_f" => 0.001, "alpha_h" => 0.05, "beta_h" => 0.05, "alpha_h_t" =>0.05, "beta_h_t" => 0.05)
 

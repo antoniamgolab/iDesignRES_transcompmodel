@@ -79,6 +79,9 @@ class CompleteSMNUTS3Preprocessor:
         self.geographic_elements = []
         self.mandatory_breaks = []
 
+        # Temporal resolution (1=annual, 2=biennial, 5=quinquennial, etc.)
+        self.time_step = 1  # Default: annual resolution
+
     def load_data(self):
         """Load traffic and network data."""
         print("="*80)
@@ -693,14 +696,24 @@ class CompleteSMNUTS3Preprocessor:
         prey_y: int = 10,
         occ: float = 0.5
     ) -> List[int]:
-        """Create initial vehicle stock for an OD-pair."""
+        """Create initial vehicle stock for an OD-pair, respecting temporal resolution."""
+        # Get temporal resolution from configuration
+        time_step = getattr(self, 'time_step', 1)  # Default to annual if not set
+
         # Calculate number of vehicles
         nb_vehicles = traffic_flow * (distance / (13.6 * 136750))
-        factor = 1 / prey_y
+
+        # Get list of modeled years in pre-period
+        modeled_years = list(range(y_init-prey_y, y_init, time_step))
+
+        # IMPORTANT: Distribute stock evenly across modeled years (not all years)
+        # Example: time_step=1 → 10 years → factor=1/10 (each year gets 10%)
+        #          time_step=2 → 5 years → factor=1/5 (each year gets 20%)
+        factor = 1 / len(modeled_years)
 
         vehicle_ids = []
 
-        for g in range(y_init-prey_y, y_init):
+        for g in modeled_years:
             stock = nb_vehicles * factor
 
             # Diesel truck (ICEV) - only create entries with stock

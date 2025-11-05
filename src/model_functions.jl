@@ -66,6 +66,8 @@ function base_define_variables(model::Model, data_structures::Dict; include_vars
     fuel_list = data_structures["fuel_list"]
     techvehicle_list = data_structures["techvehicle_list"]
     investment_period = data_structures["investment_period"]
+    modeled_years = data_structures["modeled_years"]
+    modeled_generations = data_structures["modeled_generations"]
 
     # Vehicle stock variables - only if "h" is in include_vars or include_all
     if include_all || "h" in include_vars
@@ -73,40 +75,40 @@ function base_define_variables(model::Model, data_structures::Dict; include_vars
         @variable(
             model,
             h[
-                y in y_init:Y_end,
+                y in modeled_years,
                 r_id in [r.id for r ∈ odpairs],
                 tv_id in techvehicle_ids,
-                g in g_init:Y_end;
+                g in modeled_generations;
                 g <= y,
             ] >= 0
         )
         @variable(
             model,
             h_exist[
-                y in y_init:Y_end,
+                y in modeled_years,
                 r_id in [r.id for r ∈ odpairs],
                 tv_id in techvehicle_ids,
-                g in g_init:Y_end;
+                g in modeled_generations;
                 g <= y,
             ] >= 0
         )
         @variable(
             model,
             h_plus[
-                y in y_init:Y_end,
+                y in modeled_years,
                 r_id in [r.id for r ∈ odpairs],
                 tv_id in techvehicle_ids,
-                g in g_init:Y_end;
+                g in modeled_generations;
                 g <= y,
             ] >= 0
         )
         @variable(
             model,
             h_minus[
-                y in y_init:Y_end,
+                y in modeled_years,
                 r_id in [r.id for r ∈ odpairs],
                 tv_id in techvehicle_ids,
-                g in g_init:Y_end;
+                g in modeled_generations;
                 g <= y,
             ] >= 0
         )
@@ -116,7 +118,7 @@ function base_define_variables(model::Model, data_structures::Dict; include_vars
     if length(data_structures["fueling_infr_types_list"]) == 0
         if include_all || "s" in include_vars
             @info "  Creating energy consumption variables (s) - simple mode"
-            @variable(model, s[y in y_init:Y_end, p_r_k_g_pairs, tv_id in techvehicle_ids, g in g_init:Y_end] >= 0)
+            @variable(model, s[y in modeled_years, p_r_k_g_pairs, tv_id in techvehicle_ids, g in modeled_generations] >= 0)
         end
 
         if include_all || "q_fuel_infr" in include_vars || "q_fuel_infr_plus" in include_vars
@@ -181,7 +183,7 @@ function base_define_variables(model::Model, data_structures::Dict; include_vars
 
         if include_all || "s" in include_vars
             @info "  Creating energy consumption variables (s) - complex mode"
-            @variable(model, s[y in y_init:Y_end, p_r_k_g in p_r_k_g_pairs, tv_id in techvehicle_ids, f_l in data_structures["f_l_pairs"], g in g_init:Y_end] >= 0)
+            @variable(model, s[y in modeled_years, p_r_k_g in p_r_k_g_pairs, tv_id in techvehicle_ids, f_l in data_structures["f_l_pairs"], g in modeled_generations] >= 0)
         end
 
         if include_all || "n_fueling" in include_vars
@@ -238,26 +240,26 @@ function base_define_variables(model::Model, data_structures::Dict; include_vars
             end
             @variable(model, q_fuel_infr_plus_diff[y in collect(y_init:investment_period:Y_end), f_l in f_l_for_dt, [geo.id for geo in geographic_element_list]] >= 0)
             @variable(model, q_fuel_infr_plus[y in collect(y_init:investment_period:Y_end), f_l in f_l_not_by_route, [geo.id for geo in geographic_element_list]] >= 0)
-            @variable(model, q_fuel_abs[y in y_init:investment_period:Y_end, p_r_k_g_pairs, f_l in f_l_not_by_route, g in g_init:Y_end] >= 0)
+            @variable(model, q_fuel_abs[y in collect(y_init:investment_period:Y_end), p_r_k_g_pairs, f_l in f_l_not_by_route, g in modeled_generations] >= 0)
         end
         if include_all || "soc" in include_vars
             @info "  Creating state of charge variables (soc) with generation filtering (g <= y)"
             # Only create variables for valid (y, g) pairs where g <= y (vehicles purchased in year y can operate in year y)
-            # This aligns with f, h_plus, travel_time, and extra_break_time variable definitions
-            @variable(model, soc[y in y_init:Y_end, p_r_k_g_pairs, tv in techvehicle_ids, f_l in f_l_not_by_route, g in g_init:y] >= 0)
+            # Use modeled_years and modeled_generations for efficiency with time_step > 1
+            @variable(model, soc[y in modeled_years, p_r_k_g_pairs, tv in techvehicle_ids, f_l in f_l_not_by_route, g in filter(g -> g <= y, modeled_generations)] >= 0)
 
         end
         if include_all || "travel_time" in include_vars
             @info "  Creating travel time variables (travel_time) with generation filtering (g <= y)"
             # Only create variables for valid (y, g) pairs where g <= y (vehicles purchased in year y can operate in year y)
-            # This aligns with f and h_plus variable definitions
-            @variable(model, travel_time[y in y_init:Y_end, p_r_k_g_pairs, tv in techvehicle_ids, f_l in f_l_not_by_route, g in g_init:y] >= 0)
+            # Use modeled_years and modeled_generations for efficiency with time_step > 1
+            @variable(model, travel_time[y in modeled_years, p_r_k_g_pairs, tv in techvehicle_ids, f_l in f_l_not_by_route, g in filter(g -> g <= y, modeled_generations)] >= 0)
         end
         if include_all || "extra_break_time" in include_vars
             @info "  Creating extra break time slack variables (extra_break_time) with generation filtering (g <= y)"
             # Only create variables for valid (y, g) pairs where g <= y (vehicles purchased in year y can operate in year y)
-            # This aligns with f, h_plus, and travel_time variable definitions
-            @variable(model, extra_break_time[y in y_init:Y_end, p_r_k_g_pairs, tv in techvehicle_ids, f_l in f_l_not_by_route, g in g_init:y] >= 0)
+            # Use modeled_years and modeled_generations for efficiency with time_step > 1
+            @variable(model, extra_break_time[y in modeled_years, p_r_k_g_pairs, tv in techvehicle_ids, f_l in f_l_not_by_route, g in filter(g -> g <= y, modeled_generations)] >= 0)
         end
     end
     
@@ -267,7 +269,7 @@ function base_define_variables(model::Model, data_structures::Dict; include_vars
         @info "  Creating flow/transport variables (f)"
         @variable(
             model,
-            f[y in y_init:Y_end, p_r_k_pairs, m_tv_pairs, g in g_init:Y_end; g <= y] >= 0
+            f[y in modeled_years, p_r_k_pairs, m_tv_pairs, g in modeled_generations; g <= y] >= 0
         )
     end
 
@@ -276,19 +278,19 @@ function base_define_variables(model::Model, data_structures::Dict; include_vars
         @info "  Creating budget penalty variables (budget_penalty_plus, budget_penalty_minus, budget_penalty_yearly_plus, budget_penalty_yearly_minus)"
         @variable(
             model,
-            budget_penalty_plus[y in y_init:Y_end, r_id in [r.id for r ∈ odpairs]] >= 0
+            budget_penalty_plus[y in modeled_years, r_id in [r.id for r ∈ odpairs]] >= 0
         )
         @variable(
             model,
-            budget_penalty_minus[y in y_init:Y_end, r_id in [r.id for r ∈ odpairs]] >= 0
+            budget_penalty_minus[y in modeled_years, r_id in [r.id for r ∈ odpairs]] >= 0
         )
         @variable(
             model,
-            budget_penalty_yearly_plus[y in y_init:Y_end, r_id in [r.id for r ∈ odpairs]] >= 0
+            budget_penalty_yearly_plus[y in modeled_years, r_id in [r.id for r ∈ odpairs]] >= 0
         )
         @variable(
             model,
-            budget_penalty_yearly_minus[y in y_init:Y_end, r_id in [r.id for r ∈ odpairs]] >= 0
+            budget_penalty_yearly_minus[y in modeled_years, r_id in [r.id for r ∈ odpairs]] >= 0
         )
     end
 
@@ -708,11 +710,11 @@ function constraint_monetary_budget(model::JuMP.Model, data_structures::Dict)
     odpairs = data_structures["odpair_list"]
     techvehicles = data_structures["techvehicle_list"]
     g_init = data_structures["g_init"]
+    modeled_generations = data_structures["modeled_generations"]
     y_init = data_structures["y_init"]
     f_l_by_route = data_structures["f_l_by_route"]
     geographic_element_list = data_structures["geographic_element_list"]
     investment_period = data_structures["investment_period"]
-    y_init = data_structures["y_init"]
     Y_end = data_structures["Y_end"]
     odpair_list = data_structures["odpair_list"]
     investment_years = y_init:investment_period:Y_end
@@ -807,52 +809,52 @@ function constraint_monetary_budget(model::JuMP.Model, data_structures::Dict)
                 model,
                 [r in odpairs],
                 sum(
-                    model[:h_plus][y, r.id, v.id, g] 
-                        * v.capital_cost[y-y_init+1] 
-                    for v ∈ techvehicles for g ∈ g_init:y
-                )  
+                    model[:h_plus][y, r.id, v.id, g]
+                        * v.capital_cost[y-y_init+1]
+                    for v ∈ techvehicles for g ∈ filter(g -> g <= y, modeled_generations)
+                )
                 #+ sum(model[:q_fuel_infr_plus_by_route][y, r.id, f_l, geo.id]* fueling_infr_types_list[findfirst(item -> item.id == f_l[2], fueling_infr_types_list)].cost_per_kW[y-y_init+1]  for r in odpair_list for f_l in f_l_by_route for geo in geographic_element_list)
                 <=
                     (r.financial_status.monetary_budget_purchase_ub/ r.financial_status.monetary_budget_purchase_time_horizon) * r.F[y-y_init+1]
-                    + model[:budget_penalty_yearly_plus][y, r.id] 
+                    + model[:budget_penalty_yearly_plus][y, r.id]
             )
             @constraint(
                 model,
                 [r in odpairs],
                 sum(
-                    model[:h_plus][y, r.id, v.id, g] 
-                        * v.capital_cost[y-y_init+1] 
-                    for v ∈ techvehicles for g ∈ g_init:y
-                ) 
-                #+ sum(model[:q_fuel_infr_plus_by_route][y, r.id, f_l, geo.id] * fueling_infr_types_list[findfirst(item -> item.id == f_l[2], fueling_infr_types_list)].cost_per_kW[y-y_init+1] for r in odpair_list for f_l in f_l_by_route for geo in geographic_element_list) 
+                    model[:h_plus][y, r.id, v.id, g]
+                        * v.capital_cost[y-y_init+1]
+                    for v ∈ techvehicles for g ∈ filter(g -> g <= y, modeled_generations)
+                )
+                #+ sum(model[:q_fuel_infr_plus_by_route][y, r.id, f_l, geo.id] * fueling_infr_types_list[findfirst(item -> item.id == f_l[2], fueling_infr_types_list)].cost_per_kW[y-y_init+1] for r in odpair_list for f_l in f_l_by_route for geo in geographic_element_list)
                 >=
                     (r.financial_status.monetary_budget_purchase_ub/ r.financial_status.monetary_budget_purchase_time_horizon) * r.F[y-y_init+1]
-                    - model[:budget_penalty_yearly_minus][y, r.id] 
+                    - model[:budget_penalty_yearly_minus][y, r.id]
             )
         else
             @constraint(
                 model,
                 [r in odpairs],
                 sum(
-                    model[:h_plus][y, r.id, v.id, g] 
-                        * v.capital_cost[y-y_init+1] 
-                    for v ∈ techvehicles for g ∈ g_init:y
-                )  
+                    model[:h_plus][y, r.id, v.id, g]
+                        * v.capital_cost[y-y_init+1]
+                    for v ∈ techvehicles for g ∈ filter(g -> g <= y, modeled_generations)
+                )
                 <=
                     (r.financial_status.monetary_budget_purchase_ub/ r.financial_status.monetary_budget_purchase_time_horizon) * r.F[y-y_init+1]
-                    + model[:budget_penalty_yearly_plus][y, r.id] 
+                    + model[:budget_penalty_yearly_plus][y, r.id]
             )
             @constraint(
                 model,
                 [ r in odpairs],
                 sum(
-                    model[:h_plus][y, r.id, v.id, g] 
-                        * v.capital_cost[y-y_init+1] 
-                    for v ∈ techvehicles for g ∈ g_init:y
-                ) 
+                    model[:h_plus][y, r.id, v.id, g]
+                        * v.capital_cost[y-y_init+1]
+                    for v ∈ techvehicles for g ∈ filter(g -> g <= y, modeled_generations)
+                )
                 >=
                     (r.financial_status.monetary_budget_purchase_ub/ r.financial_status.monetary_budget_purchase_time_horizon) * r.F[y-y_init+1]
-                    - model[:budget_penalty_yearly_minus][y, r.id] 
+                    - model[:budget_penalty_yearly_minus][y, r.id]
             )
         end
 
@@ -1273,6 +1275,7 @@ function constraint_fueling_demand(model::JuMP.Model, data_structures::Dict)
     y_init = data_structures["y_init"]
     Y_end = data_structures["Y_end"]
     g_init = data_structures["g_init"]
+    modeled_generations = data_structures["modeled_generations"]
     odpairs = data_structures["odpair_list"]
     techvehicles = data_structures["techvehicle_list"]
     gamma = data_structures["gamma"]
@@ -1299,13 +1302,13 @@ function constraint_fueling_demand(model::JuMP.Model, data_structures::Dict)
                     (v.spec_cons[g-g_init+1]) / v.W[g-g_init+1]  *
                     path_dict[r_k[2]].length
                 ) * model[:f][y, (p.id, r_k[1], r_k[2]), (v.vehicle_type.mode.id, v.id), g] for
-                g ∈ g_init:y
+                g ∈ filter(g -> g <= y, modeled_generations)
             )
         )
     else
         @constraint(
             model,
-            [y in y_init:Y_end, p in products, r_k in r_k_pairs, g in g_init:Y_end, v in techvehicles, f_l in f_l_pairs; g <= y && f_l[1] == v.technology.fuel.id],
+            [y in y_init:Y_end, p in products, r_k in r_k_pairs, g in modeled_generations, v in techvehicles, f_l in f_l_pairs; g <= y && f_l[1] == v.technology.fuel.id],
             # Single O(1) lookup instead of 3+ O(n) findfirst calls - access dictionary directly
             sum(
                 model[:s][y, (p.id, r_k[1], r_k[2], el.id), v.id, f_l, g]
@@ -1329,6 +1332,7 @@ function constraint_spatial_flexibility(model::JuMP.Model, data_structures::Dict
         y_init = data_structures["y_init"]
         Y_end = data_structures["Y_end"]
         g_init = data_structures["g_init"]
+        modeled_generations = data_structures["modeled_generations"]
         odpairs = data_structures["odpair_list"]
         techvehicles = data_structures["techvehicle_list"]
         gamma = data_structures["gamma"]
@@ -1359,7 +1363,7 @@ function constraint_spatial_flexibility(model::JuMP.Model, data_structures::Dict
         end
 
         # Create constraints with pre-indexed lookups
-        for g in g_init:Y_end
+        for g in modeled_generations
             for tv in techvehicles
                 tv_id = tv.id
                 spec_cons_idx = g - g_init + 1
@@ -1466,6 +1470,7 @@ function constraint_vehicle_stock_shift(model::JuMP.Model, data_structures::Dict
     y_init = data_structures["y_init"]
     Y_end = data_structures["Y_end"]
     g_init = data_structures["g_init"]
+    modeled_generations = data_structures["modeled_generations"]
     odpairs = data_structures["odpair_list"]
     techvehicles = data_structures["techvehicle_list"]
     alpha_h = data_structures["alpha_h"]
@@ -1479,20 +1484,20 @@ function constraint_vehicle_stock_shift(model::JuMP.Model, data_structures::Dict
     #     [r in odpairs, t in technologies],
     #     (
     #         sum(
-    #             model[:h][y_init, r.id, tv.id, g] for g ∈ g_init:y_init
+    #             model[:h][y_init, r.id, tv.id, g] for g ∈ filter(g -> g <= y_init, modeled_generations)
     #             for tv ∈ techvehicles if g <= y_init && tv.technology.id == t.id
     #         ) - sum(
-    #             model[:h_exist][y_init, r.id, tv.id, g] for g ∈ g_init:y_init
+    #             model[:h_exist][y_init, r.id, tv.id, g] for g ∈ filter(g -> g <= y_init, modeled_generations)
     #             for tv ∈ techvehicles if g <= y_init - 1 && tv.technology.id == t.id
     #         )
     #     ) <=
     #     alpha_h * sum(
-    #         model[:h][y_init, r.id, tv.id, g] for g ∈ g_init:y_init for
+    #         model[:h][y_init, r.id, tv.id, g] for g ∈ filter(g -> g <= y_init, modeled_generations) for
     #         tv ∈ techvehicles
     #     ) +
     #     beta_h * sum(
     #         model[:h_exist][y_init, r.id, tv.id, g] for
-    #         g ∈ g_init:(y_init-1) for tv ∈ techvehicles if tv.technology.id == t.id
+    #         g ∈ filter(g -> g <= y_init-1, modeled_generations) for tv ∈ techvehicles if tv.technology.id == t.id
     #     )
     # )
 
@@ -1501,20 +1506,20 @@ function constraint_vehicle_stock_shift(model::JuMP.Model, data_structures::Dict
     #     [r in odpairs, t in technologies],
     #     -(
     #         sum(
-    #             model[:h][y_init, r.id, tv.id, g] for g ∈ g_init:y_init 
+    #             model[:h][y_init, r.id, tv.id, g] for g ∈ filter(g -> g <= y_init, modeled_generations)
     #             for tv ∈ techvehicles if g <= y_init && tv.technology.id == t.id
     #         ) - sum(
-    #             model[:h_exist][y_init, r.id, tv.id, g] for g ∈ g_init:y_init for
+    #             model[:h_exist][y_init, r.id, tv.id, g] for g ∈ filter(g -> g <= y_init, modeled_generations) for
     #             tv ∈ techvehicles if g <= y_init - 1 && tv.technology.id == t.id
     #         )
     #     ) <=
     #     alpha_h * sum(
-    #         model[:h][y_init, r.id, tv.id, g] for g ∈ g_init:y_init for
+    #         model[:h][y_init, r.id, tv.id, g] for g ∈ filter(g -> g <= y_init, modeled_generations) for
     #         tv ∈ techvehicles
     #     ) +
     #     beta_h * sum(
     #         model[:h_exist][y_init, r.id, tv.id, g] for
-    #         g ∈ g_init:(y_init-1) for tv ∈ techvehicles if tv.technology.id == t.id
+    #         g ∈ filter(g -> g <= y_init-1, modeled_generations) for tv ∈ techvehicles if tv.technology.id == t.id
     #     )
     # )
 
@@ -1524,17 +1529,17 @@ function constraint_vehicle_stock_shift(model::JuMP.Model, data_structures::Dict
         [y in (y_init+1):Y_end, r in odpairs, t in technologies],
         (
             sum(
-                model[:h][y, r.id, tv.id, g] for g ∈ g_init:y for
+                model[:h][y, r.id, tv.id, g] for g ∈ filter(g -> g <= y, modeled_generations) for
                 tv ∈ techvehicles if tv.technology.id == t.id
             ) - sum(
-                model[:h][y-1, r.id, tv.id, g] for g ∈ g_init:(y-1) for
+                model[:h][y-1, r.id, tv.id, g] for g ∈ filter(g -> g <= y-1, modeled_generations) for
                 tv ∈ techvehicles if tv.technology.id == t.id
             )
         ) <=
         alpha_h *
-        sum(model[:h][y, r.id, tv.id, g] for g ∈ g_init:y for tv ∈ techvehicles) +
+        sum(model[:h][y, r.id, tv.id, g] for g ∈ filter(g -> g <= y, modeled_generations) for tv ∈ techvehicles) +
         beta_h * sum(
-            model[:h][y-1, r.id, tv.id, g] for g ∈ g_init:(y-1) for
+            model[:h][y-1, r.id, tv.id, g] for g ∈ filter(g -> g <= y-1, modeled_generations) for
             tv ∈ techvehicles if tv.technology.id == t.id
         )
     )
@@ -1544,17 +1549,17 @@ function constraint_vehicle_stock_shift(model::JuMP.Model, data_structures::Dict
         [y in (y_init+1):Y_end, r in odpairs, t in technologies],
         -(
             sum(
-                model[:h][y, r.id, tv.id, g] for g ∈ g_init:y for
+                model[:h][y, r.id, tv.id, g] for g ∈ filter(g -> g <= y, modeled_generations) for
                 tv ∈ techvehicles if tv.technology.id == t.id
             ) - sum(
-                model[:h][y-1, r.id, tv.id, g] for g ∈ g_init:(y-1) for
+                model[:h][y-1, r.id, tv.id, g] for g ∈ filter(g -> g <= y-1, modeled_generations) for
                 tv ∈ techvehicles if tv.technology.id == t.id
             )
         ) <=
         alpha_h *
-        sum(model[:h][y, r.id, tv.id, g] for g ∈ g_init:y for tv ∈ techvehicles) +
+        sum(model[:h][y, r.id, tv.id, g] for g ∈ filter(g -> g <= y, modeled_generations) for tv ∈ techvehicles) +
         beta_h * sum(
-            model[:h][y-1, r.id, tv.id, g] for g ∈ g_init:(y-1) for
+            model[:h][y-1, r.id, tv.id, g] for g ∈ filter(g -> g <= y-1, modeled_generations) for
             tv ∈ techvehicles if tv.technology.id == t.id
         )
     )
@@ -1574,6 +1579,7 @@ function constraint_vehicle_stock_shift_vehicle_type(model::JuMP.Model, data_str
     y_init = data_structures["y_init"]
     Y_end = data_structures["Y_end"]
     g_init = data_structures["g_init"]
+    modeled_generations = data_structures["modeled_generations"]
     odpairs = data_structures["odpair_list"]
     techvehicles = data_structures["techvehicle_list"]
     alpha_h = data_structures["alpha_h"]
@@ -1582,23 +1588,23 @@ function constraint_vehicle_stock_shift_vehicle_type(model::JuMP.Model, data_str
     vehicletypes = data_structures["vehicletype_list"]
 
     # for y = y_init
-    # TODO: uncomment 
+    # TODO: uncomment
     # @constraint(
     #     model,
     #     [r in odpairs, tv in techvehicles],
     #     (
     #         sum(
-    #             model[:h][y_init, r.id, tv.id, g] for g ∈ g_init:y_init
+    #             model[:h][y_init, r.id, tv.id, g] for g ∈ filter(g -> g <= y_init, modeled_generations)
     #         ) - sum(
-    #             model[:h_exist][y_init, r.id, tv.id, g] for g ∈ g_init:(y_init-1)
+    #             model[:h_exist][y_init, r.id, tv.id, g] for g ∈ filter(g -> g <= y_init-1, modeled_generations)
     #         )
     #     ) <=
     #     alpha_h * sum(
-    #         model[:h][y_init, r.id, tv0.id, g] for g ∈ g_init:y_init for tv0 ∈ techvehicles
+    #         model[:h][y_init, r.id, tv0.id, g] for g ∈ filter(g -> g <= y_init, modeled_generations) for tv0 ∈ techvehicles
     #     ) +
     #     beta_h * sum(
     #         model[:h_exist][y_init, r.id, tv.id, g] for
-    #         g ∈ g_init:(y_init-1)
+    #         g ∈ filter(g -> g <= y_init-1, modeled_generations)
     #     )
     # )
 
@@ -1607,16 +1613,16 @@ function constraint_vehicle_stock_shift_vehicle_type(model::JuMP.Model, data_str
     #     [r in odpairs, tv in techvehicles],
     #     -(
     #         sum(
-    #             model[:h][y_init, r.id, tv.id, g] for g ∈ g_init:y_init
+    #             model[:h][y_init, r.id, tv.id, g] for g ∈ filter(g -> g <= y_init, modeled_generations)
     #         ) - sum(
-    #             model[:h_exist][y_init, r.id, tv.id, g] for g ∈ g_init:(y_init-1)
+    #             model[:h_exist][y_init, r.id, tv.id, g] for g ∈ filter(g -> g <= y_init-1, modeled_generations)
     #         )
     #     ) <=
     #     alpha_h * sum(
-    #         model[:h][y_init, r.id, tv0.id, g] for g ∈ g_init:y_init for tv0 ∈ techvehicles
+    #         model[:h][y_init, r.id, tv0.id, g] for g ∈ filter(g -> g <= y_init, modeled_generations) for tv0 ∈ techvehicles
     #     ) +
     #     beta_h * sum(
-    #         model[:h_exist][y_init, r.id, tv.id, g] for g ∈ g_init:(y_init-1)
+    #         model[:h_exist][y_init, r.id, tv.id, g] for g ∈ filter(g -> g <= y_init-1, modeled_generations)
     #     )
     # )
 
@@ -1626,15 +1632,15 @@ function constraint_vehicle_stock_shift_vehicle_type(model::JuMP.Model, data_str
         [y in (y_init+1):Y_end, r in odpairs, tv in techvehicles],
         (
             sum(
-                model[:h][y, r.id, tv.id, g] for g ∈ g_init:y
+                model[:h][y, r.id, tv.id, g] for g ∈ filter(g -> g <= y, modeled_generations)
             ) - sum(
-                model[:h][y-1, r.id, tv.id, g] for g ∈ g_init:(y-1)
+                model[:h][y-1, r.id, tv.id, g] for g ∈ filter(g -> g <= y-1, modeled_generations)
             )
         ) <=
         alpha_h *
-        sum(model[:h][y, r.id, tv0.id, g] for g ∈ g_init:y for tv0 ∈ techvehicles) +
+        sum(model[:h][y, r.id, tv0.id, g] for g ∈ filter(g -> g <= y, modeled_generations) for tv0 ∈ techvehicles) +
         beta_h * sum(
-            model[:h][y-1, r.id, tv.id, g] for g ∈ g_init:(y-1)
+            model[:h][y-1, r.id, tv.id, g] for g ∈ filter(g -> g <= y-1, modeled_generations)
         )
     )
 
@@ -1643,15 +1649,15 @@ function constraint_vehicle_stock_shift_vehicle_type(model::JuMP.Model, data_str
         [y in (y_init+1):Y_end, r in odpairs, tv in techvehicles],
         -(
             sum(
-                model[:h][y, r.id, tv.id, g] for g ∈ g_init:y
+                model[:h][y, r.id, tv.id, g] for g ∈ filter(g -> g <= y, modeled_generations)
             ) - sum(
-                model[:h][y-1, r.id, tv.id, g] for g ∈ g_init:(y-1) 
+                model[:h][y-1, r.id, tv.id, g] for g ∈ filter(g -> g <= y-1, modeled_generations)
             )
         ) <=
         alpha_h *
-        sum(model[:h][y, r.id, tv0.id, g] for g ∈ g_init:y for tv0 ∈ techvehicles) +
+        sum(model[:h][y, r.id, tv0.id, g] for g ∈ filter(g -> g <= y, modeled_generations) for tv0 ∈ techvehicles) +
         beta_h * sum(
-            model[:h][y-1, r.id, tv.id, g] for g ∈ g_init:(y-1)
+            model[:h][y-1, r.id, tv.id, g] for g ∈ filter(g -> g <= y-1, modeled_generations)
         )
     )
 end
@@ -1691,6 +1697,7 @@ function constraint_mode_shift(model::JuMP.Model, data_structures::Dict)
     y_init = data_structures["y_init"]
     Y_end = data_structures["Y_end"]
     g_init = data_structures["g_init"]
+    modeled_generations = data_structures["modeled_generations"]
     odpairs = data_structures["odpair_list"]
     techvehicles = data_structures["techvehicle_list"]
     alpha_f = data_structures["alpha_f"]
@@ -1704,19 +1711,19 @@ function constraint_mode_shift(model::JuMP.Model, data_structures::Dict)
         (
             sum(
                 model[:f][y, (r.product.id, r.id, k.id), mv, g] for k ∈ r.paths for
-                mv ∈ m_tv_pairs for g ∈ g_init:y if mv[1] == m.id
+                mv ∈ m_tv_pairs for g ∈ filter(g -> g <= y, modeled_generations) if mv[1] == m.id
             ) - sum(
                 model[:f][y-1, (r.product.id, r.id, k.id), mv, g] for k ∈ r.paths for
-                g ∈ g_init:(y-1) for mv ∈ m_tv_pairs if mv[1] == m.id
+                g ∈ filter(g -> g <= y-1, modeled_generations) for mv ∈ m_tv_pairs if mv[1] == m.id
             )
         ) <=
         alpha_f * sum(
-            model[:f][y, (r.product.id, r.id, k.id), mv, g] for k ∈ r.paths for g ∈ g_init:y
+            model[:f][y, (r.product.id, r.id, k.id), mv, g] for k ∈ r.paths for g ∈ filter(g -> g <= y, modeled_generations)
             for mv ∈ m_tv_pairs
         ) +
         beta_f * sum(
             model[:f][y-1, (r.product.id, r.id, k.id), mv, g] for k ∈ r.paths for
-            mv ∈ m_tv_pairs for g ∈ g_init:(y-1) if mv[1] == m.id
+            mv ∈ m_tv_pairs for g ∈ filter(g -> g <= y-1, modeled_generations) if mv[1] == m.id
         )
     )
 
@@ -1726,19 +1733,19 @@ function constraint_mode_shift(model::JuMP.Model, data_structures::Dict)
         -(
             sum(
                 model[:f][y, (r.product.id, r.id, k.id), mv, g] for k ∈ r.paths for
-                mv ∈ m_tv_pairs for g ∈ g_init:y if mv[1] == m.id
+                mv ∈ m_tv_pairs for g ∈ filter(g -> g <= y, modeled_generations) if mv[1] == m.id
             ) - sum(
                 model[:f][y-1, (r.product.id, r.id, k.id), mv, g] for k ∈ r.paths for
-                g ∈ g_init:(y-1) for mv ∈ m_tv_pairs if mv[1] == m.id
+                g ∈ filter(g -> g <= y-1, modeled_generations) for mv ∈ m_tv_pairs if mv[1] == m.id
             )
         ) <=
         alpha_f * sum(
-            model[:f][y, (r.product.id, r.id, k.id), mv, g] for k ∈ r.paths for g ∈ g_init:y
+            model[:f][y, (r.product.id, r.id, k.id), mv, g] for k ∈ r.paths for g ∈ filter(g -> g <= y, modeled_generations)
             for mv ∈ m_tv_pairs
         ) +
         beta_f * sum(
             model[:f][y-1, (r.product.id, r.id, k.id), mv, g] for k ∈ r.paths for
-            mv ∈ m_tv_pairs for g ∈ g_init:(y-1) if mv[1] == m.id
+            mv ∈ m_tv_pairs for g ∈ filter(g -> g <= y-1, modeled_generations) if mv[1] == m.id
         )
     )
 end
@@ -1758,6 +1765,7 @@ function constraint_mode_share(model::JuMP.Model, data_structures::Dict)
     m_tv_pairs = data_structures["m_tv_pairs"]
     p_r_k_pairs = data_structures["p_r_k_pairs"]
     g_init = data_structures["g_init"]
+    modeled_generations = data_structures["modeled_generations"]
     odpairs = data_structures["odpair_list"]
 
     @constraint(
@@ -1765,7 +1773,7 @@ function constraint_mode_share(model::JuMP.Model, data_structures::Dict)
         [el in mode_share_list],
         sum(
             model[:f][el.year, (r.product.id, r.id, k.id), mv, g] for p_r_k ∈ p_r_k_pairs
-            for mv ∈ m_tv_pairs for k ∈ r.paths for g ∈ g_init:(el.year) if
+            for mv ∈ m_tv_pairs for k ∈ r.paths for g ∈ filter(g -> g <= el.year, modeled_generations) if
             mv[1] == el.mode.id && r.region.id in [rt.id for rt ∈ el.region_type]
         ) ==
         el.share * sum(
@@ -1790,6 +1798,7 @@ function constraint_max_mode_share(model::JuMP.Model, data_structures::Dict)
     m_tv_pairs = data_structures["m_tv_pairs"]
     p_r_k_pairs = data_structures["p_r_k_pairs"]
     g_init = data_structures["g_init"]
+    modeled_generations = data_structures["modeled_generations"]
     odpairs = data_structures["odpair_list"]
 
     @constraint(
@@ -1797,7 +1806,7 @@ function constraint_max_mode_share(model::JuMP.Model, data_structures::Dict)
         [el in max_mode_share_list],
         sum(
             model[:f][el.year, (r.product.id, r.id, k.id), mv, g] for p_r_k ∈ p_r_k_pairs
-            for mv ∈ m_tv_pairs for k ∈ r.paths for g ∈ g_init:(el.year) if
+            for mv ∈ m_tv_pairs for k ∈ r.paths for g ∈ filter(g -> g <= el.year, modeled_generations) if
             mv[1] == el.mode.id && r.region.id in [rt.id for rt ∈ el.region_type]
         ) <=
         el.share * sum(
@@ -1822,6 +1831,7 @@ function constraint_min_mode_share(model::JuMP.Model, data_structures::Dict)
     m_tv_pairs = data_structures["m_tv_pairs"]
     p_r_k_pairs = data_structures["p_r_k_pairs"]
     g_init = data_structures["g_init"]
+    modeled_generations = data_structures["modeled_generations"]
     odpairs = data_structures["odpair_list"]
 
     @constraint(
@@ -1829,7 +1839,7 @@ function constraint_min_mode_share(model::JuMP.Model, data_structures::Dict)
         [el in min_mode_share_list],
         sum(
             model[:f][el.year, (r.product.id, r.id, k.id), mv, g] for p_r_k ∈ p_r_k_pairs
-            for mv ∈ m_tv_pairs for k ∈ r.paths for g ∈ g_init:(el.year) if
+            for mv ∈ m_tv_pairs for k ∈ r.paths for g ∈ filter(g -> g <= el.year, modeled_generations) if
             mv[1] == el.mode.id && r.region.id in [rt.id for rt ∈ el.region_type]
         ) >=
         el.share * sum(
@@ -1853,6 +1863,7 @@ function constraint_market_share(model::JuMP.Model, data_structures::Dict)
     market_share_list = data_structures["market_share_list"]
     p_r_k_pairs = data_structures["p_r_k_pairs"]
     g_init = data_structures["g_init"]
+    modeled_generations = data_structures["modeled_generations"]
     odpairs = data_structures["odpair_list"]
 
     @constraint(
@@ -1860,12 +1871,12 @@ function constraint_market_share(model::JuMP.Model, data_structures::Dict)
         [el in market_share_list],
         sum(
             model[:h_plus][el.year, r.id, el.type.id, g] for r ∈ odpairs for
-            g ∈ g_init:(el.year)
+            g ∈ filter(g -> g <= el.year, modeled_generations)
         ) ==
         el.market_share * sum(
             model[:h_plus][el.year, r.id, tv.id, g] for r ∈ odpairs for
             tv ∈ data_structures["techvehicle_list"] for
-            g ∈ g_init:(el.year) if tv.vehicle_type.mode.id == el.type.vehicle_type.mode.id
+            g ∈ filter(g -> g <= el.year, modeled_generations) if tv.vehicle_type.mode.id == el.type.vehicle_type.mode.id
         )
     )
 
@@ -1882,8 +1893,11 @@ Emissions given per mode for a specific year. Attention: This constraint may be 
 """
 function constraint_emissions_by_mode(model::JuMP.Model, data_structures::Dict)
     y_init = data_structures["y_init"]
+    g_init = data_structures["g_init"]
+    modeled_generations = data_structures["modeled_generations"]
     emission_constraints_by_mode_list = data_structures["emission_constraints_by_mode_list"]
     mode_list = data_structures["mode_list"]
+    odpairs = data_structures["odpair_list"]
     for el ∈ emission_constraints_by_mode_list
         m0 = mode_list[findfirst(m -> m.id == el.mode.id, mode_list)]
         if m0.quantify_by_vehs
@@ -1903,10 +1917,10 @@ function constraint_emissions_by_mode(model::JuMP.Model, data_structures::Dict)
                 model,
                 [el in emission_constraints_by_mode_list],
                 sum(
-                    model[:f][y, (r.product.id, r.id, k.id), mv, g] *
+                    model[:f][el.year, (r.product.id, r.id, k.id), mv, g] *
                     sum(k.length for k ∈ r.paths) *
-                    m.emission_factor *
-                    10^(-3) for r ∈ odpairs for k ∈ r.paths for g ∈ g_init:y
+                    m0.emission_factor *
+                    10^(-3) for r ∈ odpairs for k ∈ r.paths for g ∈ filter(g -> g <= el.year, modeled_generations)
                 ) <= el.emission
             )
         end
@@ -1931,12 +1945,13 @@ function constraint_def_n_fueling(model::JuMP.Model, data_structures::Dict)
     fuel_list = data_structures["fuel_list"]
     f_l_pairs = data_structures["f_l_pairs"]
     g_init = data_structures["g_init"]
+    modeled_generations = data_structures["modeled_generations"]
 
     if length(data_structures["fueling_infr_types_list"]) == 0
 
         @constraint(
             model,
-            [y in y_init:Y_end, p_r_k_g in p_r_k_g_pairs, f in fuel_list, g in g_init:Y_end; g <= y],
+            [y in y_init:Y_end, p_r_k_g in p_r_k_g_pairs, f in fuel_list, g in modeled_generations; g <= y],
             model[:n_fueling][y, p_r_k_g, f.id, g] >= sum(
                 (1 / (tv.tank_capacity[1] * 0.8)) * model[:s][y, p_r_k_g, tv.id, g] for
                 tv ∈ techvehicle_list if tv.technology.fuel.id == f.id
@@ -1945,11 +1960,11 @@ function constraint_def_n_fueling(model::JuMP.Model, data_structures::Dict)
     else
         @constraint(
             model,
-            [y in y_init:Y_end, p_r_k_g in p_r_k_g_pairs, f_l in f_l_pairs, g in g_init:Y_end; g<= y],
-            model[:n_fueling][y, p_r_k_g, f_l, g] >= 
+            [y in y_init:Y_end, p_r_k_g in p_r_k_g_pairs, f_l in f_l_pairs, g in modeled_generations; g<= y],
+            model[:n_fueling][y, p_r_k_g, f_l, g] >=
                 sum((1 / (tv.tank_capacity[g-g_init + 1] * 0.8)) * model[:s][y, p_r_k_g, tv.id, f_l, g] for tv in techvehicle_list if tv.technology.fuel.id == f_l[1])
         )
-    end 
+    end
 end
 
 """
@@ -2355,13 +2370,13 @@ function constraint_detour_time_capacity_reduction(model::JuMP.Model, data_struc
 
             @constraint(
                 model,
-                [y in y_init:investment_period:2050],
+                [y in y_init:investment_period:Y_end],
                 lb * model[:x_c][y, geo_i_f] <=
                 sum(model[:q_fuel_infr_plus][y0, fuel_type.id, geo_i_f[1]] * (1/1000) for y0 ∈ y_init:investment_period:y)
             )
             @constraint(
                 model,
-                [y in y_init:investment_period:2050],
+                [y in y_init:investment_period:Y_end],
                 sum(
                     model[:q_fuel_infr_plus][y0, fuel_type.id, geo_i_f[1]] * (1/1000) for y0 ∈ y_init:investment_period:y
                 ) <= ub * model[:x_c][y, geo_i_f] + M * (1 - model[:x_c][y, geo_i_f])
@@ -2406,7 +2421,7 @@ function constraint_detour_time_capacity_reduction(model::JuMP.Model, data_struc
             # )
             @constraint(
                 model,
-                [y in y_init:investment_period:2050],
+                [y in y_init:investment_period:Y_end],
                 model[:x_c][y, geo_i_f] --> {
                     lb <= (initialfuelinginfr_list[findfirst(
                             i -> i.fuel.id == f_l[1] && i.type.id == f_l[2] && i.allocation == geo_i_f[1],
@@ -2417,7 +2432,7 @@ function constraint_detour_time_capacity_reduction(model::JuMP.Model, data_struc
 
             @constraint(
                 model,
-                [y in y_init:investment_period:2050],
+                [y in y_init:investment_period:Y_end],
                 model[:x_c][y, geo_i_f] --> {
                     (initialfuelinginfr_list[findfirst(
                             i -> i.fuel.id == f_l[1] && i.type.id == f_l[2] && i.allocation == geo_i_f[1],
@@ -2567,7 +2582,7 @@ function constraint_vot_dt(model::JuMP.Model, data_structures::Dict)
                     #     model[:vot_dt][y, gifl] >=
                     #     init_detour_time * (1 - item.detour_time_reduction) * sum(model[:n_fueling][y, (r.product.id, r.id, r.paths[1].id, geo_elem.id), (gifl[3], gifl[4]), g] * r.financial_status.VoT for r in odpair_list for geo_elem in r.paths[1].sequence for p_r_k in p_r_g_k for g in g_init:y if geo_elem.id == gifl[1]) - M * (1 - model[:x_c][maximum([t for t in investment_years if t <= y]; init = y_init), gifl] )
                     # )
-                    for y in y_init:2050
+                    for y in y_init:Y_end
                         for gifl in geo_i_f_l_pairs
                             if gifl[2] == item.reduction_id &&
                                gifl[3] == f_l[1] &&
@@ -2913,6 +2928,7 @@ function constraint_trip_ratio(model::JuMP.Model, data_structures::Dict)
     p_r_k_pairs = data_structures["p_r_k_pairs"]
     odpair_list = data_structures["odpair_list"]
     g_init = data_structures["g_init"]
+    modeled_generations = data_structures["modeled_generations"]
     geometric_element_list = data_structures["geographic_element_list"]
     techvehicle_list = data_structures["techvehicle_list"]
 
@@ -2921,12 +2937,12 @@ function constraint_trip_ratio(model::JuMP.Model, data_structures::Dict)
         if length(filtered_trip_ratios) > 0
             share_private = filtered_trip_ratios[findfirst(elem -> elem["purpose"] == 2, filtered_trip_ratios)].share
             share_commuting = filtered_trip_ratios[findfirst(elem -> elem["purpose"] == 4, filtered_trip_ratios)].share
-            @constraint(model, [y in y_init:Y_end, g in g_init:Y_end; g <= y],
+            @constraint(model, [y in y_init:Y_end, g in modeled_generations; g <= y],
                 share_commuting * sum(model[:h][y, r.id, v.id, g] for r ∈ odpair_list for v ∈ techvehicle_list if r["purpose"] == 4)
                 == share_private * sum(model[:h][y, r.id, v.id, g] for r ∈ odpair_list for v ∈ techvehicle_list if r["purpose"] == 2)
             )
         end
-    end 
+    end
 end
 
 function constraint_netzero_goal(model::JuMP.Model, data_structures::Dict)
@@ -2940,7 +2956,7 @@ function constraint_netzero_goal(model::JuMP.Model, data_structures::Dict)
     @constraint(
         model,
         [tv in techvehicle_list, r in odpairs, g_init in g_init:Y_end; tv.fuel.id == 1],
-        (model[:h][2050, r.id, tv.id, g] <= 0)
+        (model[:h][Y_end, r.id, tv.id, g] <= 0)
     )
 end
 
@@ -3243,13 +3259,14 @@ function constraint_to_fast_charging(model::JuMP.Model, data_structures::Dict)
     Y_end = data_structures["Y_end"]
     odpairs = data_structures["odpair_list"]
     g_init = data_structures["g_init"]
+    modeled_generations = data_structures["modeled_generations"]
     f_l_pairs = data_structures["f_l_not_by_route"]
     geographic_elements = data_structures["geographic_element_list"]
     investment_period = data_structures["investment_period"]
     fueling_infr_types_list = data_structures["fueling_infr_types_list"]
     p_r_k_g_pairs = data_structures["p_r_k_g_pairs"]
     techvehicle_list = data_structures["techvehicle_list"]
-    for g in g_init:Y_end
+    for g in modeled_generations
         for v in techvehicle_list
             driving_range_veh = v.tank_capacity[g-g_init+1] * 0.8 * (1/v.spec_cons[g-g_init+1])
             for fuel_infr_type in fueling_infr_types_list
@@ -3262,7 +3279,7 @@ function constraint_to_fast_charging(model::JuMP.Model, data_structures::Dict)
                                 @constraint(
                                     model,
                                     [y in y_init:Y_end],
-                                    model[:n_fueling][y, (r.product.id, r.id, k.id, geo.id), (fuel_infr_type.fuel.id, fuel_infr_type.id), g] == 0 
+                                    model[:n_fueling][y, (r.product.id, r.id, k.id, geo.id), (fuel_infr_type.fuel.id, fuel_infr_type.id), g] == 0
                                 )
                             end
                         end
@@ -3271,7 +3288,7 @@ function constraint_to_fast_charging(model::JuMP.Model, data_structures::Dict)
             end
         end
     end
-    
+
 end
 
 function constraint_q_fuel_fossil(model::JuMP.Model, data_structures::Dict)
@@ -3294,6 +3311,7 @@ function constraint_soc_max(model::JuMP.Model, data_structures::Dict)
     Y_end = data_structures["Y_end"]
     odpairs = data_structures["odpair_list"]
     g_init = data_structures["g_init"]
+    modeled_generations = data_structures["modeled_generations"]
     techvehicle_list = data_structures["techvehicle_list"]
     p_r_k_g_pairs = data_structures["p_r_k_g_pairs"]
     f_l_pairs = data_structures["f_l_not_by_route"]
@@ -3302,7 +3320,7 @@ function constraint_soc_max(model::JuMP.Model, data_structures::Dict)
     # Pre-build path lookup for efficiency
     path_dict = Dict(path.id => path for path in path_list)
 
-    for g in g_init:Y_end
+    for g in modeled_generations
         @constraint(model, [y in y_init:Y_end, prkg in p_r_k_g_pairs, f_l in f_l_pairs, tv in techvehicle_list; g < y && tv.technology.fuel.id == f_l[1]],  # Changed g <= y to g < y
             model[:soc][y, prkg, tv.id, f_l, g] <= tv.tank_capacity[g-g_init+1] * (
                 path_dict[prkg[3]].length / (tv.W[g-g_init+1] * tv.AnnualRange[g-g_init+1])
@@ -3641,15 +3659,24 @@ function constraint_policy_goal(model::JuMP.Model, data_structures::Dict)
     Y_end = data_structures["Y_end"]
     odpairs = data_structures["odpair_list"]
     g_init = data_structures["g_init"]
+    modeled_generations = data_structures["modeled_generations"]
     techvehicle_list = data_structures["techvehicle_list"]
-    year = 2050 
-    
-    for y in year:Y_end, tv in techvehicle_list, r in odpairs, g in g_init:Y_end
+    modeled_years = data_structures["modeled_years"]
+
+    # Find the first modeled year >= 2050 (or use Y_end if all years < 2050)
+    year = findfirst(y -> y >= 2050, modeled_years)
+    if year === nothing
+        year = Y_end  # If no year >= 2050, use the end year
+    else
+        year = modeled_years[year]  # Get the actual year value
+    end
+
+    for y in year:Y_end, tv in techvehicle_list, r in odpairs, g in modeled_generations
         if g <= y && tv.technology.id == 1
             @constraint(model, model[:h][y, r.id, tv.id, g] == 0)
         end
     end
-    
+
 end
 
 """
@@ -3705,6 +3732,7 @@ function objective(model::Model, data_structures::Dict, exclude_detour_time::Boo
     y_init = data_structures["y_init"]
     Y_end = data_structures["Y_end"]
     g_init = data_structures["g_init"]
+    modeled_generations = data_structures["modeled_generations"]
     odpairs = data_structures["odpair_list"]
     techvehicles = data_structures["techvehicle_list"]
     fuel_list = data_structures["fuel_list"]
@@ -3839,7 +3867,7 @@ function objective(model::Model, data_structures::Dict, exclude_detour_time::Boo
                         for geo_id ∈ [geo.id for geo in data_structures["path_list"][findfirst(path -> path.id == k, data_structures["path_list"])].sequence]
                             for tv_id ∈ techvehicle_ids
                                 for f_l ∈ f_l_pairs
-                                    for g ∈ g_init:y
+                                    for g ∈ filter(g -> g <= y, modeled_generations)
                                         # Penalty = VoT × extra_break_time × discount_factor
                                         add_to_expression!(
                                             total_cost_expr,
@@ -3892,9 +3920,9 @@ function objective(model::Model, data_structures::Dict, exclude_detour_time::Boo
                 
                 capital_cost = capital_cost_map[(v.id, y)]
 
-                
 
-                for g ∈ g_init:y
+
+                for g ∈ filter(g -> g <= y, modeled_generations)
                     # Fuel/energy costs (most expensive - deeply nested loops) - only if s variable is defined
                     if has_var["s"]
                         t_fuel_sec = time()

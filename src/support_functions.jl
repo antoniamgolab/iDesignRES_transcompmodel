@@ -33,7 +33,7 @@ function get_input_data(path_to_source::String)
             "InitialModeInfr", "InitialFuelInfr", "Odpair", "Path",
             "Fuel", "FuelCost", "FuelingInfrTypes", "InitialVehicleStock",
             "NetworkConnectionCosts", "Product", "SpatialFlexibilityEdges",
-            "MandatoryBreaks",
+            "MandatoryBreaks", "MaxModeShare",
         ]
 
         # Initialize data dictionary
@@ -269,6 +269,7 @@ function parse_data(data_dict::Dict)
             mode["name"],
             mode["quantify_by_vehs"],
             mode["costs_per_ukm"],
+            get(mode, "terminal_costs_per_tonne", zeros(length(mode["costs_per_ukm"]))),
             mode["emission_factor"],
             mode["infrastructure_expansion_costs"],
             mode["infrastructure_om_costs"],
@@ -303,18 +304,8 @@ function parse_data(data_dict::Dict)
             fuel["fueling_infrastructure_om_costs"],
         ) for fuel ∈ data_dict["Fuel"]
     ]
-    if haskey(data_dict, "FuelCost")
-        fuel_cost_list = [
-            FuelCost(
-                item["id"],
-                geographic_element_list[findfirst(ge -> ge.id == item["location"], geographic_element_list)],
-                fuel_list[findfirst(f -> f.name == item["fuel"], fuel_list)],
-                item["cost_per_kWh"],
-            ) for item ∈ data_dict["FuelCost"]
-        ]
-    else
-        fuel_cost_list = []
-    end
+    # Store FuelCost raw data for later processing (after fueling_infr_types is parsed)
+    fuel_cost_raw_data = haskey(data_dict, "FuelCost") ? data_dict["FuelCost"] : []
 
     # Parse NetworkConnectionCosts if present
     if haskey(data_dict, "NetworkConnectionCosts")
@@ -496,7 +487,7 @@ function parse_data(data_dict::Dict)
     odpair_list = Vector{Odpair}(odpair_list)
 
     
-    # odpair_list = odpair_list[1:40]
+    odpair_list = odpair_list[1:100]
     println("Number of Odpairs: ", length(odpair_list))
     speed_list = [
         Speed(
@@ -773,6 +764,25 @@ function parse_data(data_dict::Dict)
     else
         fueling_infr_types = []
     end
+
+    # Now parse FuelCost after fueling_infr_types is available
+    if !isempty(fuel_cost_raw_data)
+        fuel_cost_list = [
+            FuelCost(
+                item["id"],
+                geographic_element_list[findfirst(ge -> ge.id == item["location"], geographic_element_list)],
+                fuel_list[findfirst(f -> f.name == item["fuel"], fuel_list)],
+                # Parse fueling infrastructure type if provided
+                haskey(item, "fueling_infr_type_id") && !isempty(fueling_infr_types) ?
+                    fueling_infr_types[findfirst(fit -> fit.id == item["fueling_infr_type_id"], fueling_infr_types)] :
+                    nothing,
+                item["cost_per_kWh"],
+            ) for item ∈ fuel_cost_raw_data
+        ]
+    else
+        fuel_cost_list = []
+    end
+
     if haskey(data_dict, "InitDetourTime")
         if haskey(data_dict, "FuelingInfrTypes")
             init_detour_times_list = [
@@ -1012,6 +1022,61 @@ function parse_data(data_dict::Dict)
     data_structures["G"] = data_dict["Model"]["pre_y"] + data_dict["Model"]["Y"]
     data_structures["g_init"] = data_dict["Model"]["y_init"] - data_dict["Model"]["pre_y"]
     data_structures["Y_end"] = data_dict["Model"]["y_init"] + data_dict["Model"]["Y"] - 1
+
+    # Temporal resolution: Get time_step parameter (default to 1 for backward compatibility)
+    time_step = get(data_dict["Model"], "time_step", 1)
+    data_structures["time_step"] = time_step
+
+    # Mode shift and technology shift parameters (for constraint_mode_shift and constraint_vehicle_stock_shift)
+    # These limit the rate of change between time periods
+    alpha_f = get(data_dict["Model"], "alpha_f", 0.1)  # Mode shift rate limit (fraction of total flow)
+    beta_f = get(data_dict["Model"], "beta_f", 0.1)    # Mode shift rate limit (fraction of previous mode flow)
+    alpha_h = get(data_dict["Model"], "alpha_h", 0.1)  # Technology shift rate limit (fraction of total stock)
+    beta_h = get(data_dict["Model"], "beta_h", 0.1)    # Technology shift rate limit (fraction of previous tech stock)
+    data_structures["alpha_f"] = alpha_f
+    data_structures["beta_f"] = beta_f
+    data_structures["alpha_h"] = alpha_h
+    data_structures["beta_h"] = beta_h
+
+    # Parse MaxModeShare constraints (for constraint_max_mode_share)
+    # These cap the maximum share of a specific mode (e.g., rail at 30%)
+    if haskey(data_dict, "MaxModeShare") && !isempty(data_dict["MaxModeShare"])
+        max_mode_share_list = [
+            Mode_share_max_by_year(
+                constraint["id"],
+                mode_list[findfirst(m -> m.id == constraint["mode"], mode_list)],
+                constraint["share"],
+                constraint["year"],
+                []  # Empty regiontype list - applies to all regions
+            ) for constraint ∈ data_dict["MaxModeShare"]
+        ]
+        @info "MaxModeShare constraints loaded: $(length(max_mode_share_list)) entries"
+    else
+        max_mode_share_list = []
+    end
+    data_structures["max_mode_share_list"] = max_mode_share_list
+
+    # Create set of modeled years (years actually optimized)
+    y_init = data_dict["Model"]["y_init"]
+    Y_end = data_structures["Y_end"]
+    modeled_years = collect(y_init:time_step:Y_end)
+    data_structures["modeled_years"] = modeled_years
+
+    # Create set of modeled generations (vehicle purchase years including pre-period)
+    g_init = data_structures["g_init"]
+    modeled_generations = collect(g_init:time_step:Y_end)
+    data_structures["modeled_generations"] = modeled_generations
+
+    # Update investment years to align with modeled years
+    investment_period = data_dict["Model"]["investment_period"]
+    investment_years = [y for y in modeled_years if (y - y_init) % investment_period == 0]
+    data_structures["investment_years"] = investment_years
+
+    @info "Temporal resolution settings:"
+    @info "  time_step: $(time_step) year(s)"
+    @info "  Modeled years: $(length(modeled_years)) years from $(minimum(modeled_years)) to $(maximum(modeled_years))"
+    @info "  Modeled generations: $(length(modeled_generations)) generations from $(minimum(modeled_generations)) to $(maximum(modeled_generations))"
+    @info "  Investment years: $(length(investment_years)) years: $(investment_years)"
 
     # Add lookup dictionaries for fast O(1) access throughout the model
     data_structures["geo_element_dict"] = geo_element_dict
@@ -1470,6 +1535,13 @@ function save_results(
     tech_vehicle_ids = data_structures["techvehicle_ids"]
     g_init = data_structures["g_init"]
     investment_period = data_structures["investment_period"]
+
+    # Temporal resolution: Extract modeled years and generations
+    modeled_years = data_structures["modeled_years"]
+    modeled_generations = data_structures["modeled_generations"]
+    investment_years = data_structures["investment_years"]
+    time_step = data_structures["time_step"]
+
     if data_structures["detour_time_reduction_list"] != []
         geo_i_f = data_structures["geo_i_f_pairs"]
     end
@@ -1481,10 +1553,12 @@ function save_results(
     f_dict = Dict()
     if haskey(object_dictionary(model), :f)
         @info "  Saving f (flow/transport) variable..."
-        for y ∈ y_init:Y_end, (p, r, k) ∈ p_r_k_pairs, mv ∈ m_tv_pairs, g ∈ g_init:y
-            val = value(model[:f][y, (p, r, k), mv, g])
-            if !isnan(val) && val > 1e-6
-                f_dict[(y, (p, r, k), mv, g)] = val
+        for y ∈ modeled_years, (p, r, k) ∈ p_r_k_pairs, mv ∈ m_tv_pairs, g ∈ modeled_generations
+            if g <= y
+                val = value(model[:f][y, (p, r, k), mv, g])
+                if !isnan(val) && val > 1e-6
+                    f_dict[(y, (p, r, k), mv, g)] = val
+                end
             end
         end
     end
@@ -1494,17 +1568,21 @@ function save_results(
         @info "  Saving s (energy consumption) variable..."
         if data_structures["fueling_infr_types_list"] != []
             f_l_pairs = data_structures["f_l_pairs"]
-            for y ∈ y_init:Y_end, (p, r, k, g) ∈ p_r_k_g_pairs, tv_id ∈ tech_vehicle_ids, f_l in f_l_pairs, gen ∈ g_init:y
-                val = value(model[:s][y, (p, r, k, g), tv_id, f_l, gen])
-                if !isnan(val) && val > 1e-6
-                    s_dict[(y, (p, r, k, g), tv_id, f_l, gen)] = val
+            for y ∈ modeled_years, (p, r, k, g) ∈ p_r_k_g_pairs, tv_id ∈ tech_vehicle_ids, f_l in f_l_pairs, gen ∈ modeled_generations
+                if gen <= y
+                    val = value(model[:s][y, (p, r, k, g), tv_id, f_l, gen])
+                    if !isnan(val) && val > 1e-6
+                        s_dict[(y, (p, r, k, g), tv_id, f_l, gen)] = val
+                    end
                 end
             end
         else
-            for y ∈ y_init:Y_end, (p, r, k, g) ∈ p_r_k_g_pairs, tv_id ∈ tech_vehicle_ids, gen ∈ g_init:y
-                val = value(model[:s][y, (p, r, k, g), tv_id, gen])
-                if !isnan(val) && val > 1e-6
-                    s_dict[(y, (p, r, k, g), tv_id, gen)] = val
+            for y ∈ modeled_years, (p, r, k, g) ∈ p_r_k_g_pairs, tv_id ∈ tech_vehicle_ids, gen ∈ modeled_generations
+                if gen <= y
+                    val = value(model[:s][y, (p, r, k, g), tv_id, gen])
+                    if !isnan(val) && val > 1e-6
+                        s_dict[(y, (p, r, k, g), tv_id, gen)] = val
+                    end
                 end
             end
         end
@@ -1513,10 +1591,12 @@ function save_results(
     h_dict = Dict()
     if haskey(object_dictionary(model), :h)
         @info "  Saving h (vehicle stock) variable..."
-        for y ∈ y_init:Y_end, r ∈ odpairs, tv ∈ techvehicles, g ∈ g_init:y
-            val = value(model[:h][y, r.id, tv.id, g])
-            if !isnan(val) && val > 1e-6
-                h_dict[(y, r.id, tv.id, g)] = val
+        for y ∈ modeled_years, r ∈ odpairs, tv ∈ techvehicles, g ∈ modeled_generations
+            if g <= y
+                val = value(model[:h][y, r.id, tv.id, g])
+                if !isnan(val) && val > 1e-6
+                    h_dict[(y, r.id, tv.id, g)] = val
+                end
             end
         end
     end
@@ -1524,10 +1604,12 @@ function save_results(
     h_exist_dict = Dict()
     if haskey(object_dictionary(model), :h_exist)
         @info "  Saving h_exist variable..."
-        for y ∈ y_init:Y_end, r ∈ odpairs, tv ∈ techvehicles, g ∈ g_init:y
-            val = value(model[:h_exist][y, r.id, tv.id, g])
-            if !isnan(val) && val > 1e-6
-                h_exist_dict[(y, r.id, tv.id, g)] = val
+        for y ∈ modeled_years, r ∈ odpairs, tv ∈ techvehicles, g ∈ modeled_generations
+            if g <= y
+                val = value(model[:h_exist][y, r.id, tv.id, g])
+                if !isnan(val) && val > 1e-6
+                    h_exist_dict[(y, r.id, tv.id, g)] = val
+                end
             end
         end
     end
@@ -1535,10 +1617,12 @@ function save_results(
     h_plus_dict = Dict()
     if haskey(object_dictionary(model), :h_plus)
         @info "  Saving h_plus variable..."
-        for y ∈ y_init:Y_end, r ∈ odpairs, tv ∈ techvehicles, g ∈ g_init:y
-            val = value(model[:h_plus][y, r.id, tv.id, g])
-            if !isnan(val) && val > 1e-6
-                h_plus_dict[(y, r.id, tv.id, g)] = val
+        for y ∈ modeled_years, r ∈ odpairs, tv ∈ techvehicles, g ∈ modeled_generations
+            if g <= y
+                val = value(model[:h_plus][y, r.id, tv.id, g])
+                if !isnan(val) && val > 1e-6
+                    h_plus_dict[(y, r.id, tv.id, g)] = val
+                end
             end
         end
     end
@@ -1546,10 +1630,12 @@ function save_results(
     h_minus_dict = Dict()
     if haskey(object_dictionary(model), :h_minus)
         @info "  Saving h_minus variable..."
-        for y ∈ y_init:Y_end, r ∈ odpairs, tv ∈ techvehicles, g ∈ g_init:y
-            val = value(model[:h_minus][y, r.id, tv.id, g])
-            if !isnan(val) && val > 1e-6
-                h_minus_dict[(y, r.id, tv.id, g)] = val
+        for y ∈ modeled_years, r ∈ odpairs, tv ∈ techvehicles, g ∈ modeled_generations
+            if g <= y
+                val = value(model[:h_minus][y, r.id, tv.id, g])
+                if !isnan(val) && val > 1e-6
+                    h_minus_dict[(y, r.id, tv.id, g)] = val
+                end
             end
         end
     end
@@ -1563,7 +1649,7 @@ function save_results(
             # Complex mode: with fueling infrastructure types (only for non-by-route types)
             f_l_not_by_route = data_structures["f_l_not_by_route"]
             @info "    Using f_l_not_by_route set with $(length(f_l_not_by_route)) pairs"
-            for y ∈ y_init:investment_period:Y_end, f_l ∈ f_l_not_by_route, geo ∈ geographic_element_list
+            for y ∈ investment_years, f_l ∈ f_l_not_by_route, geo ∈ geographic_element_list
                 total_count += 1
                 val = value(model[:q_fuel_infr_plus][y, f_l, geo.id])
                 if !isnan(val) && val > 1e-6  # Only save non-zero values
@@ -1575,7 +1661,7 @@ function save_results(
             # Complex mode but no by_route split: use all f_l_pairs
             f_l_pairs = data_structures["f_l_pairs"]
             @info "    Using f_l_pairs set with $(length(f_l_pairs)) pairs"
-            for y ∈ y_init:investment_period:Y_end, f_l ∈ f_l_pairs, geo ∈ geographic_element_list
+            for y ∈ investment_years, f_l ∈ f_l_pairs, geo ∈ geographic_element_list
                 total_count += 1
                 val = value(model[:q_fuel_infr_plus][y, f_l, geo.id])
                 if !isnan(val) && val > 1e-6  # Only save non-zero values
@@ -1586,7 +1672,7 @@ function save_results(
         else
             # Simple mode: without fueling infrastructure types
             @info "    Using simple mode (fuel_list)"
-            for y ∈ y_init:investment_period:Y_end, f ∈ fuel_list, geo ∈ geographic_element_list
+            for y ∈ investment_years, f ∈ fuel_list, geo ∈ geographic_element_list
                 total_count += 1
                 val = value(model[:q_fuel_infr_plus][y, f.id, geo.id])
                 if !isnan(val) && val > 1e-6  # Only save non-zero values
@@ -1601,7 +1687,7 @@ function save_results(
     q_mode_infr_plus_dict = Dict()
     if haskey(object_dictionary(model), :q_mode_infr_plus)
         @info "  Saving q_mode_infr_plus (mode infrastructure) variable..."
-        for y ∈ y_init:investment_period:Y_end, m ∈ mode_list, geo ∈ geographic_element_list
+        for y ∈ investment_years, m ∈ mode_list, geo ∈ geographic_element_list
             val = value(model[:q_mode_infr_plus][y, m.id, geo.id])
             if !isnan(val) && val > 1e-6
                 q_mode_infr_plus_dict[(y, m.id, geo.id)] = val
@@ -1610,15 +1696,19 @@ function save_results(
     end
 
     # NEW: Save soc (state of charge) variable
+    # Note: soc has 5 dimensions: [y, p_r_k_g, tv, f_l, g]
     soc_dict = Dict()
     if haskey(object_dictionary(model), :soc)
         @info "  Saving soc (state of charge) variable..."
-        if data_structures["fueling_infr_types_list"] != []
-            f_l_pairs = data_structures["f_l_pairs"]
-            for y ∈ y_init:Y_end, (p, r, k, g) ∈ p_r_k_g_pairs, tv_id ∈ tech_vehicle_ids, f_l in f_l_pairs, gen ∈ g_init:y
-                val = value(model[:soc][y, (p, r, k, g), tv_id, f_l, gen])
-                if !isnan(val) && val > 1e-6
-                    soc_dict[(y, (p, r, k, g), tv_id, f_l, gen)] = val
+        if haskey(data_structures, "f_l_not_by_route")
+            f_l_not_by_route = data_structures["f_l_not_by_route"]
+            @info "    Using f_l_not_by_route set with $(length(f_l_not_by_route)) pairs"
+            for y ∈ modeled_years, (p, r, k, g) ∈ p_r_k_g_pairs, tv_id ∈ tech_vehicle_ids, f_l in f_l_not_by_route, gen ∈ modeled_generations
+                if gen <= y
+                    val = value(model[:soc][y, (p, r, k, g), tv_id, f_l, gen])
+                    if !isnan(val) && val > 1e-6
+                        soc_dict[(y, (p, r, k, g), tv_id, f_l, gen)] = val
+                    end
                 end
             end
         end
@@ -1628,12 +1718,15 @@ function save_results(
     q_fuel_abs_dict = Dict()
     if haskey(object_dictionary(model), :q_fuel_abs)
         @info "  Saving q_fuel_abs variable..."
-        if data_structures["fueling_infr_types_list"] != []
-            f_l_not_by_route = [f_l for f_l in data_structures["f_l_pairs"] if !data_structures["fueling_infr_types_dict"][f_l].by_route]
-            for y ∈ y_init:investment_period:Y_end, (p, r, k, g) ∈ p_r_k_g_pairs, f_l in f_l_not_by_route, gen ∈ g_init:y
-                val = value(model[:q_fuel_abs][y, (p, r, k, g), f_l, gen])
-                if !isnan(val) && val > 1e-6
-                    q_fuel_abs_dict[(y, (p, r, k, g), f_l, gen)] = val
+        if haskey(data_structures, "f_l_not_by_route")
+            f_l_not_by_route = data_structures["f_l_not_by_route"]
+            @info "    Using f_l_not_by_route set with $(length(f_l_not_by_route)) pairs"
+            for y ∈ investment_years, (p, r, k, g) ∈ p_r_k_g_pairs, f_l in f_l_not_by_route, gen ∈ modeled_generations
+                if gen <= y
+                    val = value(model[:q_fuel_abs][y, (p, r, k, g), f_l, gen])
+                    if !isnan(val) && val > 1e-6
+                        q_fuel_abs_dict[(y, (p, r, k, g), f_l, gen)] = val
+                    end
                 end
             end
         end
@@ -1642,34 +1735,34 @@ function save_results(
     travel_time_dict = Dict()
     if haskey(object_dictionary(model), :travel_time)
         @info "  Saving travel_time variable..."
-        if data_structures["fueling_infr_types_list"] != []
-            f_l_pairs = data_structures["f_l_pairs"]
-            for y ∈ y_init:Y_end, (p, r, k, g) ∈ p_r_k_g_pairs, tv_id ∈ tech_vehicle_ids, f_l in f_l_pairs, gen ∈ g_init:y
-                val = value(model[:travel_time][y, (p, r, k, g), tv_id, f_l, gen])
-                if !isnan(val) && val > 1e-6
-                    travel_time_dict[(y, (p, r, k, g), tv_id, f_l, gen)] = val
-                end
-            end
-        else
-            for y ∈ y_init:Y_end, (p, r, k, g) ∈ p_r_k_g_pairs, tv_id ∈ tech_vehicle_ids, gen ∈ g_init:y
-                val = value(model[:travel_time][y, (p, r, k, g), tv_id, gen])
-                if !isnan(val) && val > 1e-6
-                    travel_time_dict[(y, (p, r, k, g), tv_id, gen)] = val
+        # Note: travel_time has 5 dimensions: [y, p_r_k_g, tv, f_l, g]
+        if haskey(data_structures, "f_l_not_by_route")
+            f_l_not_by_route = data_structures["f_l_not_by_route"]
+            @info "    Using f_l_not_by_route set with $(length(f_l_not_by_route)) pairs"
+            for y ∈ modeled_years, (p, r, k, g) ∈ p_r_k_g_pairs, tv_id ∈ tech_vehicle_ids, f_l in f_l_not_by_route, gen ∈ modeled_generations
+                if gen <= y
+                    val = value(model[:travel_time][y, (p, r, k, g), tv_id, f_l, gen])
+                    if !isnan(val) && val > 1e-6
+                        travel_time_dict[(y, (p, r, k, g), tv_id, f_l, gen)] = val
+                    end
                 end
             end
         end
     end
 
-    # NEW: Save extra_break_time slack variable
+    # NEW: Save extra_break_time slack variable (has f_l dimension)
     extra_break_time_dict = Dict()
     if haskey(object_dictionary(model), :extra_break_time)
         @info "  Saving extra_break_time variable..."
-        if data_structures["fueling_infr_types_list"] != []
-            f_l_pairs = data_structures["f_l_pairs"]
-            for y ∈ y_init:Y_end, (p, r, k, g) ∈ p_r_k_g_pairs, tv_id ∈ tech_vehicle_ids, f_l in f_l_pairs, gen ∈ g_init:y
-                val = value(model[:extra_break_time][y, (p, r, k, g), tv_id, f_l, gen])
-                if !isnan(val) && val > 1e-6  # Only save non-zero slack values
-                    extra_break_time_dict[(y, (p, r, k, g), tv_id, f_l, gen)] = val
+        if haskey(data_structures, "f_l_not_by_route")
+            f_l_not_by_route = data_structures["f_l_not_by_route"]
+            @info "    Using f_l_not_by_route set with $(length(f_l_not_by_route)) pairs"
+            for y ∈ modeled_years, (p, r, k, g) ∈ p_r_k_g_pairs, tv_id ∈ tech_vehicle_ids, f_l in f_l_not_by_route, gen ∈ modeled_generations
+                if gen <= y
+                    val = value(model[:extra_break_time][y, (p, r, k, g), tv_id, f_l, gen])
+                    if !isnan(val) && val > 1e-6  # Only save non-zero slack values
+                        extra_break_time_dict[(y, (p, r, k, g), tv_id, f_l, gen)] = val
+                    end
                 end
             end
         end
@@ -1816,7 +1909,11 @@ function save_results(
         println(io, "  Time horizon: $(data_structures["y_init"]) - $(data_structures["Y_end"])")
         println(io, "  Initial year: $(data_structures["y_init"])")
         println(io, "  Final year: $(data_structures["Y_end"])")
+        println(io, "  Time step: $(time_step) years")
         println(io, "  Investment period: $(data_structures["investment_period"]) years")
+        println(io, "  Modeled years: $(modeled_years)")
+        println(io, "  Modeled generations: $(modeled_generations)")
+        println(io, "  Investment years: $(investment_years)")
         println(io, "  Number of OD pairs: $(length(data_structures["odpair_list"]))")
         println(io, "  Number of paths: $(length(data_structures["path_list"]))")
         println(io, "  Number of geographic elements: $(length(data_structures["geographic_element_list"]))")
