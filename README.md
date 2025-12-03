@@ -16,3 +16,5 @@ The model runs entirely with Julia. Examples for the application of the model ca
 
 The TransComp model was developed as part of the EU Horizon project [iDesignRES](https://idesignres.eu/) in work package 1.
 
+Analysis for Research Publications
+*VoT model extension and analysis can be found in Branch basque_243*
