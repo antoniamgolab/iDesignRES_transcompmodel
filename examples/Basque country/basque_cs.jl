@@ -8,7 +8,7 @@ include(joinpath(@__DIR__, "../../src/TransComp.jl"))
 using .TransComp
 
 script_dir = @__DIR__   # Directory of the current script
-yaml_file_path = normpath(joinpath(@__DIR__, "data/td_ONENODE_concentrated_expansion_24092025.yaml"))
+yaml_file_path = normpath(joinpath(@__DIR__, "data/td_ONENODE_balanced_expansion_24092025.yaml"))
 println("Constructed file path: $yaml_file_path")
 
 using Dates
@@ -117,7 +117,7 @@ set_optimizer_attribute(model, "Presolve", 2)
 # set_optimizer_attribute(model, "Crossover", 0)
 set_optimizer_attribute(model, "MIPFocus", 1) 
 set_optimizer_attribute(model, "Cuts", 3) 
-set_optimizer_attribute(model, "MIPGap", 0.0000001)
+set_optimizer_attribute(model, "MIPGap", 0.0001)
 set_optimizer_attribute(model, "NumericFocus", 1)
 # set_optimizer_attribute(model, "NoRelHeurWork", 3600 * 2)
 # set_optimizer_attribute(model, "NoRelHeurTime", 3600 * 2 + 60  * 20)

@@ -8,7 +8,7 @@ include(joinpath(@__DIR__, "../../src/TransComp.jl"))
 using .TransComp
 
 script_dir = @__DIR__   # Directory of the current script
-yaml_file_path = normpath(joinpath(@__DIR__, "data/input_rq2_undershoot_baseline_20250923.yaml"))
+yaml_file_path = normpath(joinpath(@__DIR__, "data/input_rq2_undershoot_baseline_20251114_corr.yaml"))
 println("Constructed file path: $yaml_file_path")
 
 # Adoption compared to RQ 2: no VoT is tracked on the premise that the impact of the densification has a limited impact. Only the capacities that may allow and align here 

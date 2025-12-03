@@ -1,6 +1,27 @@
 basque_country_results.ipynb
 basque_country.ipynb
 temp_data/
-examples/Basque country/data/
 examples/Basque country/results/
+examples/Basque country/figures/
 examples/Basque country/*.ipynb
+examples/Basque country/*.csv
+
+# Ignore all data files except essential ones
+examples/Basque country/data/*
+!examples/Basque country/data/td_ONENODE_balanced_expansion_24092025.yaml
+!examples/Basque country/data/input_rq2_undershoot_baseline_20251114_corr.yaml
+!examples/Basque country/data/td_ONENODE_scenario_1_Low_20pct_home_charging_ex.yaml
+!examples/Basque country/data/td_ONENODE_scenario_2_Medium-Low_40pct_home_charging_ex.yaml
+!examples/Basque country/data/td_ONENODE_scenario_3_Medium_60pct_home_charging_ex.yaml
+!examples/Basque country/data/td_ONENODE_scenario_4_Medium-High_80pct_home_charging_ex.yaml
+!examples/Basque country/data/td_ONENODE_scenario_5_Base_100pct_home_charging_ex.yaml
+!examples/Basque country/data/td_ONENODE_scenario_6_High_120pct_home_charging_ex.yaml
+!examples/Basque country/data/td_ONENODE_balanced_expansion_24092025_Compressed_0.5x.yaml
+!examples/Basque country/data/td_ONENODE_balanced_expansion_24092025_Compressed_0.75x.yaml
+!examples/Basque country/data/td_ONENODE_balanced_expansion_24092025_Expanded_1.25x.yaml
+!examples/Basque country/data/td_ONENODE_balanced_expansion_24092025_Expanded_1.5x.yaml
+!examples/Basque country/data/td_ONENODE_balanced_expansion_24092025_Absolute_-3.yaml
+!examples/Basque country/data/td_ONENODE_balanced_expansion_24092025_Absolute_+3.yaml
+!examples/Basque country/data/td_ONENODE_balanced_expansion_24092025_Base.yaml
+!examples/Basque country/data/input_rq2_baseline_20250906_ES213_45pct.yaml
+!examples/Basque country/data/input_rq2_baseline_20250906_ES213_15pct.yaml
