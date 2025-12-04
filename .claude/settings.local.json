@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(sed:*)",
+      "Bash(md5sum:*)",
+      "Bash(mkdir:*)",
+      "Bash(julia filter_zeros.jl:*)",
+      "Bash(python:*)",
+      "mcp__ide__executeCode",
+      "Bash(dir:*)",
+      "Bash(findstr:*)",
+      "Bash(del temp_viz_cell.py)",
+      "Bash(cat:*)",
+      "Bash(del add_utilization_cells.py)",
+      "Bash(del add_s_diagnostic.py)",
+      "Bash(C:\\Users\\simuser\\miniconda3\\envs\\antoniasenv\\python.exe -c \"import nbformat; print(''nbformat available'')\")",
+      "Bash(del:*)",
+      "Bash(find:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

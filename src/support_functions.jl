@@ -5,7 +5,7 @@ This file contains the functions that are used in the model but are not directly
 
 include("structs.jl")
 include("checks.jl")
-using YAML, JuMP, Gurobi, Printf
+using YAML, JuMP, Gurobi, Printf, Dates
 using MathOptInterface
 
 """
@@ -171,9 +171,12 @@ function get_input_data(path_to_source_file::String)
     # check_correct_format_Odpair(data_dict, data_dict["Model"]["Y"])
     # check_correct_format_Speed(data_dict)
 
-    # # printing key information for the user 
+    # # printing key information for the user
 
     # @info "Input data checks successfully completed."
+
+    # Store the input file path for traceability
+    data_dict["input_file_path"] = path_to_source_file
 
     return data_dict
 end
@@ -636,7 +639,7 @@ function parse_data(data_dict::Dict)
                 item["track_detour_time"],
                 item["gamma"],
                 item["cost_per_kW"],
-                item["cost_per_kWh_network"],
+                get(item, "cost_per_kWh_network", zeros(Float64, length(item["cost_per_kW"]))),
             ) for item ∈ data_dict["FuelingInfrTypes"]
         ]
     else
@@ -687,14 +690,15 @@ function parse_data(data_dict::Dict)
                     f -> f.fueling_type == initalfuelinginfr["type"],
                     fueling_infr_types,
                 )],
-                initalfuelinginfr["by_income_class"],
-                financial_status_list[findfirst(
-                    fs -> fs.name == initalfuelinginfr["income_class"],
-                    financial_status_list,
-                )],
+                get(initalfuelinginfr, "by_income_class", false),
+                haskey(initalfuelinginfr, "income_class") ?
+                    financial_status_list[findfirst(
+                        fs -> fs.name == initalfuelinginfr["income_class"],
+                        financial_status_list,
+                    )] : financial_status_list[1],
             ) for initalfuelinginfr ∈ data_dict["InitialFuelingInfr"]
         ]
-    else 
+    else
         initalfuelinginfr_list = [
             InitialFuelingInfr(
                 initalfuelinginfr["id"],
@@ -702,11 +706,12 @@ function parse_data(data_dict::Dict)
                 initalfuelinginfr["allocation"],
                 initalfuelinginfr["installed_kW"],
                 FuelingInfrTypes(0, fuel_list[1], "none", 0, 0, 0, false, 0, 0, [0]),
-                initalfuelinginfr["by_income_class"],
-                financial_status_list[findfirst(
-                    fs -> fs.name == initalfuelinginfr["income_class"],
-                    financial_status_list,
-                )],
+                get(initalfuelinginfr, "by_income_class", false),
+                haskey(initalfuelinginfr, "income_class") ?
+                    financial_status_list[findfirst(
+                        fs -> fs.name == initalfuelinginfr["income_class"],
+                        financial_status_list,
+                    )] : financial_status_list[1],
             ) for initalfuelinginfr ∈ data_dict["InitialFuelingInfr"]
         ]
     end
@@ -724,11 +729,12 @@ function parse_data(data_dict::Dict)
                     f -> f.fueling_type == item["fueling_type"],
                     fueling_infr_types,
                 )],
-                item["by_income_class"],
-                financial_status_list[findfirst(
-                    fs -> fs.name == item["income_class"],
-                    financial_status_list,
-                )],
+                get(item, "by_income_class", false),
+                haskey(item, "income_class") ?
+                    financial_status_list[findfirst(
+                        fs -> fs.name == item["income_class"],
+                        financial_status_list,
+                    )] : financial_status_list[1],
             ) for item ∈ data_dict["MaximumFuelingCapacityByTypeByYear"]
         ]
     else
@@ -746,21 +752,22 @@ function parse_data(data_dict::Dict)
                     ge -> ge.name == item["location"],
                     geographic_element_list,
                 )],
-                financial_status_list[findfirst(
-                    fs -> fs.name == item["income_class"],
-                    financial_status_list,
-                )],
+                haskey(item, "income_class") ?
+                    financial_status_list[findfirst(
+                        fs -> fs.name == item["income_class"],
+                        financial_status_list,
+                    )] : financial_status_list[1],
                 item["maximum_fueling_capacity"],
                 fueling_infr_types[findfirst(
                     f -> f.fueling_type == item["type"],
                     fueling_infr_types,
                 )],
-                item["by_income_class"]
+                get(item, "by_income_class", false)
             ) for item ∈ data_dict["MaximumFuelingCapacityByType"]
         ]
     else
         maximum_fueling_capacity_by_fuel = []
-    
+
     end
 
     if haskey(data_dict, "DetourTimeReduction")
@@ -868,6 +875,11 @@ function parse_data(data_dict::Dict)
     data_structures["G"] = data_dict["Model"]["pre_y"] + data_dict["Model"]["Y"]
     data_structures["g_init"] = data_dict["Model"]["y_init"] - data_dict["Model"]["pre_y"]
     data_structures["Y_end"] = data_dict["Model"]["y_init"] + data_dict["Model"]["Y"] - 1
+
+    # Preserve input file path for traceability
+    if haskey(data_dict, "input_file_path")
+        data_structures["input_file_path"] = data_dict["input_file_path"]
+    end
 
     return data_structures
 end
@@ -1270,6 +1282,28 @@ function save_results(
 )
     check_folder_writable(folder_for_results)
 
+    # Create a subfolder for this case to organize results
+    case_folder = joinpath(folder_for_results, case)
+    if write_to_file
+        if !isdir(case_folder)
+            mkpath(case_folder)
+            @info "Created results folder: $case_folder"
+        end
+        # Update folder_for_results to point to the case-specific subfolder
+        folder_for_results = case_folder
+
+        # Save metadata about this run
+        metadata = Dict(
+            "case_name" => case,
+            "timestamp" => Dates.format(now(), "yyyy-mm-dd HH:MM:SS"),
+            "input_file" => get(data_structures, "input_file_path", "unknown"),
+            "y_init" => data_structures["y_init"],
+            "Y_end" => data_structures["Y_end"],
+        )
+        YAML.write_file(joinpath(folder_for_results, "metadata.yaml"), metadata)
+        @info "Metadata file saved"
+    end
+
     y_init = data_structures["y_init"]
     Y_end = data_structures["Y_end"]
     odpairs = data_structures["odpair_list"]
@@ -1293,7 +1327,7 @@ function save_results(
     for y ∈ y_init:Y_end, (p, r, k) ∈ p_r_k_pairs, mv ∈ m_tv_pairs, g ∈ g_init:y
         if haskey(object_dictionary(model), :f)
             val = value(model[:f][y, (p, r, k), mv, g])
-            if !isnan(val)
+            if !isnan(val) && round(val, digits=6) != 0.0
                 f_dict[(y, (p, r, k), mv, g)] = val
             end
         end
@@ -1305,7 +1339,7 @@ function save_results(
         for y ∈ y_init:Y_end, (p, r, k, g) ∈ p_r_k_g_pairs, tv_id ∈ tech_vehicle_ids, f_l in f_l_pairs, gen ∈ g_init:y
             if haskey(object_dictionary(model), :s)
                 val = value(model[:s][y, (p, r, k, g), tv_id, f_l, gen])
-                if !isnan(val)
+                if !isnan(val) && round(val, digits=6) != 0.0
                     s_dict[(y, (p, r, k, g), tv_id, f_l, gen)] = val
                 end
             end
@@ -1326,7 +1360,7 @@ function save_results(
     for y ∈ y_init:Y_end, r ∈ odpairs, tv ∈ techvehicles, g ∈ g_init:y
         if haskey(object_dictionary(model), :h)
             val = value(model[:h][y, r.id, tv.id, g])
-            if !isnan(val)
+            if !isnan(val) && round(val, digits=6) != 0.0
                 h_dict[(y, r.id, tv.id, g)] = val
             end
         end
@@ -1336,7 +1370,7 @@ function save_results(
     for y ∈ y_init:Y_end, r ∈ odpairs, tv ∈ techvehicles, g ∈ g_init:y
         if haskey(object_dictionary(model), :h_exist)
             val = value(model[:h_exist][y, r.id, tv.id, g])
-            if !isnan(val)
+            if !isnan(val) && round(val, digits=6) != 0.0
                 h_exist_dict[(y, r.id, tv.id, g)] = val
             end
         end
@@ -1346,7 +1380,7 @@ function save_results(
     for y ∈ y_init:Y_end, r ∈ odpairs, tv ∈ techvehicles, g ∈ g_init:y
         if haskey(object_dictionary(model), :h_plus)
             val = value(model[:h_plus][y, r.id, tv.id, g])
-            if !isnan(val)
+            if !isnan(val) && round(val, digits=6) != 0.0
                 h_plus_dict[(y, r.id, tv.id, g)] = val
             end
         end
@@ -1356,7 +1390,7 @@ function save_results(
     for y ∈ y_init:Y_end, r ∈ odpairs, tv ∈ techvehicles, g ∈ g_init:y
         if haskey(object_dictionary(model), :h_minus)
             val = value(model[:h_minus][y, r.id, tv.id, g])
-            if !isnan(val)
+            if !isnan(val) && round(val, digits=6) != 0.0
                 h_minus_dict[(y, r.id, tv.id, g)] = val
             end
         end
@@ -1366,7 +1400,7 @@ function save_results(
     for y ∈ y_init:investment_period:Y_end, m ∈ mode_list, geo ∈ geographic_element_list
         if haskey(object_dictionary(model), :q_mode_infr_plus)
             val = value(model[:q_mode_infr_plus][y, m.id, geo.id])
-            if !isnan(val)
+            if !isnan(val) && round(val, digits=6) != 0.0
                 q_mode_infr_plus_dict[(y, m.id, geo.id)] = val
             end
         end
@@ -1376,12 +1410,12 @@ function save_results(
 
         q_fuel_infr_plus_dict = Dict()
         f_l_not_by_route = data_structures["f_l_not_by_route"]
-        
+
         f_l_by_route = data_structures["f_l_by_route"]
         for y ∈ y_init:investment_period:Y_end, f_l ∈ f_l_not_by_route, geo ∈ geographic_element_list
             if haskey(object_dictionary(model), :q_fuel_infr_plus)
                 val = value(model[:q_fuel_infr_plus][y, f_l, geo.id])
-                if !isnan(val)
+                if !isnan(val) && round(val, digits=6) != 0.0
                     q_fuel_infr_plus_dict[(y, f_l, geo.id)] = val
                 end
             end
@@ -1391,7 +1425,7 @@ function save_results(
             for y ∈ y_init:investment_period:Y_end, r in odpairs, f_l ∈ f_l_by_route, geo ∈ geographic_element_list
                 if haskey(object_dictionary(model), :q_fuel_infr_plus_by_route)
                     val = value(model[:q_fuel_infr_plus_by_route][y, r.id, f_l, geo.id])
-                    if !isnan(val)
+                    if !isnan(val) && round(val, digits=6) != 0.0
                         q_fuel_infr_plus_by_route_dict[(y, r.id, f_l, geo.id)] = val
                     end
                 end
@@ -1403,18 +1437,18 @@ function save_results(
         for y ∈ y_init:investment_period:Y_end, f_l ∈ f_l_for_dt, geo ∈ geographic_element_list
             if haskey(object_dictionary(model), :q_fuel_infr_plus_diff)
                 val = value(model[:q_fuel_infr_plus_diff][y, f_l, geo.id])
-                if !isnan(val)
+                if !isnan(val) && round(val, digits=6) != 0.0
                     q_fuel_infr_plus_diff_dict[(y, f_l, geo.id)] = val
                 end
             end
         end
 
-    else 
+    else
         q_supply_infr_plus_dict = Dict()
         for y ∈ y_init:investment_period:Y_end, st ∈ data_structures["supplytype_list"], geo ∈ geographic_element_list
             if haskey(object_dictionary(model), :q_supply_infr_plus)
                 val = value(model[:q_supply_infr_plus][y, st.id, geo.id])
-                if !isnan(val)
+                if !isnan(val) && round(val, digits=6) != 0.0
                     q_supply_infr_plus_dict[(y, st.id, geo.id)] = val
                 end
             end
@@ -1424,18 +1458,18 @@ function save_results(
         for y ∈ y_init:investment_period:Y_end, f ∈ fuel_list, geo ∈ geographic_element_list
             if haskey(object_dictionary(model), :q_fuel_infr_plus)
                 val = value(model[:q_fuel_infr_plus][y, f.id, geo.id])
-                if !isnan(val)
+                if !isnan(val) && round(val, digits=6) != 0.0
                     q_fuel_infr_plus_dict[(y, f.id, geo.id)] = val
                 end
             end
-        end 
+        end
     end
 
     budget_penalty_plus_dict = Dict()
     for y ∈ y_init:Y_end, r ∈ odpairs
         if haskey(object_dictionary(model), :budget_penalty_plus)
             val = value(model[:budget_penalty_plus][y, r.id])
-            if !isnan(val)
+            if !isnan(val) && round(val, digits=6) != 0.0
                 budget_penalty_plus_dict[(y, r.id)] = val
             end
         end
@@ -1445,7 +1479,7 @@ function save_results(
     for y ∈ y_init:Y_end, r ∈ odpairs
         if haskey(object_dictionary(model), :budget_penalty_minus)
             val = value(model[:budget_penalty_minus][y, r.id])
-            if !isnan(val)
+            if !isnan(val) && round(val, digits=6) != 0.0
                 budget_penalty_minus_dict[(y, r.id)] = val
             end
         end
@@ -1455,7 +1489,7 @@ function save_results(
     for y ∈ y_init:Y_end, r ∈ odpairs
         if haskey(object_dictionary(model), :budget_penalty_yearly_plus)
             val = value(model[:budget_penalty_yearly_plus][y, r.id])
-            if !isnan(val)
+            if !isnan(val) && round(val, digits=6) != 0.0
                 budget_penalty_plus_yearly_dict[(y, r.id)] = val
             end
         end
@@ -1465,7 +1499,7 @@ function save_results(
     for y ∈ y_init:Y_end, r ∈ odpairs
         if haskey(object_dictionary(model), :budget_penalty_yearly_minus)
             val = value(model[:budget_penalty_yearly_minus][y, r.id])
-            if !isnan(val)
+            if !isnan(val) && round(val, digits=6) != 0.0
                 budget_penalty_minus_yearly_dict[(y, r.id)] = val
             end
         end
@@ -1563,109 +1597,111 @@ function save_results(
         q_supply_infr_dict_str = stringify_keys(q_supply_infr_dict)
     end
     if write_to_file
-        YAML.write_file(joinpath(folder_for_results, case * "_f_dict.yaml"), f_dict_str)
+        # Use shorter file names to avoid Windows path length limits
+        # The case folder name already identifies the run
+        YAML.write_file(joinpath(folder_for_results, "f_dict.yaml"), f_dict_str)
         @info "f_dict.yaml written successfully"
 
-        YAML.write_file(joinpath(folder_for_results, case * "_h_dict.yaml"), h_dict_str)
+        YAML.write_file(joinpath(folder_for_results, "h_dict.yaml"), h_dict_str)
         @info "h_dict.yaml written successfully"
 
         YAML.write_file(
-            joinpath(folder_for_results, case * "_h_exist_dict.yaml"),
+            joinpath(folder_for_results, "h_exist_dict.yaml"),
             h_exist_dict_str,
         )
-        @info case * "_h_exist_dict.yaml written successfully"
+        @info "h_exist_dict.yaml written successfully"
 
         YAML.write_file(
-            joinpath(folder_for_results, case * "_h_plus_dict.yaml"),
+            joinpath(folder_for_results, "h_plus_dict.yaml"),
             h_plus_dict_str,
         )
-        @info case * "_h_plus_dict.yaml written successfully"
+        @info "h_plus_dict.yaml written successfully"
 
         YAML.write_file(
-            joinpath(folder_for_results, case * "_h_minus_dict.yaml"),
+            joinpath(folder_for_results, "h_minus_dict.yaml"),
             h_minus_dict_str,
         )
         @info "h_minus_dict.yaml written successfully"
 
         YAML.write_file(
-            joinpath(folder_for_results, case * "_q_fuel_infr_plus_dict.yaml"),
+            joinpath(folder_for_results, "q_fuel_infr_plus_dict.yaml"),
             q_fuel_infr_plus_dict_str,
         )
         @info "q_fuel_infr_plus_dict.yaml written successfully"
 
         YAML.write_file(
-            joinpath(folder_for_results, case * "_q_mode_infr_plus_dict.yaml"),
+            joinpath(folder_for_results, "q_mode_infr_plus_dict.yaml"),
             q_mode_infr_plus_dict_str,
         )
         @info "q_mode_infr_dict.yaml written successfully"
 
         YAML.write_file(
-            joinpath(folder_for_results, case * "_budget_penalty_plus_dict.yaml"),
+            joinpath(folder_for_results, "budget_penalty_plus_dict.yaml"),
             budget_penalty_plus_dict_str,
         )
         @info "budget_penalty_plus_dict.yaml written successfully"
 
         YAML.write_file(
-            joinpath(folder_for_results, case * "_budget_penalty_minus_dict.yaml"),
+            joinpath(folder_for_results, "budget_penalty_minus_dict.yaml"),
             budget_penalty_minus_dict_str,
         )
         @info "budget_penalty_minus_dict.yaml written successfully"
 
         YAML.write_file(
-            joinpath(folder_for_results, case * "_budget_penalty_plus_yearly_dict.yaml"),
+            joinpath(folder_for_results, "budget_penalty_plus_yearly_dict.yaml"),
             budget_penalty_plus_yearly_dict_str,
         )
         @info "budget_penalty_plus_yearly_dict.yaml written successfully"
         YAML.write_file(
-            joinpath(folder_for_results, case * "_budget_penalty_minus_yearly_dict.yaml"),
+            joinpath(folder_for_results, "budget_penalty_minus_yearly_dict.yaml"),
             budget_penalty_minus_yearly_dict_str,
         )
         @info "budget_penalty_minus_yearly_dict.yaml written successfully"
-        YAML.write_file(joinpath(folder_for_results, case * "_s.yaml"), s_dict_str)
+        YAML.write_file(joinpath(folder_for_results, "s.yaml"), s_dict_str)
         @info "s.yaml written successfully"
         if data_structures["detour_time_reduction_list"] != []
             YAML.write_file(
-                joinpath(folder_for_results, case * "_detour_time_dict.yaml"),
+                joinpath(folder_for_results, "detour_time_dict.yaml"),
                 detour_time_dict_str,
             )
             @info "detour_time_dict.yaml written successfully"
 
             @info "x_b_dict.yaml written successfully"
             YAML.write_file(
-                joinpath(folder_for_results, case * "_x_c_dict.yaml"),
+                joinpath(folder_for_results, "x_c_dict.yaml"),
                 x_c_dict_str,
             )
             @info "x_c_dict.yaml written successfully"
             YAML.write_file(
-                joinpath(folder_for_results, case * "_vot_dt_dict.yaml"),
+                joinpath(folder_for_results, "vot_dt_dict.yaml"),
                 vot_dt_dict,
             )
             @info "vot_dt_dict.yaml written successfully"
             YAML.write_file(
-                joinpath(folder_for_results, case * "_n_fueling_dict.yaml"),
+                joinpath(folder_for_results, "n_fueling_dict.yaml"),
                 n_fueling_dict,
             )
-            YAML.write_file(joinpath(folder_for_results, case * "_z_dict.yaml"), z_str)
+            YAML.write_file(joinpath(folder_for_results, "z_dict.yaml"), z_str)
         end
         if data_structures["supplytype_list"] != []
             YAML.write_file(
-                joinpath(folder_for_results, case * "_q_supply_infr_dict.yaml"),
+                joinpath(folder_for_results, "q_supply_infr_dict.yaml"),
                 q_supply_infr_dict_str,
             )
             @info "q_supply_infr_dict.yaml written successfully"
         end
         if data_structures["fueling_infr_types_list"] != []
 
-            if length(data_structures["f_l_by_route"]) != 0 
+            if length(data_structures["f_l_by_route"]) != 0
                 q_fuel_infr_plus_by_route_dict_str = stringify_keys(q_fuel_infr_plus_by_route_dict)
 
                 YAML.write_file(
-                    joinpath(folder_for_results, case * "_q_fuel_infr_plus_by_route_dict.yaml"),
+                    joinpath(folder_for_results, "q_fuel_infr_plus_by_route_dict.yaml"),
                     q_fuel_infr_plus_by_route_dict_str,
                 )
                 @info "q_fuel_infr_plus_by_route_dict.yaml written successfully"
                 YAML.write_file(
-                    joinpath(folder_for_results, case * "_q_fuel_infr_plus_diff_dict.yaml"),
+                    joinpath(folder_for_results, "q_fuel_infr_plus_diff_dict.yaml"),
                     q_fuel_infr_plus_diff_dict_str,
                 )
                 @info "q_fuel_infr_plus_diff_dict.yaml written successfully"

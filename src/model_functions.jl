@@ -2833,7 +2833,7 @@ function constraint_maximum_fueling_infrastructure_by_year(model::JuMP.Model, da
                 @constraint(
                     model,
                     sum(model[:q_fuel_infr_plus][y, (f_l), item.location.id] for y in y_init:investment_period:year for f_l in f_l_not_by_route if f_l[1] != 1)
-                    # +  sum(model[:q_fuel_infr_plus_by_route][y, r.id, (f_l), item.location.id] for r in odpair_list for y in y_init:investment_period:year for f_l in f_l_by_route if f_l[1] != 1) 
+                    +  sum(model[:q_fuel_infr_plus_by_route][y, r.id, (f_l), item.location.id] for r in odpair_list for y in y_init:investment_period:year for f_l in f_l_by_route if f_l[1] != 1) 
                     == max_capacity
                 )
             else
@@ -2847,7 +2847,7 @@ function constraint_maximum_fueling_infrastructure_by_year(model::JuMP.Model, da
                 @constraint(
                     model,
                     sum(model[:q_fuel_infr_plus][y, (f_l), item.location.id] for y in y_init:investment_period:year for f_l in f_l_not_by_route if f_l[1] != 1)
-                    # +  sum(model[:q_fuel_infr_plus_by_route][y, r.id, (f_l), item.location.id] for r in odpair_list for y in y_init:investment_period:year for f_l in f_l_by_route if f_l[1] != 1) + init_infr 
+                    +  sum(model[:q_fuel_infr_plus_by_route][y, r.id, (f_l), item.location.id] for r in odpair_list for y in y_init:investment_period:year for f_l in f_l_by_route if f_l[1] != 1) + init_infr 
                     == max_capacity
                 )
             end
@@ -2927,7 +2927,7 @@ function constraint_fueling_infrastructure_expansion_shift(model::JuMP.Model, da
         model,
         [geo in geographic_element_list],
         sum(model[:q_fuel_infr_plus][y_init, f_l, geo.id] for f_l in f_l_pairs if f_l[1] != 1 && f_l[2] != 1) 
-        + sum(model[:q_fuel_infr_plus_by_route][y_init, r.id, f_l, geo.id] for r in odpair_list for f_l in f_l_by_route)
+        # + sum(model[:q_fuel_infr_plus_by_route][y_init, r.id, f_l, geo.id] for r in odpair_list for f_l in f_l_by_route)
         <= 1000 # Adjusted to allow for growth in infrastructure over time
     )
     investment_years_3 = collect((y_init+ 2*investment_period):investment_period:Y_end)  # List of years where x_c is defined
@@ -2935,11 +2935,11 @@ function constraint_fueling_infrastructure_expansion_shift(model::JuMP.Model, da
         model,
         [y in investment_years_2, geo in geographic_element_list],
         sum(model[:q_fuel_infr_plus][y, f_l, geo.id] for f_l in f_l_pairs if f_l[1] != 1 && f_l[2] != 1) 
-        + sum(model[:q_fuel_infr_plus_by_route][y, r.id, f_l, geo.id] for r in odpair_list for f_l in f_l_by_route) 
+        #+ sum(model[:q_fuel_infr_plus_by_route][y, r.id, f_l, geo.id] for r in odpair_list for f_l in f_l_by_route) 
         - sum(model[:q_fuel_infr_plus][y-investment_period, f_l, geo.id] for f_l in f_l_pairs if f_l[1] != 1 && f_l[2] != 1) 
-        - sum(model[:q_fuel_infr_plus_by_route][y-investment_period, r.id, f_l, geo.id] for r in odpair_list for f_l in f_l_by_route) 
-        <= 0.2 * investment_period * (sum(item.installed_kW for item in initialfuelinfr_list if item.allocation == geo.id && item.fuel.id == 2) + sum(model[:q_fuel_infr_plus][y-investment_period, f_l, geo.id] for f_l in f_l_pairs if f_l[1] != 1 && f_l[2] != 1) 
-        + sum(model[:q_fuel_infr_plus_by_route][y-investment_period, r.id, f_l, geo.id] for r in odpair_list for f_l in f_l_by_route)
+        # - sum(model[:q_fuel_infr_plus_by_route][y-investment_period, r.id, f_l, geo.id] for r in odpair_list for f_l in f_l_by_route) 
+        <= 0.3 * investment_period * (sum(item.installed_kW for item in initialfuelinfr_list if item.allocation == geo.id && item.fuel.id == 2) + sum(model[:q_fuel_infr_plus][y-investment_period, f_l, geo.id] for f_l in f_l_pairs if f_l[1] != 1 && f_l[2] != 1) 
+        # + sum(model[:q_fuel_infr_plus_by_route][y-investment_period, r.id, f_l, geo.id] for r in odpair_list for f_l in f_l_by_route)
         )# Adjusted to allow for growth in infrastructure over time
     )
     y = y_init
@@ -3241,7 +3241,7 @@ function objective(model::Model, data_structures::Dict, exclude_detour_time::Boo
                                         add_to_expression!(
                                             total_cost_expr,
                                             model[:s][y, (r.product.id, r.id, k.id, geo.id), v.id, f_l, g] * (1000) *
-                                            (current_fuel_infr.cost_per_kWh_network[y-y_init+1] + v.technology.fuel.cost_per_kWh[y-y_init+1] +  10^(-6) *v.technology.fuel.emission_factor[y-y_init+1] *
+                                            (v.technology.fuel.cost_per_kWh[y-y_init+1] +  10^(-6) *v.technology.fuel.emission_factor[y-y_init+1] *
                                             geo.carbon_price[y-y_init+1]) * discount_factor * scale_factor
                                         )
                                         max_coeff = max(max_coeff, 1000 * (v.technology.fuel.cost_per_kWh[y-y_init+1] +  10^(-6) *v.technology.fuel.emission_factor[y-y_init+1] *

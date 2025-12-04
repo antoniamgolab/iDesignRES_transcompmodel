@@ -25,3 +25,12 @@ examples/Basque country/data/*
 !examples/Basque country/data/td_ONENODE_balanced_expansion_24092025_Base.yaml
 !examples/Basque country/data/input_rq2_baseline_20250906_ES213_45pct.yaml
 !examples/Basque country/data/input_rq2_baseline_20250906_ES213_15pct.yaml
+
+# Moving Loads SM - Large data files (>100MB, cannot be in git)
+examples/moving_loads_SM/data/
+examples/moving_loads_SM/input_data/
+examples/moving_loads_SM/output_data/
+examples/moving_loads_SM/results/
+
+# Keep only the current working case for reference (small enough)
+!examples/moving_loads_SM/input_data/case_20251017_105556/
