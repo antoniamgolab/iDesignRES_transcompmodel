@@ -538,8 +538,22 @@ function parse_data(data_dict::Dict)
         vehicle_subsidy_list = []
     end
 
-    
-
+    # Optional: MinHomeChargingShare - minimum share of fuel demand charged at home per financial status
+    if haskey(data_dict, "MinHomeChargingShare")
+        min_home_charging_share_list = [
+            MinHomeChargingShare(
+                item["id"],
+                financial_status_list[findfirst(
+                    fs -> fs.id == item["financial_status"],
+                    financial_status_list,
+                )],
+                item["min_share"],
+            ) for item ∈ data_dict["MinHomeChargingShare"]
+        ]
+        @info "MinHomeChargingShare constraints are defined"
+    else
+        min_home_charging_share_list = []
+    end
 
 
 
@@ -861,6 +875,7 @@ function parse_data(data_dict::Dict)
         "fueling_infr_types_list" => fueling_infr_types,
         "maximum_fueling_capacity_by_fuel_list" => maximum_fueling_capacity_by_fuel,
         "maximum_fueling_capacity_by_fuel_by_year_list" => maximum_fueling_capacity_by_fuel_by_year,
+        "min_home_charging_share_list" => min_home_charging_share_list,
     )
 
 
@@ -1432,13 +1447,16 @@ function save_results(
             end
         end
         q_fuel_infr_plus_diff_dict = Dict()
-        f_l_for_dt = data_structures["f_l_for_dt"]
+        # Only access f_l_for_dt if it exists (requires DetourTimeReduction)
+        if haskey(data_structures, "f_l_for_dt")
+            f_l_for_dt = data_structures["f_l_for_dt"]
 
-        for y ∈ y_init:investment_period:Y_end, f_l ∈ f_l_for_dt, geo ∈ geographic_element_list
-            if haskey(object_dictionary(model), :q_fuel_infr_plus_diff)
-                val = value(model[:q_fuel_infr_plus_diff][y, f_l, geo.id])
-                if !isnan(val) && round(val, digits=6) != 0.0
-                    q_fuel_infr_plus_diff_dict[(y, f_l, geo.id)] = val
+            for y ∈ y_init:investment_period:Y_end, f_l ∈ f_l_for_dt, geo ∈ geographic_element_list
+                if haskey(object_dictionary(model), :q_fuel_infr_plus_diff)
+                    val = value(model[:q_fuel_infr_plus_diff][y, f_l, geo.id])
+                    if !isnan(val) && round(val, digits=6) != 0.0
+                        q_fuel_infr_plus_diff_dict[(y, f_l, geo.id)] = val
+                    end
                 end
             end
         end
@@ -1545,10 +1563,12 @@ function save_results(
             x_c_dict_str = stringify_keys(x_c_dict)
             
             z_str = Dict()
-            for y ∈ y_init:Y_end, (p, r, k, g) ∈ p_r_k_g_pairs, geo ∈ geo_i_f
-                z_str[(y, geo, (p, r, k, g))] = value(model[:z][y, geo, (p, r, k, g)])
+            if haskey(object_dictionary(model), :z)
+                for y ∈ y_init:Y_end, (p, r, k, g) ∈ p_r_k_g_pairs, geo ∈ geo_i_f
+                    z_str[(y, geo, (p, r, k, g))] = value(model[:z][y, geo, (p, r, k, g)])
+                end
+                z_str = stringify_keys(z_str)
             end
-            z_str = stringify_keys(z_str)
         else
             n_fueling_dict = Dict()
             f_l_pairs = data_structures["f_l_pairs"]
@@ -1577,10 +1597,12 @@ function save_results(
                 vot_dt_dict[(y, geo)] = value(model[:vot_dt][y, geo])
             end
             z_str = Dict()
-            for y ∈ y_init:Y_end, (p, r, k, g) ∈ p_r_k_g_pairs, geo ∈ geo_i_f_l_pairs
-                z_str[(y, geo, (p, r, k, g))] = value(model[:z][y, geo, (p, r, k, g)])
+            if haskey(object_dictionary(model), :z)
+                for y ∈ y_init:Y_end, (p, r, k, g) ∈ p_r_k_g_pairs, geo ∈ geo_i_f_l_pairs
+                    z_str[(y, geo, (p, r, k, g))] = value(model[:z][y, geo, (p, r, k, g)])
+                end
+                z_str = stringify_keys(z_str)
             end
-            z_str = stringify_keys(z_str)
             q_fuel_infr_plus_by_route_dict_str = stringify_keys(q_fuel_infr_plus_by_route_dict)
             q_fuel_infr_plus_diff_dict_str = stringify_keys(q_fuel_infr_plus_diff_dict)
             
@@ -1681,7 +1703,9 @@ function save_results(
                 joinpath(folder_for_results, "n_fueling_dict.yaml"),
                 n_fueling_dict,
             )
-            YAML.write_file(joinpath(folder_for_results, "z_dict.yaml"), z_str)
+            if !isempty(z_str)
+                YAML.write_file(joinpath(folder_for_results, "z_dict.yaml"), z_str)
+            end
         end
         if data_structures["supplytype_list"] != []
             YAML.write_file(
@@ -1700,11 +1724,16 @@ function save_results(
                     q_fuel_infr_plus_by_route_dict_str,
                 )
                 @info "q_fuel_infr_plus_by_route_dict.yaml written successfully"
-                YAML.write_file(
-                    joinpath(folder_for_results, "q_fuel_infr_plus_diff_dict.yaml"),
-                    q_fuel_infr_plus_diff_dict_str,
-                )
-                @info "q_fuel_infr_plus_diff_dict.yaml written successfully"
+
+                # Only write q_fuel_infr_plus_diff if f_l_for_dt exists (requires DetourTimeReduction)
+                if haskey(data_structures, "f_l_for_dt")
+                    q_fuel_infr_plus_diff_dict_str = stringify_keys(q_fuel_infr_plus_diff_dict)
+                    YAML.write_file(
+                        joinpath(folder_for_results, "q_fuel_infr_plus_diff_dict.yaml"),
+                        q_fuel_infr_plus_diff_dict_str,
+                    )
+                    @info "q_fuel_infr_plus_diff_dict.yaml written successfully"
+                end
             end
         end
     end

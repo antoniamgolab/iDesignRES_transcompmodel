@@ -1002,6 +1002,23 @@ struct VehicleSubsidy
     subsidy::Float64
 end
 
+"""
+    MinHomeChargingShare
+
+Defines the minimum share of total fuel demand that must be charged at home
+for a specific financial status group.
+
+# Fields
+- `id::Int`: unique identifier
+- `financial_status::FinancialStatus`: the financial status group this constraint applies to
+- `min_share::Array{Float64,1}`: minimum share of total fuel for this group to be charged at home (per year)
+"""
+struct MinHomeChargingShare
+    id::Int
+    financial_status::FinancialStatus
+    min_share::Array{Float64,1}
+end
+
 global model_parameters = [
     "Y",
     "y_init",

@@ -70,6 +70,7 @@ export constraint_mode_shift
 export constraint_mode_share
 export constraint_max_mode_share
 export constraint_min_mode_share
+export constraint_min_home_charging_share
 export constraint_market_share
 export constraint_emissions_by_mode
 export constraint_detour_time_capacity_reduction
@@ -92,6 +93,7 @@ export constraint_policy_goal
 export constraint_slow_fast_expansion
 export constraint_q_fuel_abs
 export constraint_n_fueling_upper_bound
+export constraint_bev_fleet_growth
 export constraint_to_fast_charging
 export objective
 
