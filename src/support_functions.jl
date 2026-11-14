@@ -292,6 +292,7 @@ function parse_data(data_dict::Dict)
             ],
             get(path, "cumulative_distance", zeros(Float64, length(path["sequence"]))),
             get(path, "distance_from_previous", zeros(Float64, length(path["sequence"]))),
+            get(path, "baseline_travel_time", 0.0),  # Minimum unavoidable travel time
         ) for path ∈ data_dict["Path"]
     ]
     fuel_list = [
@@ -391,6 +392,8 @@ function parse_data(data_dict::Dict)
             techvehicle["tank_capacity"],
             techvehicle["peak_fueling"],
             techvehicle["fueling_time"],
+            # toll_per_km is optional - defaults to zeros if not provided
+            haskey(techvehicle, "toll_per_km") ? Float64.(techvehicle["toll_per_km"]) : zeros(Float64, length(techvehicle["capital_cost"])),
         ) for techvehicle ∈ data_dict["TechVehicle"]
     ]
     initvehiclestock_list = [
@@ -487,7 +490,7 @@ function parse_data(data_dict::Dict)
     odpair_list = Vector{Odpair}(odpair_list)
 
     
-    odpair_list = odpair_list[1:100]
+    #odpair_list = odpair_list[1:100]
     println("Number of Odpairs: ", length(odpair_list))
     speed_list = [
         Speed(
@@ -1037,6 +1040,17 @@ function parse_data(data_dict::Dict)
     data_structures["beta_f"] = beta_f
     data_structures["alpha_h"] = alpha_h
     data_structures["beta_h"] = beta_h
+    rho_mode = get(data_dict["Model"], "rho_mode", 0.975)  # Per-year mode-inertia parameter (Bakker et al.)
+    data_structures["rho_mode"] = rho_mode
+    soc_init = get(data_dict["Model"], "soc_init", 0.5)  # Initial SOC fraction
+    soc_final = get(data_dict["Model"], "soc_final", 0.5)  # Final SOC fraction
+    data_structures["soc_init"] = soc_init
+    data_structures["soc_final"] = soc_final
+
+    # Extra break time penalty multiplier (applied to VoT when penalizing slack time)
+    extra_break_time_penalty_multiplier = get(data_dict["Model"], "extra_break_time_penalty_multiplier", 2.0)
+    data_structures["extra_break_time_penalty_multiplier"] = extra_break_time_penalty_multiplier
+    @info "Extra break time penalty multiplier set to: $extra_break_time_penalty_multiplier × VoT"
 
     # Parse MaxModeShare constraints (for constraint_max_mode_share)
     # These cap the maximum share of a specific mode (e.g., rail at 30%)
@@ -1260,7 +1274,7 @@ Creates a set of pairs of product, odpair, and path IDs.
 - p_r_k_pairs::Set: set of pairs of product, odpair, and path IDs
 """
 function create_p_r_k_set(odpairs::Vector{Odpair})
-    p_r_k_pairs = Set((r.product.id, r.id, k.id) for r ∈ odpairs for k ∈ r.paths)
+    p_r_k_pairs = sort(collect(Set((r.product.id, r.id, k.id) for r ∈ odpairs for k ∈ r.paths)))
     return p_r_k_pairs
 end
 
@@ -1295,10 +1309,10 @@ Creates a set of pairs of product, odpair, path, and element IDs.
 - p_r_k_g_pairs::Set: set of pairs of product, odpair, path, and element IDs
 """
 function create_p_r_k_g_set(odpairs::Vector{Odpair})
-    p_r_k_g_pairs = Set(
+    p_r_k_g_pairs = sort(collect(Set(
         (r.product.id, r.id, k.id, el.id) for r ∈ odpairs for k ∈ r.paths for
         el ∈ k.sequence
-    )
+    )))
     return p_r_k_g_pairs
 end
 
@@ -1333,7 +1347,7 @@ Creates a set of pairs of odpair and path IDs.
 - r_k_pairs::Set: set of pairs of odpair and path IDs
 """
 function create_r_k_set(odpairs::Vector{Odpair})
-    r_k_pairs = Set((r.id, k.id) for r ∈ odpairs for k ∈ r.paths)
+    r_k_pairs = sort(collect(Set((r.id, k.id) for r ∈ odpairs for k ∈ r.paths)))
     return r_k_pairs
 end
 
@@ -1500,6 +1514,124 @@ function stringify_keys(dict::Dict)
 end
 
 """
+    load_h_dict_from_yaml(filepath::String) -> Dict{Tuple{Int,Int,Int,Int}, Float64}
+
+Load an h-variable dict from a YAML results file.
+Keys have format `(year, odpair_id, tv_id, gen): value`.
+Returns dictionary keyed by (year, odpair_id, tv_id, generation) => value.
+"""
+function load_h_dict_from_yaml(filepath::String)
+    raw = YAML.load_file(filepath)
+    result = Dict{Tuple{Int,Int,Int,Int}, Float64}()
+    key_regex = r"\((\d+),\s*(\d+),\s*(\d+),\s*(\d+)\)"
+
+    for (key_str, val) in raw
+        m = match(key_regex, string(key_str))
+        if m === nothing
+            @warn "Could not parse key: $key_str"
+            continue
+        end
+        year = parse(Int, m[1])
+        odpair_id = parse(Int, m[2])
+        tv_id = parse(Int, m[3])
+        gen = parse(Int, m[4])
+        result[(year, odpair_id, tv_id, gen)] = Float64(isa(val, String) ? parse(Float64, val) : val)
+    end
+
+    @info "Loaded $(length(result)) entries from $(basename(filepath))"
+    return result
+end
+
+"""
+    fix_fleet_from_results!(model, data_structures, results_dir, case_prefix; fix_tv_ids=nothing)
+
+Fix vehicle fleet variables (h, h_exist, h_plus, h_minus) to exogenous values
+loaded from previously saved YAML result files. Variables not found in the saved
+dict are fixed to 0.0.
+
+# Arguments
+- `model`: JuMP model with h, h_exist, h_plus, h_minus variables
+- `data_structures`: Parsed data structures dict
+- `results_dir`: Directory containing the YAML result files
+- `case_prefix`: Case prefix for filenames (e.g., "scenario_004_cs_2026-01-06_12-52-46")
+- `fix_tv_ids`: Optional list of tech vehicle IDs to fix (e.g., [1] for BEV only).
+                If `nothing` (default), fixes ALL tech vehicles.
+"""
+function fix_fleet_from_results!(
+    model::JuMP.Model,
+    data_structures::Dict,
+    results_dir::String,
+    case_prefix::String;
+    fix_tv_ids::Union{Nothing, Vector{Int}} = nothing
+)
+    # Load all 4 h-variable dicts
+    h_data = load_h_dict_from_yaml(joinpath(results_dir, "$(case_prefix)_h_dict.yaml"))
+    h_exist_data = load_h_dict_from_yaml(joinpath(results_dir, "$(case_prefix)_h_exist_dict.yaml"))
+    h_plus_data = load_h_dict_from_yaml(joinpath(results_dir, "$(case_prefix)_h_plus_dict.yaml"))
+    h_minus_data = load_h_dict_from_yaml(joinpath(results_dir, "$(case_prefix)_h_minus_dict.yaml"))
+
+    modeled_years = data_structures["modeled_years"]
+    modeled_generations = data_structures["modeled_generations"]
+    odpairs = data_structures["odpair_list"]
+    techvehicles = data_structures["techvehicle_list"]
+
+    counts = Dict(
+        "h_nonzero" => 0, "h_zero" => 0, "h_skipped" => 0,
+        "h_exist_nonzero" => 0, "h_exist_zero" => 0,
+        "h_plus_nonzero" => 0, "h_plus_zero" => 0,
+        "h_minus_nonzero" => 0, "h_minus_zero" => 0,
+    )
+
+    for y in modeled_years
+        for r in odpairs
+            for tv in techvehicles
+                # Skip tech vehicles not in fix_tv_ids (if specified)
+                if fix_tv_ids !== nothing && !(tv.id in fix_tv_ids)
+                    for g in modeled_generations
+                        if g <= y
+                            counts["h_skipped"] += 1
+                        end
+                    end
+                    continue
+                end
+
+                for g in modeled_generations
+                    if g <= y
+                        key = (y, r.id, tv.id, g)
+
+                        val_h = get(h_data, key, 0.0)
+                        fix(model[:h][y, r.id, tv.id, g], val_h; force=true)
+                        counts[val_h > 1e-8 ? "h_nonzero" : "h_zero"] += 1
+
+                        val_he = get(h_exist_data, key, 0.0)
+                        fix(model[:h_exist][y, r.id, tv.id, g], val_he; force=true)
+                        counts[val_he > 1e-8 ? "h_exist_nonzero" : "h_exist_zero"] += 1
+
+                        val_hp = get(h_plus_data, key, 0.0)
+                        fix(model[:h_plus][y, r.id, tv.id, g], val_hp; force=true)
+                        counts[val_hp > 1e-8 ? "h_plus_nonzero" : "h_plus_zero"] += 1
+
+                        val_hm = get(h_minus_data, key, 0.0)
+                        fix(model[:h_minus][y, r.id, tv.id, g], val_hm; force=true)
+                        counts[val_hm > 1e-8 ? "h_minus_nonzero" : "h_minus_zero"] += 1
+                    end
+                end
+            end
+        end
+    end
+
+    total = counts["h_nonzero"] + counts["h_zero"]
+    tv_label = fix_tv_ids === nothing ? "ALL" : string(fix_tv_ids)
+    @info "Fixed fleet variables (tv_ids=$tv_label): $(total) fixed, $(counts["h_skipped"]) skipped"
+    @info "  h: $(counts["h_nonzero"]) nonzero, $(counts["h_zero"]) zero"
+    @info "  h_exist: $(counts["h_exist_nonzero"]) nonzero, $(counts["h_exist_zero"]) zero"
+    @info "  h_plus: $(counts["h_plus_nonzero"]) nonzero, $(counts["h_plus_zero"]) zero"
+    @info "  h_minus: $(counts["h_minus_nonzero"]) nonzero, $(counts["h_minus_zero"]) zero"
+
+    return counts
+end
+
+"""
 	save_results(model::Model, case_name::String)
 
 Saves the results of the optimization model to YAML files.
@@ -1510,14 +1642,17 @@ Saves the results of the optimization model to YAML files.
 - data_structures::Dict: dictionary with the input data
 """
 function save_results(
-    model::Model,
+    model,  # Removed type annotation temporarily
     case::String,
     data_structures::Dict,
     write_to_file::Bool = true,
     folder_for_results::String = "results",
     folder_for_logs::String = "logs",
 )
-    check_folder_writable(folder_for_results)
+    @info "ENTERED save_results function!"
+    @info "  model type: $(typeof(model))"
+    @info "  case: $case"
+    @info "  folder_for_results: $folder_for_results"
 
     @info "Saving results for defined variables only..."
 
@@ -1696,19 +1831,15 @@ function save_results(
     end
 
     # NEW: Save soc (state of charge) variable
-    # Note: soc has 5 dimensions: [y, p_r_k_g, tv, f_l, g]
+    # Note: soc has 4 dimensions: [y, p_r_k_g, tv, g] (f_l dimension removed)
     soc_dict = Dict()
     if haskey(object_dictionary(model), :soc)
         @info "  Saving soc (state of charge) variable..."
-        if haskey(data_structures, "f_l_not_by_route")
-            f_l_not_by_route = data_structures["f_l_not_by_route"]
-            @info "    Using f_l_not_by_route set with $(length(f_l_not_by_route)) pairs"
-            for y ∈ modeled_years, (p, r, k, g) ∈ p_r_k_g_pairs, tv_id ∈ tech_vehicle_ids, f_l in f_l_not_by_route, gen ∈ modeled_generations
-                if gen <= y
-                    val = value(model[:soc][y, (p, r, k, g), tv_id, f_l, gen])
-                    if !isnan(val) && val > 1e-6
-                        soc_dict[(y, (p, r, k, g), tv_id, f_l, gen)] = val
-                    end
+        for y ∈ modeled_years, (p, r, k, g) ∈ p_r_k_g_pairs, tv_id ∈ tech_vehicle_ids, gen ∈ modeled_generations
+            if gen <= y
+                val = value(model[:soc][y, (p, r, k, g), tv_id, gen])
+                if !isnan(val) && val > 1e-6
+                    soc_dict[(y, (p, r, k, g), tv_id, gen)] = val
                 end
             end
         end
@@ -1735,34 +1866,27 @@ function save_results(
     travel_time_dict = Dict()
     if haskey(object_dictionary(model), :travel_time)
         @info "  Saving travel_time variable..."
-        # Note: travel_time has 5 dimensions: [y, p_r_k_g, tv, f_l, g]
-        if haskey(data_structures, "f_l_not_by_route")
-            f_l_not_by_route = data_structures["f_l_not_by_route"]
-            @info "    Using f_l_not_by_route set with $(length(f_l_not_by_route)) pairs"
-            for y ∈ modeled_years, (p, r, k, g) ∈ p_r_k_g_pairs, tv_id ∈ tech_vehicle_ids, f_l in f_l_not_by_route, gen ∈ modeled_generations
-                if gen <= y
-                    val = value(model[:travel_time][y, (p, r, k, g), tv_id, f_l, gen])
-                    if !isnan(val) && val > 1e-6
-                        travel_time_dict[(y, (p, r, k, g), tv_id, f_l, gen)] = val
-                    end
+        # Note: travel_time has 4 dimensions: [y, p_r_k_g, tv, g] (f_l dimension removed)
+        for y ∈ modeled_years, (p, r, k, g) ∈ p_r_k_g_pairs, tv_id ∈ tech_vehicle_ids, gen ∈ modeled_generations
+            if gen <= y
+                val = value(model[:travel_time][y, (p, r, k, g), tv_id, gen])
+                if !isnan(val) && val > 1e-6
+                    travel_time_dict[(y, (p, r, k, g), tv_id, gen)] = val
                 end
             end
         end
     end
 
-    # NEW: Save extra_break_time slack variable (has f_l dimension)
+    # NEW: Save extra_break_time slack variable
+    # Note: extra_break_time has 4 dimensions: [y, p_r_k_g, tv, g] (f_l dimension removed)
     extra_break_time_dict = Dict()
     if haskey(object_dictionary(model), :extra_break_time)
         @info "  Saving extra_break_time variable..."
-        if haskey(data_structures, "f_l_not_by_route")
-            f_l_not_by_route = data_structures["f_l_not_by_route"]
-            @info "    Using f_l_not_by_route set with $(length(f_l_not_by_route)) pairs"
-            for y ∈ modeled_years, (p, r, k, g) ∈ p_r_k_g_pairs, tv_id ∈ tech_vehicle_ids, f_l in f_l_not_by_route, gen ∈ modeled_generations
-                if gen <= y
-                    val = value(model[:extra_break_time][y, (p, r, k, g), tv_id, f_l, gen])
-                    if !isnan(val) && val > 1e-6  # Only save non-zero slack values
-                        extra_break_time_dict[(y, (p, r, k, g), tv_id, f_l, gen)] = val
-                    end
+        for y ∈ modeled_years, (p, r, k, g) ∈ p_r_k_g_pairs, tv_id ∈ tech_vehicle_ids, gen ∈ modeled_generations
+            if gen <= y
+                val = value(model[:extra_break_time][y, (p, r, k, g), tv_id, gen])
+                if !isnan(val) && val > 1e-6  # Only save non-zero slack values
+                    extra_break_time_dict[(y, (p, r, k, g), tv_id, gen)] = val
                 end
             end
         end

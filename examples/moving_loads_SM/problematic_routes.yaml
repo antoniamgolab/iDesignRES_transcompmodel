@@ -1,0 +1,23 @@
+problematic_paths:
+- 5184
+- 5409
+- 5347
+- 5348
+- 5287
+- 5288
+- 5129
+- 5289
+- 5418
+- 5896
+- 5964
+- 3573
+- 5239
+- 5785
+- 6045
+stats:
+  avg_segment_threshold: 500.0
+  multi_break_threshold: 2
+  num_long_edge: 15
+  num_multi_break: 3
+  num_problematic: 15
+  total_paths: 1261

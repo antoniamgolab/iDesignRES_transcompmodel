@@ -59,6 +59,7 @@ class CompleteSMNUTS2Preprocessor:
 
         # Mappings
         self.nuts3_to_nuts2 = {}  # NUTS-3 zone ID -> NUTS-2 region ID (via spatial join)
+        self.nuts3_id_to_country = {}  # ETISPlus Zone ID -> Country code (e.g., 101010101 -> 'AT')
         self.nuts2_to_node = {}   # NUTS-2 region ID -> NUTS-2 node ID
         self.node_to_nuts2 = {}   # Original node ID -> NUTS-2 region ID
         self.nuts2_nodes = {}     # NUTS-2 region ID -> aggregated node data
@@ -182,6 +183,13 @@ class CompleteSMNUTS2Preprocessor:
         nuts_3_to_nodes_file = self.data_dir / "02_NUTS-3-Regions.csv"
         nuts_3_to_nodes = pd.read_csv(nuts_3_to_nodes_file)
 
+        # Create mapping: ETISPlus Zone ID -> Country code (FIXED: proper mapping instead of string slicing)
+        self.nuts3_id_to_country = dict(zip(
+            nuts_3_to_nodes['ETISPlus_Zone_ID'],
+            nuts_3_to_nodes['Country']
+        ))
+        print(f"  Created country mapping for {len(self.nuts3_id_to_country)} NUTS-3 zones")
+
         # Convert to GeoDataFrame using geometric centers - OPTIMIZED with batch conversion
         geom_series = gpd.GeoSeries.from_wkt(nuts_3_to_nodes['Geometric_center'], crs=nuts_regions.crs)
         nuts_3_to_nodes_gdf = gpd.GeoDataFrame(nuts_3_to_nodes, geometry=geom_series, crs=nuts_regions.crs)
@@ -279,6 +287,10 @@ class CompleteSMNUTS2Preprocessor:
         # Mark whether origin and destination are inside filtered regions
         self.truck_traffic['origin_inside'] = self.truck_traffic['ID_origin_region'].isin(filtered_region_ids)
         self.truck_traffic['destination_inside'] = self.truck_traffic['ID_destination_region'].isin(filtered_region_ids)
+
+        # Add country columns to truck_traffic (used for cross-border filtering)
+        self.truck_traffic['origin_country'] = self.truck_traffic['ID_origin_region'].map(self.nuts3_id_to_country)
+        self.truck_traffic['dest_country'] = self.truck_traffic['ID_destination_region'].map(self.nuts3_id_to_country)
 
         rows_after = len(self.truck_traffic)
 
@@ -489,7 +501,7 @@ class CompleteSMNUTS2Preprocessor:
         print(f"    • Intra-regional (within NUTS2): {intra_regional_count}")
         print(f"[FIXED] Now preserves routing through intermediate regions like Austria")
 
-    def create_paths_with_original_distances(self, max_odpairs: int = None, min_distance_km: float = None, cross_border_only: bool = False):
+    def create_paths_with_original_distances(self, max_odpairs: int = None, min_distance_km: float = None, cross_border_only: bool = True, min_traffic_threshold: float = 100.0):
         """
         Create paths with collapsed NUTS-2 nodes but original traffic distances.
 
@@ -499,6 +511,8 @@ class CompleteSMNUTS2Preprocessor:
             max_odpairs: Maximum number of OD-pairs to process (by traffic flow)
             min_distance_km: Minimum distance filter (e.g., 360km for mandatory breaks test)
             cross_border_only: If True, only include OD-pairs where origin and destination
+            min_traffic_threshold: Minimum traffic volume (trucks/year) to include (default: 100.0)
+                                  Filters low-volume routes for better numerical stability
                               are in different countries (based on first 2 chars of NUTS code)
         """
         print("\n" + "="*80)
@@ -528,10 +542,8 @@ class CompleteSMNUTS2Preprocessor:
         # Apply cross-border filter if specified
         if cross_border_only:
             print("  Applying cross-border filter (origin and destination in different countries)...")
-            # Extract country codes (first 2 characters of NUTS-2 region ID)
-            valid_traffic['origin_country'] = valid_traffic['ID_origin_region'].astype(str).str[:2]
-            valid_traffic['dest_country'] = valid_traffic['ID_destination_region'].astype(str).str[:2]
-
+            # Country columns already added to self.truck_traffic in _apply_nuts_filtering()
+            # Filter using existing columns
             rows_before_cross_border = len(valid_traffic)
             valid_traffic = valid_traffic[
                 valid_traffic['origin_country'] != valid_traffic['dest_country']
@@ -547,6 +559,35 @@ class CompleteSMNUTS2Preprocessor:
                 print(f"  Found cross-border pairs between {len(cross_border_pairs)} country pairs:")
                 for _, pair in cross_border_pairs.head(10).iterrows():
                     print(f"    {pair['origin_country']} -> {pair['dest_country']}: {pair['count']:,} routes")
+
+        # Apply traffic volume filter (remove low-volume routes for better numerical stability)
+        print(f"  Applying traffic volume filter (>={min_traffic_threshold} trucks/year)...")
+        rows_before_volume_filter = len(valid_traffic)
+        valid_traffic = valid_traffic[
+            valid_traffic['Traffic_flow_trucks_2030'] >= min_traffic_threshold
+        ].copy()
+        rows_after_volume_filter = len(valid_traffic)
+
+        print(f"  After traffic volume filter: {rows_after_volume_filter:,} rows")
+        print(f"  Removed {rows_before_volume_filter - rows_after_volume_filter:,} low-volume routes ({(rows_before_volume_filter - rows_after_volume_filter)/rows_before_volume_filter*100:.1f}%)")
+
+        # Calculate retained traffic
+        total_volume_before = valid_traffic['Traffic_flow_trucks_2030'].sum() if rows_before_volume_filter > 0 else 0
+        if rows_before_volume_filter > rows_after_volume_filter:
+            # Recalculate from original (before filter)
+            import pandas as pd
+            if cross_border_only:
+                temp_traffic = self.truck_traffic[
+                    (self.truck_traffic['origin_country'] != self.truck_traffic['dest_country'])
+                ].copy()
+            else:
+                temp_traffic = self.truck_traffic.copy()
+
+            if min_distance_km:
+                temp_traffic = temp_traffic[temp_traffic['Total_distance'] >= min_distance_km]
+
+            volume_retained_pct = (valid_traffic['Traffic_flow_trucks_2030'].sum() / temp_traffic['Traffic_flow_trucks_2030'].sum() * 100) if len(temp_traffic) > 0 else 0
+            print(f"  Traffic volume retained: {volume_retained_pct:.1f}%")
 
         # Group by OD-pair (but keep them separate - don't aggregate!)
         od_groups = valid_traffic.groupby(
@@ -579,33 +620,23 @@ class CompleteSMNUTS2Preprocessor:
             origin_node = self.nuts2_to_node.get(origin_nuts2) if origin_nuts2 else None
             dest_node = self.nuts2_to_node.get(dest_nuts2) if dest_nuts2 else None
 
-            # Apply same validation logic as path creation (lines 437-470)
+            # Apply validation: ONLY include routes with both endpoints in corridor
             is_valid = False
 
-            # ====================================================================
-            # TEMPORARY FIX: Filter out local routes (origin == destination)
-            # These create infeasibility issues with multi-node travel time constraints
-            # TODO: Remove this filter once travel time constraint is improved
-            # ====================================================================
+            # Filter out local routes (origin == destination NUTS2)
             if origin_nuts2 == dest_nuts2:
                 is_valid = False
-            # Skip if neither endpoint in filtered regions
-            elif origin_node is None and dest_node is None:
-                is_valid = False
-            # Handle boundary-crossing routes
-            elif not origin_inside or not destination_inside:
-                if not origin_inside and dest_node is not None:
-                    is_valid = True  # Entering route
-                elif not destination_inside and origin_node is not None:
-                    is_valid = True  # Leaving route
-                else:
-                    is_valid = False
-            # Internal route: both endpoints must be mappable
-            else:
+            # ONLY accept routes where BOTH origin AND destination are inside corridor
+            elif origin_inside and destination_inside:
                 if origin_node is not None and dest_node is not None:
-                    is_valid = True
+                    is_valid = True  # Both endpoints in corridor and mappable
                 else:
-                    is_valid = False
+                    is_valid = False  # One endpoint not mappable to NUTS2
+            else:
+                # Exclude entering routes (outside → inside)
+                # Exclude leaving routes (inside → outside)
+                # Exclude through routes (outside → outside)
+                is_valid = False
 
             valid_od_mask.append(is_valid)
 
@@ -887,12 +918,20 @@ class CompleteSMNUTS2Preprocessor:
         prey_y: int = 10,
         occ: float = 0.5
     ) -> List[int]:
-        """Create initial vehicle stock for an OD-pair, respecting temporal resolution."""
+        """Create initial vehicle stock for an OD-pair, respecting temporal resolution.
+
+        IMPORTANT: The model aggregates demand over time_step years per modeled year.
+        So initial stock must be sized for time_step years of annual demand.
+        """
         # Get temporal resolution from configuration
         time_step = getattr(self, 'time_step', 1)  # Default to annual if not set
 
         # Calculate number of vehicles
-        nb_vehicles = traffic_flow * (distance / (13.6 * (1-0.25) * 136750))
+        # CRITICAL FIX: Multiply by time_step because model aggregates demand over time_step years
+        # Model constraint: sum(f) = sum(F[i] for i in 1:time_step) * (1/1000)
+        # So initial stock must cover time_step years of annual demand
+        # W = 13.6 tonnes (payload capacity), AR = 136750 km/year (annual range)
+        nb_vehicles = traffic_flow * time_step * (distance / (13.6 * 136750))
 
         # Get list of modeled years in pre-period
         modeled_years = list(range(y_init-prey_y, y_init, time_step))
@@ -928,16 +967,57 @@ class CompleteSMNUTS2Preprocessor:
     def create_mandatory_breaks(
         self,
         driver_limit_hours: float = 4.5,
-        avg_speed_kmh: float = 80.0
+        avg_speed_kmh: float = 80.0,
+        mode: str = 'road',
+        daily_driving_limit: float = 9.0,
+        short_break_duration: float = 0.75,
+        daily_rest_duration: float = 9.0,
+        team_driving_threshold: float = 54.0
     ):
-        """Create mandatory break constraints based on actual distances."""
-        print("\n" + "="*80)
-        print("STEP 4: CREATING MANDATORY BREAKS")
-        print("="*80)
+        """
+        Create mandatory break constraints following the paper approach.
 
-        max_distance = driver_limit_hours * avg_speed_kmh
+        Based on EU Regulation 561/2006 with simplifications from Speth et al. (2022):
+        - Break (B): 45 minutes after 4.5h driving
+        - Rest (R): 9 hours after 9h driving
+        - Team driving: Paths > 54h (6 days × 9h) use 2 drivers
+
+        Determines number of drivers per path and applies appropriate break rules:
+        - 1 driver: Short breaks after 4.5h, rest after 9h
+        - 2 drivers (team): No short breaks (rotate), rest after 9h each
+
+        Args:
+            driver_limit_hours: Maximum driving time before short break (default: 4.5h)
+            avg_speed_kmh: Average speed for calculating driving time (default: 80 km/h)
+            mode: Transport mode these breaks apply to (default: 'road')
+            daily_driving_limit: Maximum driving time per day before rest (default: 9h)
+            short_break_duration: Duration of short break in hours (default: 0.75h = 45 min)
+            daily_rest_duration: Duration of rest in hours (default: 9h per paper)
+            team_driving_threshold: Total driving hours to require team (default: 54h = 6 days × 9h)
+
+        Note:
+            Paper approach (Speth et al., 2022):
+            - Break (B) = 45 minutes
+            - Rest (R) = 9 hours
+            - Single driver: TTD <= 54h
+            - Team driving: TTD > 54h (both drivers rotate, no short breaks needed)
+        """
+        print("\n" + "="*80)
+        print("STEP 4: CREATING MANDATORY BREAKS (Paper: Speth et al., 2022)")
+        print("="*80)
+        print(f"  Mode: {mode}")
+        print(f"  Single driver: 45 min break after {driver_limit_hours}h driving")
+        print(f"  Rest period:   {daily_rest_duration:.1f}h after {daily_driving_limit}h driving")
+        print(f"  Team driving:  Paths > {team_driving_threshold}h ({team_driving_threshold/9:.0f} days) use 2 drivers (no short breaks)")
+
+        max_distance_short = driver_limit_hours * avg_speed_kmh
         break_id = 0
-        break_time = 0.75  # 45 minutes = 0.75 hours
+
+        # Statistics
+        total_short_breaks = 0
+        total_rests = 0
+        paths_single_driver = 0
+        paths_team_driver = 0
 
         for path in self.path_list:
             path_id = path['id']
@@ -946,38 +1026,157 @@ class CompleteSMNUTS2Preprocessor:
             distances = path['distance_from_previous']
             cumulative = path['cumulative_distance']
 
+            # Determine number of drivers based on total path driving time
+            total_path_driving_time = path_length / avg_speed_kmh
+            if total_path_driving_time > team_driving_threshold:
+                num_drivers = 2  # Team driving for long hauls (>54h)
+                paths_team_driver += 1
+            else:
+                num_drivers = 1  # Single driver for short/medium hauls (<=54h)
+                paths_single_driver += 1
+
+            # Store num_drivers in path for later access
+            path['num_drivers'] = int(num_drivers)
+
             distance_since_break = 0
-            time_since_break = 0
+            driving_time_today = 0  # Track driving time within current day
             break_number = 0
+            total_break_time = 0.0  # Cumulative break time
 
             for i in range(1, len(sequence)):
                 distance_since_break += distances[i]
-                time_since_break += distances[i] / avg_speed_kmh
+                time_increment = distances[i] / avg_speed_kmh
+                driving_time_today += time_increment
 
-                if distance_since_break >= max_distance:
+                total_driving_time = cumulative[i] / avg_speed_kmh
+
+                # Determine break type
+                break_type = None
+                break_duration = 0.0
+
+                # Check if rest is needed (after 9h driving per day)
+                if driving_time_today >= daily_driving_limit:
+                    break_type = 'rest'  # Paper terminology: Rest (R) = 9h
+                    break_duration = daily_rest_duration
+                    driving_time_today = 0  # Reset daily counter
+                    distance_since_break = 0
+                    total_rests += 1
+
+                # Check if short break is needed (ONLY for single driver)
+                elif num_drivers == 1 and distance_since_break >= max_distance_short:
+                    break_type = 'break'  # Paper terminology: Break (B) = 45 min
+                    break_duration = short_break_duration
+                    distance_since_break = 0
+                    total_short_breaks += 1
+
+                # Create break record
+                if break_type is not None:
                     break_number += 1
-                    total_driving_time = cumulative[i] / avg_speed_kmh
-                    time_with_breaks = total_driving_time + (break_number * break_time)
+                    total_break_time += break_duration
+                    time_with_breaks = total_driving_time + total_break_time
 
                     self.mandatory_breaks.append({
                         'id': break_id,
                         'path_id': path_id,
+                        'mode': mode,
+                        'num_drivers': int(num_drivers),  # Number of drivers (1 or 2)
+                        'break_type': break_type,  # 'break' (B=45min) or 'rest' (R=9h)
+                        'break_duration': float(break_duration),  # Actual duration in hours
                         'path_length': float(path_length),
                         'total_driving_time': float(total_driving_time),
                         'break_number': int(break_number),
-                        'latest_node_idx': int(i),  # FIXED: was 'node_index'
-                        'latest_geo_id': int(sequence[i]),  # FIXED: was 'node_id'
+                        'latest_node_idx': int(i),
+                        'latest_geo_id': int(sequence[i]),
                         'cumulative_distance': float(cumulative[i]),
                         'cumulative_driving_time': float(total_driving_time),
                         'time_with_breaks': float(time_with_breaks)
                     })
                     break_id += 1
-                    distance_since_break = 0
 
-        print(f"[OK] Created {len(self.mandatory_breaks)} mandatory break points")
+        print(f"[OK] Created {len(self.mandatory_breaks)} mandatory break points for mode: {mode}")
+        print(f"     - Breaks (B=45 min): {total_short_breaks} (single driver only)")
+        print(f"     - Rests (R=9h):      {total_rests}")
+        print(f"\n     Driver allocation:")
+        print(f"       Single driver paths (<=54h): {paths_single_driver:,} ({paths_single_driver/len(self.path_list)*100:.1f}%)")
+        print(f"       Team driver paths (>54h):    {paths_team_driver:,} ({paths_team_driver/len(self.path_list)*100:.1f}%)")
+
         if self.mandatory_breaks:
             avg_breaks = len(self.mandatory_breaks) / len(self.path_list)
             print(f"     Average breaks per path: {avg_breaks:.2f}")
+
+            # Calculate average break time per path
+            total_break_hours = sum(b['break_duration'] for b in self.mandatory_breaks)
+            avg_break_hours = total_break_hours / len(self.path_list)
+            print(f"     Average break time per path: {avg_break_hours:.2f} hours")
+            print(f"     These breaks apply to: {mode.upper()} transport only")
+
+    def add_baseline_travel_times(self, avg_speed_kmh: float = 80.0):
+        """
+        Add baseline_travel_time to all paths based on ACTUAL mandatory breaks.
+
+        IMPORTANT: Must be called AFTER create_mandatory_breaks().
+
+        baseline_travel_time = driving_time + sum(actual break durations)
+
+        Break durations vary (paper terminology):
+        - Breaks (B): 0.75 hours (45 minutes)
+        - Rests (R): 9 hours
+
+        This ensures baseline matches exactly what mandatory breaks constraint enforces.
+
+        Args:
+            avg_speed_kmh: Average speed for calculating driving time (default: 80 km/h)
+        """
+        print("\n" + "="*80)
+        print("STEP 4.5: ADDING BASELINE TRAVEL TIMES")
+        print("="*80)
+        print(f"  Average speed: {avg_speed_kmh} km/h")
+        print(f"  Using ACTUAL break durations (Breaks B=45min + Rests R=9h)")
+
+        # Sum actual break durations per path
+        total_break_time_per_path = {}
+        for break_point in self.mandatory_breaks:
+            path_id = break_point['path_id']
+            break_duration = break_point['break_duration']  # Actual duration in hours
+            total_break_time_per_path[path_id] = total_break_time_per_path.get(path_id, 0.0) + break_duration
+
+        # Add baseline_travel_time to each path
+        for path in self.path_list:
+            path_id = path['id']
+            path_length = path['length']
+
+            # Driving time
+            driving_time = path_length / avg_speed_kmh
+
+            # Actual mandatory break time for this path
+            break_time = total_break_time_per_path.get(path_id, 0.0)
+
+            # Baseline = driving + mandatory breaks only
+            path['baseline_travel_time'] = float(driving_time + break_time)
+
+        print(f"[OK] Added baseline_travel_time to {len(self.path_list)} paths")
+        avg_baseline = np.mean([p['baseline_travel_time'] for p in self.path_list])
+        max_baseline = np.max([p['baseline_travel_time'] for p in self.path_list])
+        min_baseline = np.min([p['baseline_travel_time'] for p in self.path_list])
+        avg_driving = np.mean([p['length'] / avg_speed_kmh for p in self.path_list])
+        avg_breaks = avg_baseline - avg_driving
+
+        print(f"     Average baseline: {avg_baseline:.2f} hours")
+        print(f"       - Driving time: {avg_driving:.2f} hours")
+        print(f"       - Break time:   {avg_breaks:.2f} hours")
+        print(f"     Min baseline: {min_baseline:.2f} hours")
+        print(f"     Max baseline: {max_baseline:.2f} hours")
+
+        # Break time breakdown
+        break_count = sum(1 for b in self.mandatory_breaks if b['break_type'] == 'break')
+        rest_count = sum(1 for b in self.mandatory_breaks if b['break_type'] == 'rest')
+        break_hours = sum(b['break_duration'] for b in self.mandatory_breaks if b['break_type'] == 'break')
+        rest_hours = sum(b['break_duration'] for b in self.mandatory_breaks if b['break_type'] == 'rest')
+
+        print(f"\n     Break Composition:")
+        print(f"       Breaks (B=45 min): {break_count:5,} × 0.75h = {break_hours:8.1f}h")
+        print(f"       Rests (R=9h):      {rest_count:5,} × 9h    = {rest_hours:8.1f}h")
+        print(f"       Total break time:                  {break_hours + rest_hours:8.1f}h")
 
     def save_results(self):
         """Save all results to YAML files."""
@@ -1205,12 +1404,13 @@ class CompleteSMNUTS2Preprocessor:
         print(f"     Vehicle stock entries: {len(self.initial_vehicle_stock)}")
         print(f"     Reduction: {len(odpair_groups)} individual routes -> {len(self.odpair_list)} aggregated")
 
-    def run_complete_preprocessing(self, max_odpairs: int = None, min_distance_km: float = None, cross_border_only: bool = False, aggregate_odpairs: bool = True):
+    def run_complete_preprocessing(self, max_odpairs: int = None, min_distance_km: float = None, cross_border_only: bool = True, min_traffic_threshold: float = 100.0, aggregate_odpairs: bool = True):
         """Execute complete preprocessing pipeline.
 
         Args:
             max_odpairs: Maximum number of OD-pairs to process
             min_distance_km: Minimum distance filter (e.g., 360km for mandatory breaks)
+            min_traffic_threshold: Minimum traffic volume (trucks/year) to include (default: 100.0)
             cross_border_only: If True, only include cross-border OD-pairs (different countries)
             aggregate_odpairs: If True, aggregate OD-pairs by NUTS-2 origin-destination (default: True)
         """
@@ -1223,6 +1423,8 @@ class CompleteSMNUTS2Preprocessor:
             print(f"Filter: Distance >= {min_distance_km}km (mandatory breaks test)")
         if cross_border_only:
             print(f"Filter: Cross-border only (origin and destination in different countries)")
+        if min_traffic_threshold:
+            print(f"Filter: Traffic volume >= {min_traffic_threshold} trucks/year (numerical stability)")
         print("="*80)
 
         self.load_data()
@@ -1231,7 +1433,8 @@ class CompleteSMNUTS2Preprocessor:
         self.create_paths_with_original_distances(
             max_odpairs=max_odpairs,
             min_distance_km=min_distance_km,
-            cross_border_only=cross_border_only
+            cross_border_only=cross_border_only,
+            min_traffic_threshold=min_traffic_threshold
         )
 
         # Scale transport demand F based on linear growth (2015-2024 reference points)
@@ -1242,6 +1445,7 @@ class CompleteSMNUTS2Preprocessor:
             self.aggregate_odpairs_by_nuts2()
 
         self.create_mandatory_breaks()
+        self.add_baseline_travel_times(avg_speed_kmh=80.0)
         self.save_results()
 
         # Summary
@@ -1349,7 +1553,7 @@ if __name__ == "__main__":
     # Legacy single-case configuration (only used if GENERATE_BOTH_CASES = False)
     MAX_ODpair = None  # Change this to limit OD-pairs (e.g., 100 for testing)
     MIN_DISTANCE_KM = None  # Change to filter by distance (e.g., 360.0)
-    CROSS_BORDER_ONLY = False  # Set to True to only include cross-border OD-pairs (different countries)
+    CROSS_BORDER_ONLY = True  # Set to True to only include cross-border OD-pairs (different countries)
     # ========================================================================
 
     # Get script directory to resolve relative paths
@@ -1371,7 +1575,7 @@ if __name__ == "__main__":
     # ========================================================================
     else:
         # Parse command-line arguments
-        # Usage: python SM_preprocessing_nuts3_complete.py [data_dir] [output_dir] [max_odpairs] [min_distance_km] [cross_border_only]
+        # Usage: SM_preprocessing_nuts2_complete.py [data_dir] [output_dir] [max_odpairs] [min_distance_km] [cross_border_only]
         if len(sys.argv) > 1:
             data_dir = Path(sys.argv[1])
         if len(sys.argv) > 2:

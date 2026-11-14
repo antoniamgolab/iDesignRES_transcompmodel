@@ -215,9 +215,13 @@ def create_nuts3_paths_with_original_distances(
         F_values = [traffic_2030] * n_years
 
         # Calculate vehicle stock
+        # CRITICAL FIX: Multiply by time_step because model aggregates demand over time_step years
+        # Formula: nb_vehicles = annual_demand * time_step * distance / (W * AR)
+        # W = 13.6 tonnes (payload capacity), AR = 136750 km/year (annual range)
         F = traffic_2030
         distance = total_distance
-        nb_vehicles = F * (distance / (26 * occ * 120000))
+        time_step = getattr(self, 'time_step', 1) if hasattr(self, 'time_step') else 1
+        nb_vehicles = F * time_step * (distance / (13.6 * 136750))
 
         # Create initial vehicle stock
         vehicle_init_ids = []

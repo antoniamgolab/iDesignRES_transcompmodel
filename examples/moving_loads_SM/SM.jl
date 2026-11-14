@@ -17,7 +17,16 @@ script_dir = @__DIR__   # Directory of the current script
 # folder = "case_20251016_152355"  # TEST CASE: 100 OD-pairs >= 360km (mandatory breaks guaranteed)
 # folder = "sm_nuts3_complete"  # FULL CASE: All OD-pairs (uncomment to use full dataset)
 # folder = "case_20251017_105556"  # NUTS-2 aggregated with FIXED mandatory breaks (360km + cross-border)
-folder = "case_20251105_111439"  # NUTS-2 international routes, ≥360km, no local routes, with technical parameters
+#folder = "case_20251106_102427"  # shift to rail
+# folder ="case_20251106_112933_var_var" # no shift to rail, just variable variable 
+# folder = "case_20251107_083520_uni_var"
+# folder = "case_20251107_102543" 
+# folder = "case_20251107_083402_uni_uni"
+# folder = "case_20251107_103304_int_var_var"
+# folder = "case_20251107_103513_int_uni_var"
+# folder = "case_20251107_103811_init_uni_uni"
+# folder = "case_20251107_121743"
+folder ="case_20251107_214315_uni_uni"
 input_path = joinpath(@__DIR__, "input_data", folder)  # Use the actual case directory name
 println("Constructed file path: $input_path")
 
@@ -71,10 +80,10 @@ end
 
 # Configure Gurobi solver for MEMORY-EFFICIENT usage
 @info "Step 3.5/5: Configuring solver parameters for memory efficiency..."
-set_optimizer_attribute(model, "NodeFileStart", 0.5)    # Write nodes to disk after 0.5 GB
-set_optimizer_attribute(model, "NodeFileDir", ".")      # Use current directory for node files
+# set_optimizer_attribute(model, "NodeFileStart", 0.5)    # Write nodes to disk after 0.5 GB
+# set_optimizer_attribute(model, "NodeFileDir", ".")      # Use current directory for node files
 # set_optimizer_attribute(model, "MemLimit", 30)           # Limit Gurobi to 30 GB RAM (sufficient for model)
-#set_optimizer_attribute(model, "Presolve", 2)           # Aggressive presolve to reduce problem
+set_optimizer_attribute(model, "Method", 2)           # Aggressive presolve to reduce problem
 set_optimizer_attribute(model, "MIPFocus", 1)           # Focus on feasibility
 set_optimizer_attribute(model, "Cuts", 1)               # Conservative cuts
 set_optimizer_attribute(model, "MIPGap", 0.01)          # 1% gap
@@ -85,16 +94,18 @@ set_optimizer_attribute(model, "OptimalityTol", 1e-5)   # Looser optimality tole
 set_optimizer_attribute(model, "IntFeasTol", 1e-4)      # Looser integer feasibility (default: 1e-5)
 # set_optimizer_attribute(model, "TimeLimit", 7200)       # 2 hour time limit
 set_optimizer_attribute(model, "Crossover", 0)            # Disable crossover to save memory
-set_optimizer_attribute(model, "Threads", 4)            # Use 4 threads for better performance
+# set_optimizer_attribute(model, "Threads", 4)            # Use 4 threads for better performance
 @info "✓ Solver configured for memory-efficient solving (disk-based nodes, 30GB limit, 4 threads)"
-
+set_optimizer_attribute(model, "Method", 2)       # Barrier only
+set_optimizer_attribute(model, "Crossover", 1)    # Enable crossover for clean dual values
+set_optimizer_attribute(model, "BarConvTol", 1e-6) # Faster convergence
 # ============================================================================
 # CONSTRAINT SETUP - Organized by dependency and logical grouping
 # ============================================================================
 
 @info "Memory before constraints: $(round(Sys.free_memory()/1024^3, digits=2)) GB free"
 t_start = time()
-#constraint_mandatory_breaks(model, data_structures)
+constraint_mandatory_breaks(model, data_structures)
 t_mandatory_breaks = time() - t_start
 @info "✓ Mandatory breaks constraint added in $(round(t_mandatory_breaks, digits=2)) seconds"
 @info "  Memory after: $(round(Sys.free_memory()/1024^3, digits=2)) GB free"
@@ -157,7 +168,7 @@ t_mode_shift = time() - t_start
 t_start = time()
 if !isempty(data_structures["max_mode_share_list"])
     @info "Step 4.6/5: Adding max mode share constraint..."
-    # constraint_max_mode_share(model, data_structures)
+    constraint_max_mode_share(model, data_structures)
     t_max_mode_share = time() - t_start
     @info "✓ Max mode share constraint added in $(round(t_max_mode_share, digits=2)) seconds"
 else
@@ -194,7 +205,7 @@ t_start = time()
 # Timing: Add objective
 @info "Step 4.5/5: Adding objective..."
 t_obj_start = time()
-objective(model, data_structures, false)
+objective(model, data_structures, true)  # true = include fuel costs in objective
 t_obj = time() - t_obj_start
 @info "✓ Objective added in $(round(t_obj, digits=2)) seconds"
 
@@ -206,6 +217,11 @@ t_start = time()
 optimize!(model)
 t_optimize = time() - t_start
 @info "✓ Optimization complete in $(round(t_optimize, digits=2)) seconds"
+
+# ============================================================================
+# BINDING CONSTRAINT ANALYSIS (dual values / shadow prices)
+# ============================================================================
+include("analyze_binding_constraints.jl")
 
 # Run diagnostics (only for vehicle-based modes - skip if 100% rail)
 println("\n" * "="^80)

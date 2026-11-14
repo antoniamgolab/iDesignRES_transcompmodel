@@ -60,7 +60,7 @@ def compare_bev_matrices(matrices_dict, metric='total'):
     return pd.DataFrame(comparison).T
 
 
-def plot_bev_matrices_comparison(matrices_dict, figsize=(15, 10), case_labels=None):
+def plot_bev_matrices_comparison(matrices_dict, figsize=(15, 10), case_labels=None, year=2030):
     """
     Create side-by-side heatmaps for all cases
 
@@ -116,7 +116,7 @@ def plot_bev_matrices_comparison(matrices_dict, figsize=(15, 10), case_labels=No
         axes[idx].axis('off')
 
     plt.tight_layout()
-    plt.savefig('bev_matrices_comparison.png', dpi=300)
+    plt.savefig(f'bev_matrices_comparison_{year}.pdf')
     plt.show()
 
 

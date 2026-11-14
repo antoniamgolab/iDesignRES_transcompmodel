@@ -121,6 +121,7 @@ struct Path
     sequence::Array{GeographicElement,1}
     cumulative_distance::Array{Float64,1}
     distance_from_previous::Array{Float64,1}
+    baseline_travel_time::Float64  # Minimum unavoidable travel time (driving + mandatory breaks)
 end
 
 """
@@ -299,6 +300,7 @@ A 'TechVehicle' represents a vehicle that is used for transportation. This inclu
 - `tank_capacity::Array{Float64}`: battery capacity in kWh
 - `peak_fueling::Array{Float64}`: peak charging power in kW
 - `fueling_time´::Array{Float64}`: refueling time in h (total tank) - array with values by generation
+- `toll_per_km::Array{Float64}`: toll cost in EUR/km (optional, defaults to 0.0) - technology-specific road tolls
 """
 struct TechVehicle
     id::Int
@@ -309,13 +311,14 @@ struct TechVehicle
     maintenance_cost_annual::Array{Array{Float64,1},1}
     maintenance_cost_distance::Array{Array{Float64,1},1}
     W::Array{Float64}  # load capacity in t
-    spec_cons::Array{Float64}  # specific consumption in kWh/km  
-    Lifetime::Array{Int} # Array if multiple generations are considered 
+    spec_cons::Array{Float64}  # specific consumption in kWh/km
+    Lifetime::Array{Int} # Array if multiple generations are considered
     AnnualRange::Array{Float64} # annual range in km
     products::Array{Product} # number of vehicles of this type
     tank_capacity::Array{Float64} # battery capacity in kWh
     peak_fueling::Array{Float64} # peak charging power in kW
     fueling_time::Array{Float64} # fueling time in h
+    toll_per_km::Array{Float64} # toll cost in EUR/km (optional, technology-specific)
 end
 
 """

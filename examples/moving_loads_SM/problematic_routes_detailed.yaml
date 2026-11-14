@@ -1,0 +1,210 @@
+path_details:
+  '3573':
+    avg_segment_length: 513.1859668356859
+    has_multi_breaks: false
+    is_long_edge: true
+    num_segments: 1
+    path_id: 3573
+    path_length: 513.1859668356859
+    sequence:
+    - 46
+    - 77
+  '5129':
+    avg_segment_length: 641.5455410791839
+    has_multi_breaks: true
+    is_long_edge: true
+    multi_break_nodes:
+    - break_numbers:
+      - 3
+      - 4
+      - 5
+      cumulative_distances:
+      - 1080.0
+      - 1440.0
+      - 1800.0
+      geo_id: 69
+      num_breaks: 3
+    num_segments: 3
+    path_id: 5129
+    path_length: 1924.6366232375515
+    sequence:
+    - 70
+    - 67
+    - 68
+    - 69
+  '5184':
+    avg_segment_length: 634.2175022789426
+    has_multi_breaks: false
+    is_long_edge: true
+    num_segments: 1
+    path_id: 5184
+    path_length: 634.2175022789426
+    sequence:
+    - 67
+    - 72
+  '5239':
+    avg_segment_length: 653.2817817371938
+    has_multi_breaks: false
+    is_long_edge: true
+    num_segments: 1
+    path_id: 5239
+    path_length: 653.2817817371938
+    sequence:
+    - 71
+    - 72
+  '5287':
+    avg_segment_length: 618.4924996052423
+    has_multi_breaks: false
+    is_long_edge: true
+    num_segments: 1
+    path_id: 5287
+    path_length: 618.4924996052423
+    sequence:
+    - 72
+    - 67
+  '5288':
+    avg_segment_length: 653.4635522809217
+    has_multi_breaks: false
+    is_long_edge: true
+    num_segments: 1
+    path_id: 5288
+    path_length: 653.4635522809217
+    sequence:
+    - 72
+    - 71
+  '5289':
+    avg_segment_length: 899.5539432176656
+    has_multi_breaks: true
+    is_long_edge: true
+    multi_break_nodes:
+    - break_numbers:
+      - 1
+      - 2
+      cumulative_distances:
+      - 360.0
+      - 720.0
+      geo_id: 68
+      num_breaks: 2
+    num_segments: 1
+    path_id: 5289
+    path_length: 899.5539432176656
+    sequence:
+    - 72
+    - 68
+  '5347':
+    avg_segment_length: 628.5354999433812
+    has_multi_breaks: false
+    is_long_edge: true
+    num_segments: 1
+    path_id: 5347
+    path_length: 628.5354999433812
+    sequence:
+    - 68
+    - 72
+  '5348':
+    avg_segment_length: 654.865658672228
+    has_multi_breaks: false
+    is_long_edge: true
+    num_segments: 1
+    path_id: 5348
+    path_length: 654.865658672228
+    sequence:
+    - 68
+    - 69
+  '5409':
+    avg_segment_length: 906.1926490669093
+    has_multi_breaks: true
+    is_long_edge: true
+    multi_break_nodes:
+    - break_numbers:
+      - 2
+      - 3
+      - 4
+      - 5
+      cumulative_distances:
+      - 720.0
+      - 1080.0
+      - 1440.0
+      - 1800.0
+      geo_id: 72
+      num_breaks: 4
+    num_segments: 2
+    path_id: 5409
+    path_length: 1812.3852981338187
+    sequence:
+    - 69
+    - 68
+    - 72
+  '5418':
+    avg_segment_length: 665.1634997790543
+    has_multi_breaks: false
+    is_long_edge: true
+    num_segments: 1
+    path_id: 5418
+    path_length: 665.1634997790543
+    sequence:
+    - 69
+    - 80
+  '5785':
+    avg_segment_length: 512.1911904010104
+    has_multi_breaks: false
+    is_long_edge: true
+    num_segments: 1
+    path_id: 5785
+    path_length: 512.1911904010104
+    sequence:
+    - 77
+    - 46
+  '5896':
+    avg_segment_length: 504.2547641015216
+    has_multi_breaks: false
+    is_long_edge: true
+    num_segments: 1
+    path_id: 5896
+    path_length: 504.2547641015216
+    sequence:
+    - 78
+    - 77
+  '5964':
+    avg_segment_length: 563.2795843496003
+    has_multi_breaks: false
+    is_long_edge: true
+    num_segments: 1
+    path_id: 5964
+    path_length: 563.2795843496003
+    sequence:
+    - 79
+    - 80
+  '6045':
+    avg_segment_length: 660.0242579024729
+    has_multi_breaks: false
+    is_long_edge: true
+    num_segments: 1
+    path_id: 6045
+    path_length: 660.0242579024729
+    sequence:
+    - 80
+    - 79
+problematic_paths:
+- 5184
+- 5409
+- 5347
+- 5348
+- 5287
+- 5288
+- 5129
+- 5289
+- 5418
+- 5896
+- 5964
+- 3573
+- 5239
+- 5785
+- 6045
+stats:
+  avg_segment_threshold: 500.0
+  multi_break_threshold: 2
+  num_long_edge: 15
+  num_multi_break: 3
+  num_problematic: 15
+  total_paths: 1261

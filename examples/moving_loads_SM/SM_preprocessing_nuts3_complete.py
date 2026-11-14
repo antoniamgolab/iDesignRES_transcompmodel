@@ -701,7 +701,11 @@ class CompleteSMNUTS3Preprocessor:
         time_step = getattr(self, 'time_step', 1)  # Default to annual if not set
 
         # Calculate number of vehicles
-        nb_vehicles = traffic_flow * (distance / (13.6 * 136750))
+        # CRITICAL FIX: Multiply by time_step because model aggregates demand over time_step years
+        # Model constraint: sum(f) = sum(F[i] for i in 1:time_step) * (1/1000)
+        # So initial stock must cover time_step years of annual demand
+        # W = 13.6 tonnes (payload capacity), AR = 136750 km/year (annual range)
+        nb_vehicles = traffic_flow * time_step * (distance / (13.6 * 136750))
 
         # Get list of modeled years in pre-period
         modeled_years = list(range(y_init-prey_y, y_init, time_step))

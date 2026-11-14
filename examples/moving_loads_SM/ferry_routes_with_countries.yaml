@@ -1,0 +1,47 @@
+ferry_edges:
+- distance: 829.8640114438342
+  end_country: SE
+  end_name: nuts2_SE22
+  is_international: true
+  path_id: 2110
+  start_country: DE
+  start_name: nuts2_DE80
+- distance: 1038.7430205561802
+  end_country: SE
+  end_name: nuts2_SE22
+  is_international: true
+  path_id: 2111
+  start_country: DE
+  start_name: nuts2_DE80
+- distance: 853.1154587545344
+  end_country: SE
+  end_name: nuts2_SE22
+  is_international: true
+  path_id: 2179
+  start_country: DE
+  start_name: nuts2_DE80
+- distance: 819.5936869062582
+  end_country: 'NO'
+  end_name: nuts2_NO07
+  is_international: false
+  path_id: 5129
+  start_country: 'NO'
+  start_name: nuts2_NO06
+- distance: 899.5539432176656
+  end_country: 'NO'
+  end_name: nuts2_NO06
+  is_international: false
+  path_id: 5289
+  start_country: 'NO'
+  start_name: nuts2_NO0A
+- distance: 1049.4160239872542
+  end_country: 'NO'
+  end_name: nuts2_NO06
+  is_international: false
+  path_id: 5409
+  start_country: 'NO'
+  start_name: nuts2_NO07
+num_domestic: 3
+num_ferries: 6
+num_international: 3
+threshold_km: 800

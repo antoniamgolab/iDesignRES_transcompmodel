@@ -9,6 +9,7 @@ using YAML, JuMP, Gurobi, Printf, ProgressMeter, Dates
 # export data types
 
 include("structs.jl")
+include("checks.jl")
 include("model_functions.jl")
 include("support_functions.jl")
 export Node
@@ -66,6 +67,7 @@ export constraint_mode_infrastructure
 export constraint_fueling_demand
 export constraint_vehicle_stock_shift
 export constraint_vehicle_stock_shift_vehicle_type
+export constraint_flow_shift
 export constraint_mode_shift
 export constraint_mode_share
 export constraint_max_mode_share
@@ -98,6 +100,7 @@ export constraint_soc_track
 export constraint_spatial_flexibility
 export constraint_travel_time_track
 export constraint_mandatory_breaks
+export constraint_charging_at_breaks_only
 export objective
 
 # exporting supporting functions
@@ -117,6 +120,8 @@ export create_emission_price_along_path
 export disagreggate
 export save_results
 export find_large_rhs
+export load_h_dict_from_yaml
+export fix_fleet_from_results!
 export apply_start_values_from_model
 export apply_start_values_fast_skip_progress
 export set_binary_start_x_c_from_relaxed!

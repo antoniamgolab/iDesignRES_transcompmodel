@@ -1,0 +1,15 @@
+ferry_paths:
+- 2110
+- 2111
+- 2179
+- 5129
+- 5289
+- 5409
+num_paths: 6
+percentage: 0.47581284694686754
+statistics:
+  max_edge_in_dataset: 1049.4160239872542
+  mean_max_edge: 231.83245079151416
+  median_max_edge: 185.60552843599723
+threshold_km: 800
+total_paths: 1261
